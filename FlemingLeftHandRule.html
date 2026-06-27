@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electromagnetism Lab: Play with Current & Fields</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+        }
+        .heading-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* Animated pulse for current flow */
+        @keyframes current-flow-right {
+            0% { stroke-dashoffset: 24; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .current-active {
+            stroke-dasharray: 8, 4;
+            animation: current-flow-right 1s linear infinite;
+        }
+        .current-active-reverse {
+            stroke-dasharray: 8, 4;
+            animation: current-flow-right 1s linear infinite reverse;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-500/20 flex items-center justify-center">
+                    <i class="fa-solid fa-bolt text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <span class="heading-font text-lg font-bold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        ELECTROMAGNETISM LAB
+                    </span>
+                    <span class="block text-[10px] text-slate-400 tracking-widest font-mono">VIRTUAL INTERACTIVE EXPERIMENTS</span>
+                </div>
+            </div>
+            
+            <!-- Quick Navigation Tabs -->
+            <nav class="hidden md:flex space-x-1 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800">
+                <button onclick="switchTab('loop-tab')" id="nav-loop-tab" class="nav-btn px-4 py-2 text-sm font-semibold rounded-lg bg-indigo-600 text-white transition-all duration-200">
+                    <i class="fa-solid fa-rotate mr-2"></i>Wire & Loop
+                </button>
+                <button onclick="switchTab('solenoid-tab')" id="nav-solenoid-tab" class="nav-btn px-4 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200">
+                    <i class="fa-solid fa-wind mr-2"></i>Solenoid
+                </button>
+                <button onclick="switchTab('force-tab')" id="nav-force-tab" class="nav-btn px-4 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200">
+                    <i class="fa-solid fa-arrows-up-down-left-right mr-2"></i>Magnetic Force
+                </button>
+                <button onclick="switchTab('challenge-tab')" id="nav-challenge-tab" class="nav-btn px-4 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200">
+                    <i class="fa-solid fa-trophy mr-2 text-amber-500"></i>Quizzes & Challenges
+                </button>
+            </nav>
+
+            <!-- Score / Badge system -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-slate-800/80 px-3.5 py-1.5 rounded-full border border-slate-700/60 flex items-center space-x-2">
+                    <i class="fa-solid fa-star text-amber-400 animate-bounce"></i>
+                    <span class="text-xs font-bold text-slate-200 font-mono" id="score-counter">XP: 0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Bar -->
+    <div class="md:hidden bg-slate-900 border-b border-slate-800 p-2 flex justify-around text-xs sticky top-16 z-40">
+        <button onclick="switchTab('loop-tab')" id="m-nav-loop-tab" class="m-nav-btn flex flex-col items-center space-y-1 text-indigo-400">
+            <i class="fa-solid fa-rotate text-lg"></i>
+            <span>Loop</span>
+        </button>
+        <button onclick="switchTab('solenoid-tab')" id="m-nav-solenoid-tab" class="m-nav-btn flex flex-col items-center space-y-1 text-slate-400">
+            <i class="fa-solid fa-wind text-lg"></i>
+            <span>Solenoid</span>
+        </button>
+        <button onclick="switchTab('force-tab')" id="m-nav-force-tab" class="m-nav-btn flex flex-col items-center space-y-1 text-slate-400">
+            <i class="fa-solid fa-arrows-up-down-left-right text-lg"></i>
+            <span>Force</span>
+        </button>
+        <button onclick="switchTab('challenge-tab')" id="m-nav-challenge-tab" class="m-nav-btn flex flex-col items-center space-y-1 text-slate-400">
+            <i class="fa-solid fa-trophy text-lg"></i>
+            <span>Challenges</span>
+        </button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Welcome Banner with Educator Context -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 relative overflow-hidden shadow-2xl">
+            <div class="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl"></div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 mb-3">
+                        <i class="fa-solid fa-graduation-cap mr-1.5"></i> High School Physics - Grade 10 Electromagnetism
+                    </span>
+                    <h1 class="heading-font text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                        Explore the Invisible Forces of Magnetism!
+                    </h1>
+                    <p class="text-sm text-slate-300 mt-2 max-w-3xl leading-relaxed">
+                        What happens when electric current flows through conductors? How do magnetic field lines wrap around them? Adjust sliders, reverse battery polarity, trigger interactive rules, and see the science in action!
+                    </p>
+                </div>
+                <div class="flex-shrink-0 flex items-center space-x-3 bg-slate-950/40 p-4 rounded-xl border border-slate-800/80">
+                    <div class="text-center">
+                        <p class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Current Method</p>
+                        <p class="text-sm font-bold text-indigo-400">Maxwell & Fleming Rules</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: WIRE & CIRCULAR LOOP LAB -->
+        <div id="loop-tab" class="tab-content block">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Sandbox Controller Sidebar -->
+                <div class="lg:col-span-4 flex flex-col space-y-6">
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 shadow-xl">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+                            <h3 class="heading-font text-lg font-bold text-white flex items-center">
+                                <span class="bg-indigo-500/20 text-indigo-400 w-8 h-8 rounded-lg flex items-center justify-center mr-2.5 text-sm">
+                                    <i class="fa-solid fa-sliders"></i>
+                                </span>
+                                Lab Controls
+                            </h3>
+                            <button onclick="resetLoopLab()" class="text-xs text-slate-400 hover:text-white transition flex items-center">
+                                <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Reset
+                            </button>
+                        </div>
+
+                        <!-- Wire Type selection -->
+                        <div class="mb-5">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Conductor Design</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="btn-wire-straight" onclick="setWireType('straight')" class="py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-indigo-600 border-indigo-500 text-white">
+                                    <i class="fa-solid fa-arrows-up-down mr-1.5"></i>Straight Wire
+                                </button>
+                                <button id="btn-wire-loop" onclick="setWireType('loop')" class="py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700/50">
+                                    <i class="fa-solid fa-rotate mr-1.5"></i>Circular Loop
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Current Slider -->
+                        <div class="mb-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="loop-current" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Current Intensity (I)</label>
+                                <span id="val-current" class="text-sm font-bold text-indigo-400 font-mono">1.5 A</span>
+                            </div>
+                            <input type="range" id="loop-current" min="-3" max="3" step="0.5" value="1.5" class="w-full accent-indigo-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-500 px-1 mt-1 font-mono">
+                                <span>-3.0A (Reverse)</span>
+                                <span>0.0A (Off)</span>
+                                <span>+3.0A (Forward)</span>
+                            </div>
+                        </div>
+
+                        <!-- Number of Turns (Conditional for Loop) -->
+                        <div class="mb-5 transition-all duration-300" id="turns-control-wrapper" style="display: none;">
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="loop-turns" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Turns in Loop (n)</label>
+                                <span id="val-turns" class="text-sm font-bold text-purple-400 font-mono">1 Turn</span>
+                            </div>
+                            <input type="range" id="loop-turns" min="1" max="5" step="1" value="1" class="w-full accent-purple-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                                <i class="fa-solid fa-info-circle text-purple-400 mr-1"></i> More turns strengthen magnetic flux intensity ($B \propto n$).
+                            </p>
+                        </div>
+
+                        <!-- Compass / Probe Toggles -->
+                        <div class="mb-5">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Diagnostic Tools</label>
+                            <div class="space-y-2.5">
+                                <label class="flex items-center space-x-3 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 cursor-pointer hover:bg-slate-950/60 transition">
+                                    <input type="checkbox" id="chk-compass" checked class="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 h-4.5 w-4.5">
+                                    <span class="text-xs font-medium text-slate-300">Show Magnetic Needle (Compass)</span>
+                                </label>
+                                <label class="flex items-center space-x-3 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 cursor-pointer hover:bg-slate-950/60 transition">
+                                    <input type="checkbox" id="chk-rhr" checked class="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 h-4.5 w-4.5">
+                                    <span class="text-xs font-medium text-slate-300">Overlay Right-Hand Rule Helper</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Live Readout Box -->
+                        <div class="bg-indigo-950/40 border border-indigo-500/20 p-4 rounded-xl">
+                            <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-chart-line mr-1"></i> Real-time Vector Data</h4>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <p class="text-slate-400">Field Direction</p>
+                                    <p id="readout-field-dir" class="font-bold text-emerald-400 font-mono">Clockwise</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400">Relative Magnitude (B)</p>
+                                    <p id="readout-field-mag" class="font-bold text-purple-400 font-mono">1.5 units</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Educator Note / Method -->
+                    <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+                        <h4 class="text-sm font-semibold text-white mb-2 flex items-center">
+                            <i class="fa-solid fa-graduation-cap text-indigo-400 mr-2"></i>
+                            The Educator's Guide: Try This!
+                        </h4>
+                        <ol class="text-xs text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+                            <li>Set wire to <strong>Straight Wire</strong>. Adjust current from negative to positive. Observe how field lines reverse direction!</li>
+                            <li>Switch to <strong>Circular Loop</strong>. Note that near points P and Q on the cardboard sheet, magnetic lines of force form concentric circles.</li>
+                            <li>Observe the central point of the loop: as circles grow bigger, why does the center line appear completely straight?</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas Card -->
+                <div class="lg:col-span-8 flex flex-col space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full">
+                        <div class="bg-slate-950 px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3.5 h-3.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                <span class="heading-font text-sm font-bold text-white" id="canvas-title">Interactive Field Visualization</span>
+                            </div>
+                            <span class="text-xs font-mono text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
+                                3D-Isometric Perspective
+                            </span>
+                        </div>
+
+                        <!-- Canvas Workspace -->
+                        <div class="flex-grow relative bg-slate-950 p-4 min-h-[400px] flex items-center justify-center">
+                            <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35"></div>
+                            
+                            <!-- Interactive SVG viewport representing concentric magnetic fields -->
+                            <svg id="svg-field-viewer" class="w-full h-[400px] select-none" viewBox="0 0 600 400">
+                                <defs>
+                                    <!-- Gradients -->
+                                    <linearGradient id="cardboardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#1e293b" />
+                                        <stop offset="100%" stop-color="#0f172a" />
+                                    </linearGradient>
+                                    <linearGradient id="copperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ea580c" />
+                                        <stop offset="100%" stop-color="#9a3412" />
+                                    </linearGradient>
+                                    <!-- Glow filter -->
+                                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="3" result="blur" />
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                    <!-- Arrow marker for field lines -->
+                                    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#818cf8"/>
+                                    </marker>
+                                    <marker id="arrow-reverse" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e"/>
+                                    </marker>
+                                </defs>
+
+                                <!-- Isometric Cardboard Sheet Representing Plane of Measurement -->
+                                <path d="M 120,250 L 480,250 L 380,130 L 20,130 Z" fill="url(#cardboardGrad)" stroke="#334155" stroke-width="2.5" />
+                                <text x="40" y="155" fill="#475569" class="text-[11px] font-bold tracking-widest font-mono">CARDBOARD PLANE</text>
+                                
+                                <!-- Anchor Point P & Q Labels -->
+                                <g id="point-p-group">
+                                    <circle cx="170" cy="190" r="4" fill="#ef4444" />
+                                    <text x="160" y="180" fill="#f87171" class="text-xs font-bold font-mono">P</text>
+                                </g>
+                                <g id="point-q-group">
+                                    <circle cx="330" cy="190" r="4" fill="#3b82f6" />
+                                    <text x="340" y="180" fill="#60a5fa" class="text-xs font-bold font-mono">Q</text>
+                                </g>
+
+                                <!-- Magnetic Field Concentric Circle Groups (Drawn beneath / above elements properly via dynamic rendering) -->
+                                <g id="field-lines-layer"></g>
+
+                                <!-- The Conductor Path (Straight Wire vs Loop) -->
+                                <g id="conductor-group"></g>
+
+                                <!-- Current indicators (+ / - / Battery diagram) -->
+                                <g id="battery-indicator-group"></g>
+
+                                <!-- Interactive Compass Needles -->
+                                <g id="compass-needles-layer"></g>
+
+                                <!-- Interactive Right Hand Thumb Overlay -->
+                                <g id="rhr-overlay" class="opacity-90"></g>
+                            </svg>
+
+                            <!-- Mini Interactive Legend Overlay -->
+                            <div class="absolute bottom-4 left-4 right-4 bg-slate-900/95 border border-slate-800/80 rounded-xl p-3 flex flex-wrap gap-4 items-center justify-between text-xs">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-3.5 h-1.5 bg-orange-500 rounded-sm"></span>
+                                        <span class="text-slate-300">Copper Wire</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-3.5 h-1.5 border-t border-dashed border-indigo-400"></span>
+                                        <span class="text-indigo-300">Magnetic Field ($B$)</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-3.5 h-3.5 bg-gradient-to-tr from-rose-500 to-sky-500 rounded-full inline-block"></span>
+                                        <span class="text-slate-300">Compass Needle (N / S)</span>
+                                    </div>
+                                </div>
+                                <div class="text-[11px] text-slate-400 italic">
+                                    Click or touch anywhere inside Cardboard Plane to place compass!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: SOLENOID LAB -->
+        <div id="solenoid-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Solenoid controls -->
+                <div class="lg:col-span-4 flex flex-col space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+                            <h3 class="heading-font text-lg font-bold text-white flex items-center">
+                                <span class="bg-indigo-500/20 text-indigo-400 w-8 h-8 rounded-lg flex items-center justify-center mr-2.5 text-sm">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                </span>
+                                Solenoid Builder
+                            </h3>
+                            <button onclick="resetSolenoidLab()" class="text-xs text-slate-400 hover:text-white transition flex items-center">
+                                <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Reset
+                            </button>
+                        </div>
+
+                        <!-- Solenoid Turns -->
+                        <div class="mb-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="solenoid-turns" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Number of Coils (Turns)</label>
+                                <span id="val-solenoid-turns" class="text-sm font-bold text-amber-400 font-mono">6 Loops</span>
+                            </div>
+                            <input type="range" id="solenoid-turns" min="3" max="10" step="1" value="6" class="w-full accent-amber-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Current Slider -->
+                        <div class="mb-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="solenoid-current" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Current Intensity (I)</label>
+                                <span id="val-solenoid-current" class="text-sm font-bold text-indigo-400 font-mono">2.0 A</span>
+                            </div>
+                            <input type="range" id="solenoid-current" min="-4" max="4" step="1" value="2" class="w-full accent-indigo-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-500 px-1 mt-1 font-mono">
+                                <span>Reverse current</span>
+                                <span>Off</span>
+                                <span>Forward</span>
+                            </div>
+                        </div>
+
+                        <!-- Core material selector -->
+                        <div class="mb-5">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Insert Core Material (Ferromagnetism)</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="btn-core-air" onclick="setSolenoidCore('air')" class="py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-indigo-600 border-indigo-500 text-white">
+                                    <i class="fa-solid fa-wind mr-1.5"></i>Air Core
+                                </button>
+                                <button id="btn-core-iron" onclick="setSolenoidCore('iron')" class="py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700/50">
+                                    <i class="fa-solid fa-cubes-stacked mr-1.5"></i>Soft Iron Core
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2 leading-relaxed">
+                                <i class="fa-solid fa-circle-exclamation text-amber-400 mr-1"></i> Placing an iron core drastically boosts relative permeability ($\mu_r$), amplifying the magnetic flux densities.
+                            </p>
+                        </div>
+
+                        <!-- Status Readouts -->
+                        <div class="bg-indigo-950/40 border border-indigo-500/20 p-4 rounded-xl space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Left Side Pole:</span>
+                                <span id="solenoid-left-pole" class="font-bold text-emerald-400">NORTH (N)</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Right Side Pole:</span>
+                                <span id="solenoid-right-pole" class="font-bold text-red-400">SOUTH (S)</span>
+                            </div>
+                            <div class="flex justify-between text-xs border-t border-slate-800/80 pt-2">
+                                <span class="text-slate-400">Internal Field State:</span>
+                                <span class="font-bold text-indigo-300 font-mono text-[11px]">Uniform & Parallel</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Educator Note / Method -->
+                    <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+                        <h4 class="text-sm font-semibold text-white mb-2 flex items-center">
+                            <i class="fa-solid fa-graduation-cap text-indigo-400 mr-2"></i>
+                            Solenoid Insights
+                        </h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            A solenoid is a copper wire wound tightly as a coil spring. When current passes through, the combined loops act exactly like a <strong>Bar Magnet</strong>. Notice how parallel magnetic lines of force develop <strong>inside</strong> the core—demonstrating a highly uniform magnetic field!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Solenoid simulator viewport -->
+                <div class="lg:col-span-8 flex flex-col space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full">
+                        <div class="bg-slate-950 px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3.5 h-3.5 bg-indigo-500 rounded-full animate-pulse"></span>
+                                <span class="heading-font text-sm font-bold text-white">Solenoid & Bar-Magnet Equivalence Simulation</span>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Workspace -->
+                        <div class="flex-grow relative bg-slate-950 p-4 min-h-[400px] flex items-center justify-center">
+                            <!-- SVG viewport for solenoid -->
+                            <svg id="svg-solenoid" class="w-full h-[400px] select-none" viewBox="0 0 600 400">
+                                <!-- Define gradient for iron core -->
+                                <defs>
+                                    <linearGradient id="ironCoreGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#94a3b8" />
+                                        <stop offset="50%" stop-color="#475569" />
+                                        <stop offset="100%" stop-color="#334155" />
+                                    </linearGradient>
+                                    <marker id="sol-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#c084fc"/>
+                                    </marker>
+                                </defs>
+
+                                <g id="solenoid-magnetic-lines-layer"></g>
+                                <g id="solenoid-core-layer"></g>
+                                <g id="solenoid-winding-layer"></g>
+                                <g id="solenoid-circuit-layer"></g>
+                                <g id="solenoid-poles-overlay"></g>
+                            </svg>
+
+                            <!-- Informational Card showing Field Properties -->
+                            <div class="absolute bottom-4 left-4 right-4 bg-slate-900/95 border border-slate-800/80 rounded-xl p-3 text-xs flex justify-between items-center flex-wrap gap-2">
+                                <div class="flex items-center space-x-4">
+                                    <span class="flex items-center space-x-1">
+                                        <span class="w-2.5 h-2.5 bg-purple-500 rounded-full"></span>
+                                        <span class="text-slate-300">Magnetic Poles</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1">
+                                        <span class="w-4 h-1 border-t-2 border-purple-400"></span>
+                                        <span class="text-slate-300">Inside: Uniform field</span>
+                                    </span>
+                                </div>
+                                <span class="text-[10px] text-slate-400">Tip: Change battery current direction to watch poles swap sides!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: FORCE & FLEMING'S LEFT HAND RULE -->
+        <div id="force-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left panel controls -->
+                <div class="lg:col-span-4 flex flex-col space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+                            <h3 class="heading-font text-lg font-bold text-white flex items-center">
+                                <span class="bg-indigo-500/20 text-indigo-400 w-8 h-8 rounded-lg flex items-center justify-center mr-2.5 text-sm">
+                                    <i class="fa-solid fa-arrows-up-down-left-right"></i>
+                                </span>
+                                Force Generator
+                            </h3>
+                            <button onclick="resetForceLab()" class="text-xs text-slate-400 hover:text-white transition flex items-center">
+                                <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Reset
+                            </button>
+                        </div>
+
+                        <!-- Current Direction Switch -->
+                        <div class="mb-5">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Conductor Electric Current (I)</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button id="btn-force-curr-down" onclick="setForceCurrent('down')" class="py-2 px-3 rounded-xl border text-xs font-semibold transition bg-indigo-600 border-indigo-500 text-white">
+                                    <i class="fa-solid fa-arrow-down mr-1"></i>Top $\rightarrow$ Bottom
+                                </button>
+                                <button id="btn-force-curr-off" onclick="setForceCurrent('off')" class="py-2 px-3 rounded-xl border text-xs font-semibold transition bg-slate-800 border-slate-700 text-slate-300">
+                                    No Flow
+                                </button>
+                                <button id="btn-force-curr-up" onclick="setForceCurrent('up')" class="py-2 px-3 rounded-xl border text-xs font-semibold transition bg-slate-800 border-slate-700 text-slate-300">
+                                    <i class="fa-solid fa-arrow-up mr-1"></i>Bottom $\rightarrow$ Top
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Magnet Orientation Switch -->
+                        <div class="mb-5">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Horseshoe Magnet Poles</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="btn-mag-normal" onclick="setMagnetOrientation('normal')" class="py-2 px-3 rounded-xl border text-xs font-semibold transition bg-indigo-600 border-indigo-500 text-white">
+                                    North Top / South Bottom
+                                </button>
+                                <button id="btn-mag-reversed" onclick="setMagnetOrientation('reversed')" class="py-2 px-3 rounded-xl border text-xs font-semibold transition bg-slate-800 border-slate-700 text-slate-300">
+                                    South Top / North Bottom
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Interlocking Fleming Gizmo Tool Toggle -->
+                        <div class="mb-5">
+                            <label class="flex items-center space-x-3 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80 cursor-pointer hover:bg-slate-950/60 transition">
+                                <input type="checkbox" id="chk-fleming-gizmo" checked class="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 h-4.5 w-4.5">
+                                <div>
+                                    <span class="text-xs font-medium text-slate-200 block">Show Fleming's Left-Hand Assist</span>
+                                    <span class="text-[10px] text-slate-400">Shows how Index (Field), Middle (Current), and Thumb (Force) align.</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Deflection Status Card -->
+                        <div class="bg-indigo-950/40 border border-indigo-500/20 p-4 rounded-xl">
+                            <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-wider mb-2"><i class="fa-solid fa-bolt mr-1"></i> Wire Resulting Action</h4>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Conducting Wire Position:</span>
+                                    <span id="force-wire-pos" class="font-bold text-amber-400">A (Neutral / Mid-point)</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Resultant Vector Force:</span>
+                                    <span id="force-vector-dir" class="font-bold text-pink-400">No Deflection Force</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rule Insight Box -->
+                    <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+                        <h4 class="text-sm font-semibold text-white mb-2 flex items-center">
+                            <i class="fa-solid fa-hand-lizard text-pink-400 mr-2"></i>
+                            Fleming's Left Hand Rule
+                        </h4>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                            Stretch your left hand's thumb, index finger, and middle finger perpendicular to each other:
+                        </p>
+                        <ul class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+                            <li><strong>Index Finger:</strong> Magnetic Field direction ($N \rightarrow S$)</li>
+                            <li><strong>Middle Finger:</strong> Electric Current direction ($I$)</li>
+                            <li><strong>Thumb:</strong> Resulting Force / Motion direction ($F$)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas Card -->
+                <div class="lg:col-span-8 flex flex-col space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full">
+                        <div class="bg-slate-950 px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3.5 h-3.5 bg-rose-500 rounded-full animate-pulse"></span>
+                                <span class="heading-font text-sm font-bold text-white">Fleming Force Lab (Conductor in Magnetic Field)</span>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Workspace -->
+                        <div class="flex-grow relative bg-slate-950 p-4 min-h-[400px] flex items-center justify-center">
+                            <!-- SVG Workspace for Horseshoe and copper line deflections -->
+                            <svg id="svg-force-lab" class="w-full h-[400px] select-none" viewBox="0 0 600 400">
+                                <defs>
+                                    <!-- Gradient for Magnet North (Red) and South (Blue) -->
+                                    <linearGradient id="poleRedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ef4444" />
+                                        <stop offset="100%" stop-color="#b91c1c" />
+                                    </linearGradient>
+                                    <linearGradient id="poleBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#3b82f6" />
+                                        <stop offset="100%" stop-color="#1d4ed8" />
+                                    </linearGradient>
+                                    <linearGradient id="magnetIronGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#64748b" />
+                                        <stop offset="100%" stop-color="#334155" />
+                                    </linearGradient>
+                                </defs>
+
+                                <g id="force-bg-elements"></g>
+                                <g id="force-magnet-g"></g>
+                                <g id="force-wire-g"></g>
+                                <g id="force-gizmo-g"></g>
+                                <g id="force-labels-g"></g>
+                            </svg>
+
+                            <!-- Overlay Left hand representation graphic -->
+                            <div id="hand-helper-card" class="absolute top-4 right-4 bg-slate-900/90 border border-slate-800 rounded-xl p-4 w-48 text-center shadow-2xl transition duration-300">
+                                <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Fleming's Alignment</h5>
+                                <div class="flex justify-center mb-2">
+                                    <i class="fa-regular fa-hand text-4xl text-pink-500 transform -scale-x-100"></i>
+                                </div>
+                                <div class="text-[10px] space-y-1 text-slate-300">
+                                    <div><span class="font-bold text-sky-400">Index:</span> Field (<span id="hand-field-state">Down</span>)</div>
+                                    <div><span class="font-bold text-amber-400">Middle:</span> Current (<span id="hand-curr-state">In</span>)</div>
+                                    <div><span class="font-bold text-pink-400">Thumb:</span> Force (<span id="hand-force-state">Right</span>)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: CHALLENGES & QUIZZES -->
+        <div id="challenge-tab" class="tab-content hidden">
+            <div class="max-w-4xl mx-auto flex flex-col space-y-8">
+                <!-- Interactive challenge cards -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+                    <div class="flex items-center space-x-3.5 mb-6">
+                        <div class="bg-amber-500/10 text-amber-500 p-3 rounded-2xl border border-amber-500/20">
+                            <i class="fa-solid fa-medal text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="heading-font text-2xl font-bold text-white">Gamified Concept Challenges</h2>
+                            <p class="text-sm text-slate-400">Unlock Achievements and test your skills in predicting electromagnetism vectors</p>
+                        </div>
+                    </div>
+
+                    <!-- Challenge progression tracker -->
+                    <div class="grid grid-cols-4 gap-2 mb-8">
+                        <div class="h-2 rounded-full bg-indigo-600" id="progress-bar-1"></div>
+                        <div class="h-2 rounded-full bg-slate-800" id="progress-bar-2"></div>
+                        <div class="h-2 rounded-full bg-slate-800" id="progress-bar-3"></div>
+                        <div class="h-2 rounded-full bg-slate-800" id="progress-bar-4"></div>
+                    </div>
+
+                    <!-- Question Segment -->
+                    <div id="quiz-question-box" class="bg-slate-950/60 rounded-2xl border border-slate-800 p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest font-mono" id="question-index">QUESTION 1 OF 4</span>
+                            <span class="text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold px-2.5 py-1 rounded-full">+100 XP</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-4" id="question-text">
+                            A straight wire carries current from top to bottom. Using Maxwell's right hand rule, what is the direction of the magnetic field viewed from above?
+                        </h3>
+                        
+                        <!-- Interactive Answer Blocks -->
+                        <div class="space-y-3" id="answer-options-group">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Alert / Correctness panel -->
+                    <div id="quiz-feedback-box" class="hidden rounded-2xl p-5 mb-6 flex items-start space-x-4 border">
+                        <!-- Icon -->
+                        <span id="quiz-feedback-icon" class="text-xl"></span>
+                        <div>
+                            <h4 class="font-bold text-white text-sm" id="quiz-feedback-title">Correct Answer!</h4>
+                            <p class="text-xs text-slate-300 mt-1 leading-relaxed" id="quiz-feedback-desc"></p>
+                        </div>
+                    </div>
+
+                    <!-- Action control buttons -->
+                    <div class="flex justify-end">
+                        <button id="btn-next-question" onclick="nextQuestion()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-6 py-3 rounded-xl transition duration-200">
+                            Next Challenge <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fun Real World Context: Applications Cards -->
+                <div>
+                    <h3 class="heading-font text-xl font-bold text-white mb-4 flex items-center">
+                        <i class="fa-solid fa-gears text-purple-400 mr-2.5"></i>
+                        Electromagnetism in Action
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 space-y-3 hover:border-indigo-500/30 transition duration-300">
+                            <div class="bg-indigo-500/10 text-indigo-400 w-10 h-10 rounded-xl flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-car-battery"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-white">1. Core Electromagnetics</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Solenoids are critical in activating remote heavy machinery valves, automotive starter coils, and industrial magnetic relays.
+                            </p>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 space-y-3 hover:border-pink-500/30 transition duration-300">
+                            <div class="bg-pink-500/10 text-pink-400 w-10 h-10 rounded-xl flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-microchip"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-white">2. High-speed Maglev Trains</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Leveraging both uniform solenoids and massive dynamic field coils, trains physically levitate above rails, eliminating mechanical friction completely.
+                            </p>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 space-y-3 hover:border-emerald-500/30 transition duration-300">
+                            <div class="bg-emerald-500/10 text-emerald-400 w-10 h-10 rounded-xl flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-white">3. Medical MRI Systems</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Superconducting loop arrangements generate vast uniform fields to briefly align nuclear spin directions inside human anatomy to generate high fidelity imagery.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Segment -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-xs text-slate-500 mt-12">
+        <div class="max-w-7xl mx-auto px-4 space-y-3">
+            <p>Designed with ❤️ for Educators and Students exploring physical forces & conductors</p>
+            <p>&copy; 2026 Virtual Physics Lab. All code is structured inside a single comprehensive ecosystem.</p>
+        </div>
+    </footer>
+
+    <!-- JS LOGIC AND INTERACTIVE CONTROLLERS -->
+    <script>
+        // App State
+        const state = {
+            xp: 0,
+            loopTab: {
+                wireType: 'straight', // 'straight' or 'loop'
+                current: 1.5,
+                turns: 1,
+                showCompass: true,
+                showRhr: true,
+                customCompasses: [
+                    { x: 170, y: 190, pNode: true }, // Default point P compass
+                    { x: 330, y: 190, qNode: true }  // Default point Q compass
+                ]
+            },
+            solenoidTab: {
+                turns: 6,
+                current: 2.0,
+                coreType: 'air' // 'air' or 'iron'
+            },
+            forceTab: {
+                currentDir: 'down', // 'down', 'off', 'up'
+                magnetPolarity: 'normal' // 'normal' (N up/S down), 'reversed' (S up/N down)
+            },
+            quiz: {
+                currentQuestionIndex: 0,
+                score: 0,
+                answered: false
+            }
+        };
+
+        const quizQuestions = [
+            {
+                text: "A straight vertical wire carries electric current downwards. Viewed from above, which direction are the circular magnetic field lines going?",
+                options: [
+                    { text: "Clockwise (Maxwell's rule)", isCorrect: true },
+                    { text: "Counter-clockwise", isCorrect: false },
+                    { text: "They point directly away from wire in radiating straight lines", isCorrect: false }
+                ],
+                desc: "Point your right hand thumb downwards (matching current). Your curled fingers rotate in a Clockwise orientation, demonstrating the magnetic field lines."
+            },
+            {
+                text: "What happens to the intensity of the magnetic field produced by a loop wire at the center if we wind the loop with 5 turns instead of a single turn?",
+                options: [
+                    { text: "The field intensity remains exactly the same", isCorrect: false },
+                    { text: "The field intensity is reduced to 1/5th", isCorrect: false },
+                    { text: "The field intensity is boosted 5 times larger (n turns = n * B)", isCorrect: true }
+                ],
+                desc: "Since every single loop generates magnetic field lines passing in the exact same direction at the center, winding n turns accumulates the vector field strength to n times."
+            },
+            {
+                text: "Inside a current-carrying Solenoid coil, the magnetic lines of force run completely parallel to each other. What does this mean?",
+                options: [
+                    { text: "The magnetic field is highly uniform everywhere inside the solenoid", isCorrect: true },
+                    { text: "The magnetic field is completely zero inside the coil", isCorrect: false },
+                    { text: "The field is strongest at the immediate middle and weakens near poles inside", isCorrect: false }
+                ],
+                desc: "Parallel lines of magnetic force indicate that the magnetic flux is uniform (constant strength and same direction) throughout the interior of the solenoid."
+            },
+            {
+                text: "Using Fleming's Left-Hand rule: If the magnetic field points DOWN (North is top, South is bottom) and the electric current flows UPWARDS (bottom to top), which direction is the resulting motion force?",
+                options: [
+                    { text: "The conductor deflects towards the Left side (Position B)", isCorrect: true },
+                    { text: "The conductor deflects towards the Right side (Position C)", isCorrect: false },
+                    { text: "The conductor stays completely neutral at rest (Position A)", isCorrect: false }
+                ],
+                desc: "Align your Left hand: Index finger points straight DOWN (magnetic field). Middle finger points UPWARDS (current). Your thumb points to the LEFT (Force deflection B)."
+            }
+        ];
+
+        // Core App Initialization
+        window.onload = function() {
+            // Setup Listeners
+            initListeners();
+            // Start state rendering
+            renderLoopLab();
+            renderSolenoidLab();
+            renderForceLab();
+            renderQuiz();
+        };
+
+        function initListeners() {
+            // Lab 1 Listeners
+            const cSlider = document.getElementById('loop-current');
+            if (cSlider) {
+                cSlider.addEventListener('input', (e) => {
+                    state.loopTab.current = parseFloat(e.target.value);
+                    document.getElementById('val-current').innerText = state.loopTab.current.toFixed(1) + ' A';
+                    renderLoopLab();
+                });
+            }
+
+            const tSlider = document.getElementById('loop-turns');
+            if (tSlider) {
+                tSlider.addEventListener('input', (e) => {
+                    state.loopTab.turns = parseInt(e.target.value);
+                    document.getElementById('val-turns').innerText = state.loopTab.turns + (state.loopTab.turns > 1 ? ' Turns' : ' Turn');
+                    renderLoopLab();
+                });
+            }
+
+            const chkCompass = document.getElementById('chk-compass');
+            if (chkCompass) {
+                chkCompass.addEventListener('change', (e) => {
+                    state.loopTab.showCompass = e.target.checked;
+                    renderLoopLab();
+                });
+            }
+
+            const chkRhr = document.getElementById('chk-rhr');
+            if (chkRhr) {
+                chkRhr.addEventListener('change', (e) => {
+                    state.loopTab.showRhr = e.target.checked;
+                    renderLoopLab();
+                });
+            }
+
+            // Click listener on cardboard to dynamically drop compass
+            const svgField = document.getElementById('svg-field-viewer');
+            if (svgField) {
+                svgField.addEventListener('mousedown', (e) => {
+                    // Check if click was inside isometric cardboard coordinates approximately
+                    // Cardboard poly points roughly: 120,250 480,250 380,130 20,130
+                    const rect = svgField.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    // Project coordinates to local viewport
+                    const localX = (x / rect.width) * 600;
+                    const localY = (y / rect.height) * 400;
+
+                    // Avoid clicks that trigger parameters outside cardboard
+                    if (localY > 120 && localY < 260 && localX > 10 && localX < 490) {
+                        // Check if click is near P or Q to avoid replacing the fixed lab nodes
+                        const distanceToP = Math.hypot(localX - 170, localY - 190);
+                        const distanceToQ = Math.hypot(localX - 330, localY - 190);
+                        if (distanceToP > 15 && distanceToQ > 15) {
+                            // Replace third compass slot or append
+                            if (state.loopTab.customCompasses.length >= 4) {
+                                state.loopTab.customCompasses.pop(); // limit count
+                            }
+                            state.loopTab.customCompasses.push({ x: localX, y: localY, pNode: false });
+                            renderLoopLab();
+                        }
+                    }
+                });
+            }
+
+            // Lab 2 Listeners
+            const sTurns = document.getElementById('solenoid-turns');
+            if (sTurns) {
+                sTurns.addEventListener('input', (e) => {
+                    state.solenoidTab.turns = parseInt(e.target.value);
+                    document.getElementById('val-solenoid-turns').innerText = state.solenoidTab.turns + ' Loops';
+                    renderSolenoidLab();
+                });
+            }
+
+            const sCurrent = document.getElementById('solenoid-current');
+            if (sCurrent) {
+                sCurrent.addEventListener('input', (e) => {
+                    state.solenoidTab.current = parseFloat(e.target.value);
+                    document.getElementById('val-solenoid-current').innerText = state.solenoidTab.current.toFixed(1) + ' A';
+                    renderSolenoidLab();
+                });
+            }
+
+            // Lab 3 Checkbox Toggle
+            const chkFleming = document.getElementById('chk-fleming-gizmo');
+            if (chkFleming) {
+                chkFleming.addEventListener('change', (e) => {
+                    const block = document.getElementById('hand-helper-card');
+                    if (block) {
+                        if (e.target.checked) {
+                            block.classList.remove('opacity-0', 'pointer-events-none');
+                        } else {
+                            block.classList.add('opacity-0', 'pointer-events-none');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Global Navigation Tabs
+        function switchTab(tabId) {
+            // Hide all tab content
+            const contentDivs = document.querySelectorAll('.tab-content');
+            contentDivs.forEach(div => div.classList.add('hidden'));
+
+            // Show target
+            const target = document.getElementById(tabId);
+            if (target) target.classList.remove('hidden');
+
+            // Reset navigation highlights
+            const desktopBtns = document.querySelectorAll('.nav-btn');
+            desktopBtns.forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-slate-800/50');
+            });
+            const mBtns = document.querySelectorAll('.m-nav-btn');
+            mBtns.forEach(btn => {
+                btn.classList.remove('text-indigo-400');
+                btn.classList.add('text-slate-400');
+            });
+
+            // Set current Active buttons
+            const activeDesktop = document.getElementById('nav-' + tabId);
+            if (activeDesktop) {
+                activeDesktop.classList.add('bg-indigo-600', 'text-white');
+                activeDesktop.classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-slate-800/50');
+            }
+
+            const activeMobile = document.getElementById('m-nav-' + tabId);
+            if (activeMobile) {
+                activeMobile.classList.add('text-indigo-400');
+                activeMobile.classList.remove('text-slate-400');
+            }
+        }
+
+        // ==========================================
+        // LAB 1: WIRE & CIRCULAR LOOP SIMULATION
+        // ==========================================
+        function setWireType(type) {
+            state.loopTab.wireType = type;
+            const wBtn = document.getElementById('btn-wire-straight');
+            const lBtn = document.getElementById('btn-wire-loop');
+            const turnsWrapper = document.getElementById('turns-control-wrapper');
+            const pNodeEl = document.getElementById('point-p-group');
+            const qNodeEl = document.getElementById('point-q-group');
+
+            if (type === 'straight') {
+                wBtn.className = "py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-indigo-600 border-indigo-500 text-white";
+                lBtn.className = "py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700/50";
+                if (turnsWrapper) turnsWrapper.style.display = 'none';
+                if (pNodeEl) pNodeEl.style.display = 'none';
+                if (qNodeEl) qNodeEl.style.display = 'none';
+                // Reset to straight wire compasses
+                state.loopTab.customCompasses = [
+                    { x: 170, y: 190, pNode: false },
+                    { x: 330, y: 190, pNode: false }
+                ];
+            } else {
+                lBtn.className = "py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-indigo-600 border-indigo-500 text-white";
+                wBtn.className = "py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700/50";
+                if (turnsWrapper) turnsWrapper.style.display = 'block';
+                if (pNodeEl) pNodeEl.style.display = 'block';
+                if (qNodeEl) qNodeEl.style.display = 'block';
+                // Default loop points compasses
+                state.loopTab.customCompasses = [
+                    { x: 170, y: 190, pNode: true },
+                    { x: 330, y: 190, qNode: true }
+                ];
+            }
+            renderLoopLab();
+        }
+
+        function resetLoopLab() {
+            state.loopTab.current = 1.5;
+            state.loopTab.turns = 1;
+            state.loopTab.wireType = 'straight';
+            document.getElementById('loop-current').value = 1.5;
+            document.getElementById('loop-turns').value = 1;
+            document.getElementById('val-current').innerText = '1.5 A';
+            document.getElementById('val-turns').innerText = '1 Turn';
+            setWireType('straight');
+        }
+
+        function renderLoopLab() {
+            const current = state.loopTab.current;
+            const turns = state.loopTab.turns;
+            const type = state.loopTab.wireType;
+            
+            const fieldLayer = document.getElementById('field-lines-layer');
+            const condLayer = document.getElementById('conductor-group');
+            const batteryLayer = document.getElementById('battery-indicator-group');
+            const compassLayer = document.getElementById('compass-needles-layer');
+            const rhrLayer = document.getElementById('rhr-overlay');
+
+            if (!fieldLayer || !condLayer) return;
+
+            // Clear dynamic elements
+            fieldLayer.innerHTML = '';
+            condLayer.innerHTML = '';
+            batteryLayer.innerHTML = '';
+            compassLayer.innerHTML = '';
+            rhrLayer.innerHTML = '';
+
+            // Calc magnetic field magnitude readout
+            let bStrength = Math.abs(current);
+            if (type === 'loop') bStrength = bStrength * turns;
+            document.getElementById('readout-field-mag').innerText = `${bStrength.toFixed(2)} arbitrary units`;
+
+            let dirText = "No Magnetic Field";
+            if (current > 0) {
+                dirText = type === 'straight' ? "Clockwise (Facing down)" : "Inwards at Center";
+            } else if (current < 0) {
+                dirText = type === 'straight' ? "Counter-Clockwise" : "Outwards at Center";
+            }
+            document.getElementById('readout-field-dir').innerText = dirText;
+
+            // 1. Draw Conductor Wire
+            if (type === 'straight') {
+                // Vertical straight line passing through middle of cardboard (approx center of cardboard at x=250)
+                const centerCardboardX = 250;
+                
+                // Behind cardboard portion
+                condLayer.innerHTML += `
+                    <line x1="${centerCardboardX}" y1="20" x2="${centerCardboardX}" y2="190" stroke="url(#copperGrad)" stroke-width="6" stroke-linecap="round" />
+                `;
+                // Front cardboard portion
+                condLayer.innerHTML += `
+                    <line x1="${centerCardboardX}" y1="190" x2="${centerCardboardX}" y2="380" stroke="url(#copperGrad)" stroke-width="6" stroke-linecap="round" />
+                    <circle cx="${centerCardboardX}" cy="190" r="4" fill="#f97316" />
+                `;
+
+                // Render current flow animation overlay
+                if (current !== 0) {
+                    const pulseClass = current > 0 ? "current-active" : "current-active-reverse";
+                    condLayer.innerHTML += `
+                        <line x1="${centerCardboardX}" y1="20" x2="${centerCardboardX}" y2="380" stroke="#facc15" stroke-width="2" class="${pulseClass}" stroke-dasharray="8, 4" />
+                    `;
+                    // Battery indicator representation
+                    batteryLayer.innerHTML += `
+                        <g transform="translate(480, 280)" class="text-[10px] font-mono fill-slate-400">
+                            <rect x="0" y="0" width="100" height="40" rx="6" fill="#1e293b" stroke="#334155" />
+                            <text x="12" y="18" fill="#facc15" font-weight="bold">BATTERY INPUT</text>
+                            <text x="12" y="32">Current: ${current > 0 ? 'Forward (A)' : 'Reverse (B)'}</text>
+                            <circle cx="90" cy="20" r="6" fill="${current > 0 ? '#10b981' : '#ef4444'}" />
+                        </g>
+                    `;
+                }
+
+                // 2. Draw Concentric Magnetic Field Lines on cardboard
+                if (current !== 0) {
+                    const opacity = Math.min(Math.abs(current) / 3, 1) * 0.8;
+                    const ringCount = 4;
+                    for (let i = 1; i <= ringCount; i++) {
+                        // Project concentric circles isometrically on the plane
+                        const radiusX = i * 42;
+                        const radiusY = i * 16;
+                        // Determine arrow orientation based on current sign
+                        const isClockwise = current > 0;
+                        const markerId = isClockwise ? 'url(#arrow)' : 'url(#arrow-reverse)';
+
+                        fieldLayer.innerHTML += `
+                            <ellipse cx="${centerCardboardX}" cy="190" rx="${radiusX}" ry="${radiusY}" 
+                                fill="none" stroke="#818cf8" stroke-width="2" stroke-opacity="${opacity}" 
+                                stroke-dasharray="${isClockwise ? 'none' : '4,2'}"
+                                style="filter: url(#glow)" />
+                            <!-- Field flow arrow indicator helper -->
+                            <path d="M ${centerCardboardX + radiusX} 190 L ${centerCardboardX + radiusX} 190.1" 
+                                fill="none" stroke="none" marker-start="${markerId}" />
+                        `;
+                    }
+                }
+
+                // 3. Overlay Right-Hand Rule Helper Graphic
+                if (state.loopTab.showRhr && current !== 0) {
+                    const isUp = current < 0;
+                    rhrLayer.innerHTML += `
+                        <g transform="translate(250, 190) scale(0.8)">
+                            <!-- Dynamic SVG Right hand helper aligning fingers based on rule -->
+                            <g transform="scale(${isUp ? '1, -1' : '1, 1'})">
+                                <!-- Hand representation with thumb pointing down/up and fingers curving clockwise -->
+                                <path d="M -10,-10 L -10,-60 L -5,-60 L -5,-10 Z" fill="#e2e8f0" stroke="#94a3b8" />
+                                <circle cx="-7.5" cy="-60" r="4" fill="#a855f7" />
+                                <!-- Curled fingers circle -->
+                                <circle cx="15" cy="-20" r="16" fill="none" stroke="#3b82f6" stroke-width="3" stroke-dasharray="10, 5" />
+                                <text x="25" y="-5" fill="#c084fc" class="text-[10px] font-bold">Thumb = I</text>
+                                <text x="35" y="-25" fill="#60a5fa" class="text-[10px] font-bold">Fingers = B</text>
+                            </g>
+                        </g>
+                    `;
+                }
+
+            } else {
+                // ================= CIRCULAR LOOP DESIGN =================
+                // Draw a conductive circular loop passing vertically through cardioplate at P(170, 190) and Q(330, 190)
+                // Center of cardboard plane is approx 250. Loop center is x=250. Radius = 80px.
+                const loopCenterX = 250;
+                const loopCenterY = 190;
+                const radius = 80;
+
+                // Loop turns rendering logic
+                for (let t = 0; t < turns; t++) {
+                    const offset = (t - (turns - 1) / 2) * 4; // Spread loop windings slightly to look like multi-turn coil
+                    
+                    // Behind-plane wire arc
+                    condLayer.innerHTML += `
+                        <path d="M ${170 + offset},190 A ${radius} ${radius} 0 0 1 ${330 + offset},190" 
+                            fill="none" stroke="url(#copperGrad)" stroke-width="${4}" stroke-linecap="round" />
+                    `;
+                    // Front-plane wire arc
+                    condLayer.innerHTML += `
+                        <path d="M ${330 + offset},190 A ${radius} ${radius} 0 0 1 ${170 + offset},190" 
+                            fill="none" stroke="url(#copperGrad)" stroke-width="${4}" stroke-linecap="round" />
+                    `;
+
+                    // Flow animation
+                    if (current !== 0) {
+                        const pulseClass = current > 0 ? "current-active" : "current-active-reverse";
+                        condLayer.innerHTML += `
+                            <path d="M ${170 + offset},190 A ${radius} ${radius} 0 1 1 ${170 + offset + 0.1},190" 
+                                fill="none" stroke="#fbbf24" stroke-width="1.5" class="${pulseClass}" stroke-dasharray="8,4" />
+                        `;
+                    }
+                }
+
+                // Field lines near point P and Q
+                if (current !== 0) {
+                    const opacity = Math.min(Math.abs(current) / 3, 1) * 0.8;
+                    const loopMultiplier = 1 + (turns - 1) * 0.2; // Field grows with turns
+
+                    // Dynamic concentric rings centered specifically at P(170) and Q(330)
+                    const pX = 170;
+                    const qX = 330;
+                    const ringRadii = [20, 38, 56];
+
+                    ringRadii.forEach(r => {
+                        const markerP = current > 0 ? 'url(#arrow)' : 'url(#arrow-reverse)';
+                        const markerQ = current > 0 ? 'url(#arrow-reverse)' : 'url(#arrow)';
+
+                        // Field around P
+                        fieldLayer.innerHTML += `
+                            <ellipse cx="${pX}" cy="190" rx="${r}" ry="${r * 0.4}" 
+                                fill="none" stroke="#818cf8" stroke-width="${1.5 * loopMultiplier}" stroke-opacity="${opacity}" 
+                                style="filter: url(#glow)" />
+                            <path d="M ${pX + r} 190 L ${pX + r} 190.1" fill="none" stroke="none" marker-start="${markerP}" />
+                        `;
+
+                        // Field around Q
+                        fieldLayer.innerHTML += `
+                            <ellipse cx="${qX}" cy="190" rx="${r}" ry="${r * 0.4}" 
+                                fill="none" stroke="#818cf8" stroke-width="${1.5 * loopMultiplier}" stroke-opacity="${opacity}" 
+                                style="filter: url(#glow)" />
+                            <path d="M ${qX + r} 190 L ${qX + r} 190.1" fill="none" stroke="none" marker-start="${markerQ}" />
+                        `;
+                    });
+
+                    // Inside/Center Field lines (nearly straight, perpendicular to cardboard plane)
+                    // They all pass UPWARDS or DOWNWARDS at the exact center (x=250) depending on current direction
+                    const centerDirUp = current < 0;
+                    for (let cLine = -2; cLine <= 2; cLine++) {
+                        const lineX = loopCenterX + cLine * 15;
+                        const lineLength = 120 - Math.abs(cLine) * 15;
+                        const isMiddle = cLine === 0;
+
+                        fieldLayer.innerHTML += `
+                            <line x1="${lineX}" y1="${loopCenterY - lineLength/2}" x2="${lineX}" y2="${loopCenterY + lineLength/2}" 
+                                stroke="#a5b4fc" stroke-width="${isMiddle ? 3 : 1.5}" stroke-opacity="${opacity}" 
+                                style="filter: url(#glow)" />
+                        `;
+                    }
+                }
+            }
+
+            // Draw Compass Needles for all defined positions
+            if (state.loopTab.showCompass) {
+                state.loopTab.customCompasses.forEach((compass, idx) => {
+                    const cx = compass.x;
+                    const cy = compass.y;
+
+                    // Calculate rotation angle of magnetic needle at position (cx, cy)
+                    // For straight wire, direction is perpendicular to radius vector from wire center (250, 190)
+                    const centerWireX = 250;
+                    const centerWireY = 190;
+                    const dx = cx - centerWireX;
+                    const dy = (cy - centerWireY) * 2.5; // Account for isometric squish
+                    const rDist = Math.hypot(dx, dy);
+
+                    let angleDeg = 0;
+                    if (rDist > 0) {
+                        // Angle to center wire
+                        const baseAngle = Math.atan2(dy, dx);
+                        // Magnetic line of force is perpendicular to radius
+                        angleDeg = (baseAngle + Math.PI / 2) * (180 / Math.PI);
+                        
+                        // Reverse angle if current is reversed
+                        if (current < 0) {
+                            angleDeg += 180;
+                        }
+                    }
+
+                    // For the loop setup, compasses at P and Q align differently based on nearby loop current
+                    if (type === 'loop') {
+                        if (compass.pNode) {
+                            angleDeg = current > 0 ? -90 : 90;
+                        } else if (compass.qNode) {
+                            angleDeg = current > 0 ? 90 : -90;
+                        } else {
+                            // Midpoint loops
+                            angleDeg = current > 0 ? 0 : 180;
+                        }
+                    }
+
+                    // Render custom interactive SVG Compass Needle
+                    compassLayer.innerHTML += `
+                        <g transform="translate(${cx}, ${cy})">
+                            <circle cx="0" cy="0" r="14" fill="#0f172a" stroke="#475569" stroke-width="2" />
+                            <!-- Glass gloss overlay -->
+                            <circle cx="0" cy="0" r="12" fill="none" stroke="#64748b" stroke-width="0.5" />
+                            
+                            <!-- Rotating Needle -->
+                            <g transform="rotate(${angleDeg})">
+                                <!-- North Pointer (Red) -->
+                                <polygon points="0,-11 4,0 -4,0" fill="#f43f5e" />
+                                <!-- South Pointer (Blue) -->
+                                <polygon points="0,11 4,0 -4,0" fill="#3b82f6" />
+                            </g>
+                            <circle cx="0" cy="0" r="2.5" fill="#f1f5f9" />
+                        </g>
+                    `;
+                });
+            }
+        }
+
+        // ==========================================
+        // LAB 2: SOLENOID SIMULATION
+        // ==========================================
+        function setSolenoidCore(core) {
+            state.solenoidTab.coreType = core;
+            const airBtn = document.getElementById('btn-core-air');
+            const ironBtn = document.getElementById('btn-core-iron');
+
+            if (core === 'air') {
+                airBtn.className = "py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-indigo-600 border-indigo-500 text-white";
+                ironBtn.className = "py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700/50";
+            } else {
+                ironBtn.className = "py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-indigo-600 border-indigo-500 text-white";
+                airBtn.className = "py-2.5 px-3 rounded-xl border text-sm font-medium transition duration-200 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700/50";
+            }
+            renderSolenoidLab();
+        }
+
+        function resetSolenoidLab() {
+            state.solenoidTab.turns = 6;
+            state.solenoidTab.current = 2.0;
+            state.solenoidTab.coreType = 'air';
+            document.getElementById('solenoid-turns').value = 6;
+            document.getElementById('solenoid-current').value = 2.0;
+            document.getElementById('val-solenoid-turns').innerText = '6 Loops';
+            document.getElementById('val-solenoid-current').innerText = '2.0 A';
+            setSolenoidCore('air');
+        }
+
+        function renderSolenoidLab() {
+            const turns = state.solenoidTab.turns;
+            const current = state.solenoidTab.current;
+            const core = state.solenoidTab.coreType;
+
+            const bLines = document.getElementById('solenoid-magnetic-lines-layer');
+            const coreL = document.getElementById('solenoid-core-layer');
+            const windingL = document.getElementById('solenoid-winding-layer');
+            const circuitL = document.getElementById('solenoid-circuit-layer');
+            const polesL = document.getElementById('solenoid-poles-overlay');
+
+            if (!bLines) return;
+
+            bLines.innerHTML = '';
+            coreL.innerHTML = '';
+            windingL.innerHTML = '';
+            circuitL.innerHTML = '';
+            polesL.innerHTML = '';
+
+            const activeCurrent = current !== 0;
+
+            // 1. Draw Core (Iron core if enabled)
+            if (core === 'iron') {
+                coreL.innerHTML += `
+                    <rect x="140" y="150" width="320" height="60" rx="10" fill="url(#ironCoreGrad)" stroke="#64748b" stroke-width="2" />
+                    <text x="245" y="185" fill="#1e293b" class="text-xs font-bold tracking-widest font-mono select-none">SOFT IRON CORE</text>
+                `;
+            }
+
+            // Determine Poles based on Current Direction
+            // If current is positive, left is North and right is South
+            const leftIsNorth = current > 0;
+            const rightIsNorth = current < 0;
+
+            if (activeCurrent) {
+                document.getElementById('solenoid-left-pole').innerText = leftIsNorth ? 'NORTH (N) Pole' : 'SOUTH (S) Pole';
+                document.getElementById('solenoid-left-pole').className = leftIsNorth ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+                
+                document.getElementById('solenoid-right-pole').innerText = rightIsNorth ? 'NORTH (N) Pole' : 'SOUTH (S) Pole';
+                document.getElementById('solenoid-right-pole').className = rightIsNorth ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+            } else {
+                document.getElementById('solenoid-left-pole').innerText = 'Neutral (Off)';
+                document.getElementById('solenoid-left-pole').className = 'font-bold text-slate-500';
+                document.getElementById('solenoid-right-pole').innerText = 'Neutral (Off)';
+                document.getElementById('solenoid-right-pole').className = 'font-bold text-slate-500';
+            }
+
+            // 2. Draw Circuit / Battery Connections at bottom
+            circuitL.innerHTML += `
+                <!-- Lead wires -->
+                <line x1="160" y1="210" x2="160" y2="320" stroke="#ea580c" stroke-width="4" />
+                <line x1="440" y1="210" x2="440" y2="320" stroke="#ea580c" stroke-width="4" />
+                <line x1="160" y1="320" x2="240" y2="320" stroke="#ea580c" stroke-width="4" />
+                <line x1="360" y1="320" x2="440" y2="320" stroke="#ea580c" stroke-width="4" />
+                
+                <!-- Battery Cell -->
+                <rect x="240" y="305" width="120" height="30" rx="4" fill="#0f172a" stroke="#334155" stroke-width="3" />
+                <rect x="250" y="310" width="40" height="20" fill="${current > 0 ? '#10b981' : '#f43f5e'}" />
+                <rect x="310" y="310" width="40" height="20" fill="${current < 0 ? '#10b981' : '#f43f5e'}" />
+                <text x="260" y="324" fill="#fff" class="text-[9px] font-bold font-mono">BAT +</text>
+                <text x="322" y="324" fill="#fff" class="text-[9px] font-bold font-mono">BAT -</text>
+            `;
+
+            if (activeCurrent) {
+                const animClass = current > 0 ? "current-active" : "current-active-reverse";
+                circuitL.innerHTML += `
+                    <line x1="160" y1="210" x2="160" y2="320" stroke="#fbbf24" stroke-width="2" class="${animClass}" />
+                    <line x1="440" y1="210" x2="440" y2="320" stroke="#fbbf24" stroke-width="2" class="${animClass}" />
+                    <line x1="160" y1="320" x2="240" y2="320" stroke="#fbbf24" stroke-width="2" class="${animClass}" />
+                    <line x1="360" y1="320" x2="440" y2="320" stroke="#fbbf24" stroke-width="2" class="${animClass}" />
+                `;
+            }
+
+            // 3. Draw Solenoid Loops / Windings
+            const coilStartX = 170;
+            const coilWidth = 260;
+            const step = coilWidth / (turns - 1);
+
+            for (let i = 0; i < turns; i++) {
+                const cx = coilStartX + i * step;
+
+                // Behind Loop path
+                windingL.innerHTML += `
+                    <path d="M ${cx},145 A 25 35 0 0 1 ${cx},215" fill="none" stroke="url(#copperGrad)" stroke-width="6" />
+                `;
+                // Front Loop path
+                windingL.innerHTML += `
+                    <path d="M ${cx},215 A 25 35 0 0 0 ${cx},145" fill="none" stroke="url(#copperGrad)" stroke-width="6" />
+                `;
+
+                // If current flows, show flow particle path
+                if (activeCurrent) {
+                    const animClass = current > 0 ? "current-active" : "current-active-reverse";
+                    windingL.innerHTML += `
+                        <path d="M ${cx},145 A 25 35 0 1 1 ${cx},145.1" fill="none" stroke="#fbbf24" stroke-width="2.5" class="${animClass}" />
+                    `;
+                }
+            }
+
+            // 4. Draw Magnetic Field Lines (Like Bar Magnet)
+            if (activeCurrent) {
+                // Boost strength if core is iron
+                const isIron = core === 'iron';
+                const baseOpacity = isIron ? 0.95 : 0.6;
+                const strokeThick = isIron ? 2.5 : 1.5;
+                const magFactor = Math.abs(current) / 2;
+
+                // Render interior uniform lines passing straight through solenoid
+                for (let yOffset = -20; yOffset <= 20; yOffset += 10) {
+                    const arrowDirMarker = leftIsNorth ? 'url(#sol-arrow)' : 'url(#sol-arrow-reverse)';
+                    
+                    bLines.innerHTML += `
+                        <line x1="120" y1="${180 + yOffset}" x2="480" y2="${180 + yOffset}" 
+                            stroke="#c084fc" stroke-width="${strokeThick}" stroke-opacity="${baseOpacity * magFactor}" 
+                            style="filter: url(#glow)" />
+                        <!-- Arrow indicator inside -->
+                        <path d="M ${leftIsNorth ? 300 : 290} ${180 + yOffset} L ${leftIsNorth ? 305 : 285} ${180 + yOffset}" 
+                            fill="none" stroke="none" marker-start="${arrowDirMarker}" />
+                    `;
+                }
+
+                // Render external looping dipole lines
+                const outerRadiiY = [45, 75, 110];
+                outerRadiiY.forEach((ry, idx) => {
+                    const rX = 200 + idx * 30;
+                    const arrowDirMarker = leftIsNorth ? 'url(#sol-arrow)' : 'url(#sol-arrow-reverse)';
+
+                    // Draw outer loop paths
+                    bLines.innerHTML += `
+                        <!-- Top loop -->
+                        <path d="M 140,160 C ${140 - rX/2},${160 - ry} ${460 + rX/2},${160 - ry} 460,160" 
+                            fill="none" stroke="#c084fc" stroke-width="${strokeThick}" stroke-opacity="${baseOpacity * magFactor * 0.7}" 
+                            style="filter: url(#glow)" />
+                        <path d="M 300,${160 - ry * 0.8} L 301,${160 - ry * 0.8}" fill="none" stroke="none" marker-start="${leftIsNorth ? 'url(#sol-arrow-reverse)' : 'url(#sol-arrow)'}" />
+
+                        <!-- Bottom loop -->
+                        <path d="M 140,200 C ${140 - rX/2},${200 + ry} ${460 + rX/2},${200 + ry} 460,200" 
+                            fill="none" stroke="#c084fc" stroke-width="${strokeThick}" stroke-opacity="${baseOpacity * magFactor * 0.7}" 
+                            style="filter: url(#glow)" />
+                        <path d="M 300,${200 + ry * 0.8} L 301,${200 + ry * 0.8}" fill="none" stroke="none" marker-start="${leftIsNorth ? 'url(#sol-arrow)' : 'url(#sol-arrow-reverse)'}" />
+                    `;
+                });
+
+                // Display dynamic labels N and S
+                polesL.innerHTML += `
+                    <g transform="translate(100, 180)" class="select-none">
+                        <circle cx="0" cy="0" r="18" fill="${leftIsNorth ? '#ef4444' : '#3b82f6'}" stroke="#1e293b" stroke-width="2" />
+                        <text x="-5" y="5" fill="#fff" class="text-sm font-bold font-mono">${leftIsNorth ? 'N' : 'S'}</text>
+                    </g>
+                    <g transform="translate(500, 180)" class="select-none">
+                        <circle cx="0" cy="0" r="18" fill="${rightIsNorth ? '#ef4444' : '#3b82f6'}" stroke="#1e293b" stroke-width="2" />
+                        <text x="-5" y="5" fill="#fff" class="text-sm font-bold font-mono">${rightIsNorth ? 'N' : 'S'}</text>
+                    </g>
+                `;
+            }
+        }
+
+        // ==========================================
+        // LAB 3: FORCE & FLEMING'S LEFT-HAND RULE
+        // ==========================================
+        function setForceCurrent(dir) {
+            state.forceTab.currentDir = dir;
+            
+            const bDown = document.getElementById('btn-force-curr-down');
+            const bOff = document.getElementById('btn-force-curr-off');
+            const bUp = document.getElementById('btn-force-curr-up');
+
+            // Reset highlight
+            [bDown, bOff, bUp].forEach(btn => {
+                if (btn) {
+                    btn.className = "py-2 px-3 rounded-xl border text-xs font-semibold transition bg-slate-800 border-slate-700 text-slate-300";
+                }
+            });
+
+            const activeBtn = dir === 'down' ? bDown : (dir === 'off' ? bOff : bUp);
+            if (activeBtn) {
+                activeBtn.className = "py-2 px-3 rounded-xl border text-xs font-semibold transition bg-indigo-600 border-indigo-500 text-white";
+            }
+
+            renderForceLab();
+        }
+
+        function setMagnetOrientation(orientation) {
+            state.forceTab.magnetPolarity = orientation;
+            const bNorm = document.getElementById('btn-mag-normal');
+            const bRev = document.getElementById('btn-mag-reversed');
+
+            if (orientation === 'normal') {
+                bNorm.className = "py-2 px-3 rounded-xl border text-xs font-semibold transition bg-indigo-600 border-indigo-500 text-white";
+                bRev.className = "py-2 px-3 rounded-xl border text-xs font-semibold transition bg-slate-800 border-slate-700 text-slate-300";
+            } else {
+                bRev.className = "py-2 px-3 rounded-xl border text-xs font-semibold transition bg-indigo-600 border-indigo-500 text-white";
+                bNorm.className = "py-2 px-3 rounded-xl border text-xs font-semibold transition bg-slate-800 border-slate-700 text-slate-300";
+            }
+
+            renderForceLab();
+        }
+
+        function resetForceLab() {
+            state.forceTab.currentDir = 'down';
+            state.forceTab.magnetPolarity = 'normal';
+            setForceCurrent('down');
+            setMagnetOrientation('normal');
+        }
+
+        function renderForceLab() {
+            const currentDir = state.forceTab.currentDir;
+            const polarity = state.forceTab.magnetPolarity;
+
+            const bgG = document.getElementById('force-bg-elements');
+            const magnetG = document.getElementById('force-magnet-g');
+            const wireG = document.getElementById('force-wire-g');
+            const labelG = document.getElementById('force-labels-g');
+
+            if (!bgG) return;
+
+            bgG.innerHTML = '';
+            magnetG.innerHTML = '';
+            wireG.innerHTML = '';
+            labelG.innerHTML = '';
+
+            // Draw Lab Stands & Support
+            bgG.innerHTML += `
+                <!-- Support Stand base & pole -->
+                <rect x="50" y="330" width="120" height="20" rx="4" fill="#334155" />
+                <line x1="110" y1="330" x2="110" y2="60" stroke="#475569" stroke-width="8" />
+                <!-- Cantilever horizontal bar holding the wire -->
+                <line x1="110" y1="80" x2="300" y2="80" stroke="#475569" stroke-width="6" />
+                
+                <!-- Circuit Connections to battery -->
+                <rect x="420" y="290" width="130" height="40" rx="8" fill="#1e293b" stroke="#334155" stroke-width="2" />
+                <text x="435" y="315" fill="#94a3b8" class="text-[10px] font-bold font-mono">LAB POWER SOURCE</text>
+            `;
+
+            // Draw Horseshoe Magnet (Isometric representation)
+            const isNormal = polarity === 'normal';
+            const topPoleColor = isNormal ? 'url(#poleRedGrad)' : 'url(#poleBlueGrad)';
+            const bottomPoleColor = isNormal ? 'url(#poleBlueGrad)' : 'url(#poleRedGrad)';
+            
+            // Draw Horseshoe Magnet base & poles centered at x=300
+            magnetG.innerHTML += `
+                <!-- Horseshoe spine (Behind the wire) -->
+                <path d="M 230,120 C 200,120 200,280 230,280" fill="none" stroke="url(#magnetIronGrad)" stroke-width="28" stroke-linecap="round" />
+                
+                <!-- Top Pole Arm -->
+                <path d="M 230,120 L 320,120" fill="none" stroke="${topPoleColor}" stroke-width="28" stroke-linecap="round" />
+                <!-- Bottom Pole Arm -->
+                <path d="M 230,280 L 320,280" fill="none" stroke="${bottomPoleColor}" stroke-width="28" stroke-linecap="round" />
+                
+                <!-- Pole identity text labels -->
+                <text x="310" y="125" fill="#fff" class="text-xs font-bold font-mono">${isNormal ? 'N' : 'S'}</text>
+                <text x="310" y="285" fill="#fff" class="text-xs font-bold font-mono">${isNormal ? 'S' : 'N'}</text>
+            `;
+
+            // Calculate Force Direction using Fleming's Left Hand Rule
+            // Field runs North to South
+            // Current is either Down, Off, or Up
+            let defDirection = 'neutral'; // 'left' (B), 'right' (C), 'neutral' (A)
+            let resultForceText = 'No Force (Neutral)';
+            let positionText = 'A (Rest Position)';
+
+            if (currentDir === 'down') {
+                // Current Top -> Bottom
+                // Field North -> South
+                if (isNormal) {
+                    // Field Down, Current Down -> Forces deflection to Right
+                    defDirection = 'right';
+                    resultForceText = 'Deflection to RIGHT (Towards Position C)';
+                    positionText = 'C (Deflected Right)';
+                } else {
+                    // Field Up, Current Down -> Forces deflection to Left
+                    defDirection = 'left';
+                    resultForceText = 'Deflection to LEFT (Towards Position B)';
+                    positionText = 'B (Deflected Left)';
+                }
+            } else if (currentDir === 'up') {
+                // Current Bottom -> Top
+                // Field North -> South
+                if (isNormal) {
+                    // Field Down, Current Up -> Forces deflection to Left
+                    defDirection = 'left';
+                    resultForceText = 'Deflection to LEFT (Towards Position B)';
+                    positionText = 'B (Deflected Left)';
+                } else {
+                    // Field Up, Current Up -> Forces deflection to Right
+                    defDirection = 'right';
+                    resultForceText = 'Deflection to RIGHT (Towards Position C)';
+                    positionText = 'C (Deflected Right)';
+                }
+            }
+
+            document.getElementById('force-wire-pos').innerText = positionText;
+            document.getElementById('force-vector-dir').innerText = resultForceText;
+
+            // Update Left-Hand Assist Panel Labels
+            document.getElementById('hand-field-state').innerText = isNormal ? 'DOWN (N → S)' : 'UP (N → S)';
+            document.getElementById('hand-field-state').className = isNormal ? 'text-red-400 font-semibold' : 'text-sky-400 font-semibold';
+            
+            let curHandText = 'OFF';
+            if (currentDir === 'down') curHandText = 'DOWN';
+            else if (currentDir === 'up') curHandText = 'UP';
+            document.getElementById('hand-curr-state').innerText = curHandText;
+
+            let fHandText = 'NONE';
+            if (defDirection === 'left') fHandText = 'LEFT';
+            else if (defDirection === 'right') fHandText = 'RIGHT';
+            document.getElementById('hand-force-state').innerText = fHandText;
+            document.getElementById('hand-force-state').className = defDirection !== 'neutral' ? 'text-pink-400 font-bold' : 'text-slate-400';
+
+            // Draw Conducting Copper Wire hanging vertically with potential deflection
+            let wireAnchorTopX = 290;
+            let wireAnchorTopY = 80;
+            let wireBottomX = 290;
+            let wireBottomY = 320;
+
+            // Apply displacement depending on deflection state
+            if (defDirection === 'left') {
+                wireBottomX = 240; // Deflected Left (Position B)
+            } else if (defDirection === 'right') {
+                wireBottomX = 340; // Deflected Right (Position C)
+            }
+
+            // Draw supporting hanging guides representing points A, B, C
+            bgG.innerHTML += `
+                <!-- Position guide lines -->
+                <line x1="290" y1="80" x2="240" y2="320" stroke="#334155" stroke-dasharray="2,2" stroke-width="1.5" />
+                <line x1="290" y1="80" x2="340" y2="320" stroke="#334155" stroke-dasharray="2,2" stroke-width="1.5" />
+                <line x1="290" y1="80" x2="290" y2="320" stroke="#334155" stroke-dasharray="2,2" stroke-width="1.5" />
+
+                <text x="230" y="340" fill="#64748b" class="text-[10px] font-mono">POS B</text>
+                <text x="282" y="340" fill="#64748b" class="text-[10px] font-mono">POS A</text>
+                <text x="335" y="340" fill="#64748b" class="text-[10px] font-mono">POS C</text>
+            `;
+
+            // Draw Conducting Flexible Wire
+            wireG.innerHTML += `
+                <!-- The dynamic wire -->
+                <line x1="${wireAnchorTopX}" y1="${wireAnchorTopY}" x2="${wireBottomX}" y2="${wireBottomY}" stroke="url(#copperGrad)" stroke-width="5" stroke-linecap="round" />
+            `;
+
+            // Draw Current flow pulse animation on wire
+            if (currentDir !== 'off') {
+                const animClass = currentDir === 'down' ? "current-active" : "current-active-reverse";
+                wireG.innerHTML += `
+                    <line x1="${wireAnchorTopX}" y1="${wireAnchorTopY}" x2="${wireBottomX}" y2="${wireBottomY}" stroke="#fbbf24" stroke-width="2.5" class="${animClass}" />
+                `;
+            }
+
+            // Draw Vector Force arrow overlay if active force exists
+            if (defDirection !== 'neutral') {
+                const arrowStartX = (wireAnchorTopX + wireBottomX) / 2;
+                const arrowStartY = (wireAnchorTopY + wireBottomY) / 2;
+                const arrowEndX = defDirection === 'left' ? arrowStartX - 50 : arrowStartX + 50;
+
+                wireG.innerHTML += `
+                    <line x1="${arrowStartX}" y1="${arrowStartY}" x2="${arrowEndX}" y2="${arrowStartY}" stroke="#ec4899" stroke-width="4" marker-end="url(#arrow)" style="filter: url(#glow)" />
+                    <text x="${defDirection === 'left' ? arrowEndX - 40 : arrowEndX + 10}" y="${arrowStartY + 4}" fill="#f472b6" class="text-xs font-bold font-mono">FORCE (F)</text>
+                `;
+            }
+        }
+
+        // ==========================================
+        // TAB 4: CONCEPT QUIZZES & SYSTEM CHALLENGES
+        // ==========================================
+        function renderQuiz() {
+            const index = state.quiz.currentQuestionIndex;
+            const q = quizQuestions[index];
+
+            document.getElementById('question-index').innerText = `QUESTION ${index + 1} OF ${quizQuestions.length}`;
+            document.getElementById('question-text').innerText = q.text;
+
+            // Clear feedback
+            document.getElementById('quiz-feedback-box').className = "hidden rounded-2xl p-5 mb-6 flex items-start space-x-4 border";
+            document.getElementById('btn-next-question').classList.add('hidden');
+
+            const optionsGroup = document.getElementById('answer-options-group');
+            optionsGroup.innerHTML = '';
+
+            state.quiz.answered = false;
+
+            q.options.forEach((opt, idx) => {
+                optionsGroup.innerHTML += `
+                    <button onclick="checkAnswer(${idx})" class="quiz-option-btn w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 transition duration-150 flex items-center justify-between text-sm group">
+                        <span>${opt.text}</span>
+                        <i class="fa-regular fa-circle text-slate-500 group-hover:text-indigo-400"></i>
+                    </button>
+                `;
+            });
+
+            // Handle progress bars state
+            for (let i = 1; i <= 4; i++) {
+                const bar = document.getElementById('progress-bar-' + i);
+                if (bar) {
+                    if (i <= index + 1) {
+                        bar.className = "h-2 rounded-full bg-indigo-600 transition-colors duration-300";
+                    } else {
+                        bar.className = "h-2 rounded-full bg-slate-800 transition-colors duration-300";
+                    }
+                }
+            }
+        }
+
+        function checkAnswer(optionIdx) {
+            if (state.quiz.answered) return;
+            state.quiz.answered = true;
+
+            const index = state.quiz.currentQuestionIndex;
+            const q = quizQuestions[index];
+            const chosen = q.options[optionIdx];
+
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            const feedbackIcon = document.getElementById('quiz-feedback-icon');
+            const feedbackTitle = document.getElementById('quiz-feedback-title');
+            const feedbackDesc = document.getElementById('quiz-feedback-desc');
+            const nextBtn = document.getElementById('btn-next-question');
+
+            feedbackBox.classList.remove('hidden');
+
+            if (chosen.isCorrect) {
+                // Boost XP
+                state.xp += 100;
+                document.getElementById('score-counter').innerText = 'XP: ' + state.xp;
+                
+                feedbackBox.className = "rounded-2xl p-5 mb-6 flex items-start space-x-4 border border-emerald-500/20 bg-emerald-950/20";
+                feedbackIcon.className = "fa-solid fa-circle-check text-emerald-400 text-xl";
+                feedbackTitle.innerText = "Excellent Work!";
+                feedbackTitle.className = "font-bold text-emerald-400 text-sm";
+                feedbackDesc.innerText = chosen.text + " is correct! " + q.desc;
+            } else {
+                feedbackBox.className = "rounded-2xl p-5 mb-6 flex items-start space-x-4 border border-rose-500/20 bg-rose-950/20";
+                feedbackIcon.className = "fa-solid fa-circle-xmark text-rose-400 text-xl";
+                feedbackTitle.innerText = "Not Quite!";
+                feedbackTitle.className = "font-bold text-rose-400 text-sm";
+                feedbackDesc.innerText = "Incorrect Selection. " + q.desc;
+            }
+
+            // Disable other buttons, highlight correct
+            const optionBtns = document.querySelectorAll('.quiz-option-btn');
+            optionBtns.forEach((btn, idx) => {
+                btn.removeAttribute('onclick');
+                if (q.options[idx].isCorrect) {
+                    btn.className = "w-full text-left p-4 rounded-xl border border-emerald-500 bg-emerald-950/20 flex items-center justify-between text-sm text-emerald-300";
+                    btn.innerHTML = `<span>${q.options[idx].text}</span> <i class="fa-solid fa-circle-check text-emerald-400"></i>`;
+                } else if (idx === optionIdx) {
+                    btn.className = "w-full text-left p-4 rounded-xl border border-rose-500 bg-rose-950/20 flex items-center justify-between text-sm text-rose-300";
+                    btn.innerHTML = `<span>${q.options[idx].text}</span> <i class="fa-solid fa-circle-xmark text-rose-400"></i>`;
+                } else {
+                    btn.className = "w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-900/20 opacity-40 flex items-center justify-between text-sm";
+                }
+            });
+
+            nextBtn.classList.remove('hidden');
+            if (index === quizQuestions.length - 1) {
+                nextBtn.innerHTML = `Restart Lab Challenge <i class="fa-solid fa-arrow-rotate-left ml-2"></i>`;
+            } else {
+                nextBtn.innerHTML = `Next Challenge <i class="fa-solid fa-arrow-right ml-2"></i>`;
+            }
+        }
+
+        function nextQuestion() {
+            if (state.quiz.currentQuestionIndex === quizQuestions.length - 1) {
+                state.quiz.currentQuestionIndex = 0;
+            } else {
+                state.quiz.currentQuestionIndex++;
+            }
+            renderQuiz();
+        }
+    </script>
+</body>
+</html>
