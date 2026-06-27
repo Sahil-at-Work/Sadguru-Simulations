@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faraday's Interactive Induction Laboratory</title>
+    <!-- Tailwind CSS for modern component layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        physicsBlue: '#00D2FF',
+                        physicsOrange: '#FF9F1C',
+                        physicsPurple: '#9d4edd',
+                        canvasDark: '#0D0E15',
+                        panelDark: '#161925',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & Font Awesome for icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0D0E15;
+            color: #E2E8F0;
+            overflow-x: hidden;
+        }
+        .glow-blue {
+            text-shadow: 0 0 15px rgba(0, 210, 255, 0.6);
+        }
+        .glow-orange {
+            text-shadow: 0 0 15px rgba(255, 159, 28, 0.6);
+        }
+        .bg-gradient-glass {
+            background: rgba(22, 25, 37, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D0E15;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2D3142;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00D2FF;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-panelDark border-b border-gray-800 sticky top-0 z-50 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-physicsBlue to-physicsPurple p-2.5 rounded-xl shadow-lg shadow-physicsBlue/20">
+                <i class="fa-solid fa-bolt text-xl text-white animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-physicsBlue via-indigo-200 to-physicsOrange bg-clip-text text-transparent">
+                    FARADAY'S LAB
+                </h1>
+                <p class="text-[10px] text-gray-400 font-mono tracking-widest uppercase">Electromagnetic Induction Explorer</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex flex-wrap gap-2">
+            <button onclick="switchTab('sandbox')" id="tab-btn-sandbox" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 bg-physicsBlue text-black shadow-lg shadow-physicsBlue/20">
+                <i class="fa-solid fa-vial"></i> 🔬 Induction Sandbox
+            </button>
+            <button onclick="switchTab('fleming')" id="tab-btn-fleming" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 text-gray-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-hands-bound"></i> 🖐️ Fleming's Right-Hand
+            </button>
+            <button onclick="switchTab('biography')" id="tab-btn-biography" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 text-gray-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-book-open"></i> 📚 Faraday's Journey
+            </button>
+            <button onclick="switchTab('quests')" id="tab-btn-quests" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 text-gray-400 hover:text-white flex items-center gap-2 relative">
+                <i class="fa-solid fa-trophy"></i> 🏆 Lab Quests
+                <span id="quest-badge" class="absolute -top-1 -right-1 w-2 h-2 bg-physicsOrange rounded-full hidden"></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 w-full max-w-7xl mx-auto p-4 md:p-6 flex flex-col gap-6">
+
+        <!-- Notification / Guide Prompt Box -->
+        <div id="welcome-banner" class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/20 rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-physicsBlue/5 rounded-full blur-2xl"></div>
+            <div class="flex items-start gap-4">
+                <div class="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 text-physicsBlue shrink-0">
+                    <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        How is Electricity Made?
+                    </h2>
+                    <p class="text-sm text-gray-300 max-w-2xl mt-1 leading-relaxed">
+                        Step in as an 1831 experimental physicist! Switch currents in the solenoid, swap core materials, or physically slide the induction loop to discover how a shifting magnetic field births electric current.
+                    </p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('welcome-banner').style.display='none'" class="text-gray-400 hover:text-white text-xs bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 shrink-0">
+                Got it, let's explore!
+            </button>
+        </div>
+
+        <!-- TAB 1: INDUCTION SANDBOX -->
+        <section id="tab-content-sandbox" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left Side: Control Panel (Responsive columns for controls) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- Sandbox Config -->
+                <div class="bg-panelDark rounded-2xl p-5 border border-gray-800 flex flex-col gap-5">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                        <span class="font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-physicsBlue"></i> Lab Instruments
+                        </span>
+                        <span class="text-xs font-mono px-2 py-1 bg-physicsBlue/10 text-physicsBlue rounded">Real-time</span>
+                    </div>
+
+                    <!-- Material Core Switcher -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex justify-between">
+                            <span>Solenoid Core Material</span>
+                            <span id="core-label" class="text-physicsBlue font-bold">Iron Core (High Permeability)</span>
+                        </label>
+                        <div class="grid grid-cols-3 gap-2 bg-canvasDark p-1 rounded-xl border border-gray-800">
+                            <button onclick="setCore('air')" id="core-btn-air" class="py-2 px-1 rounded-lg text-xs font-medium transition-all duration-200 text-gray-400 hover:text-white">
+                                <i class="fa-solid fa-wind block mb-1"></i> Air Core
+                            </button>
+                            <button onclick="setCore('iron')" id="core-btn-iron" class="py-2 px-1 rounded-lg text-xs font-bold transition-all duration-200 bg-physicsBlue text-black shadow">
+                                <i class="fa-solid fa-cubes-force block mb-1"></i> Iron Core
+                            </button>
+                            <button onclick="setCore('copper')" id="core-btn-copper" class="py-2 px-1 rounded-lg text-xs font-medium transition-all duration-200 text-gray-400 hover:text-white">
+                                <i class="fa-solid fa-shield-halved block mb-1"></i> Copper
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Current -->
+                    <div class="bg-canvasDark p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+                        <div>
+                            <span class="text-sm font-semibold text-white block">Solenoid Circuit Switch</span>
+                            <span class="text-xs text-gray-400">Instantly toggle electromagnets</span>
+                        </div>
+                        <button id="solenoid-switch" onclick="toggleSolenoidPower()" class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-physicsOrange">
+                            <span id="solenoid-switch-slider" class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5"></span>
+                        </button>
+                    </div>
+
+                    <!-- Solenoid Magnet Strength Slider -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider">Source Voltage (Battery)</span>
+                            <span id="solenoid-voltage-val" class="font-mono text-physicsOrange font-bold">12 V</span>
+                        </div>
+                        <input type="range" id="solenoid-voltage" min="0" max="24" value="12" step="1" oninput="updateVoltage(this.value)" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-physicsOrange">
+                    </div>
+
+                    <!-- Solenoid Coil Turn Density -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider">Solenoid Coil Turns</span>
+                            <span id="solenoid-turns-val" class="font-mono text-physicsBlue font-bold">400 Loops</span>
+                        </div>
+                        <input type="range" id="solenoid-turns" min="100" max="600" value="400" step="50" oninput="updateSolenoidTurns(this.value)" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-physicsBlue">
+                    </div>
+
+                    <!-- Secondary Coil Loops -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider">Pickup Coil Turns (N)</span>
+                            <span id="secondary-turns-val" class="font-mono text-physicsPurple font-bold">3 Loops</span>
+                        </div>
+                        <input type="range" id="secondary-turns" min="1" max="5" value="3" step="1" oninput="updateSecondaryTurns(this.value)" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-physicsPurple">
+                    </div>
+
+                    <!-- Playback Actions -->
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <button onclick="triggerPulse()" class="bg-white/5 hover:bg-white/10 text-white font-semibold py-2 px-3 rounded-lg text-xs border border-white/10 flex items-center justify-center gap-2 transition-all duration-150">
+                            <i class="fa-solid fa-wave-square text-physicsOrange"></i> Pulse Current
+                        </button>
+                        <button onclick="resetSandbox()" class="bg-white/5 hover:bg-white/10 text-white font-semibold py-2 px-3 rounded-lg text-xs border border-white/10 flex items-center justify-center gap-2 transition-all duration-150">
+                            <i class="fa-solid fa-arrow-rotate-left"></i> Reset Lab
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Digital Multimeter Output Readouts -->
+                <div class="bg-panelDark rounded-2xl p-5 border border-gray-800 flex flex-col gap-4">
+                    <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-gauge text-physicsOrange"></i> Lab Telemetry
+                    </h3>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-canvasDark p-3 rounded-xl border border-gray-800/80">
+                            <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Magnetic Flux (Φ)</span>
+                            <span id="telemetry-flux" class="text-xl font-mono font-bold text-physicsBlue">0.00 Wb</span>
+                        </div>
+                        <div class="bg-canvasDark p-3 rounded-xl border border-gray-800/80">
+                            <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Rate of Change (dΦ/dt)</span>
+                            <span id="telemetry-dflux" class="text-xl font-mono font-bold text-physicsOrange">0.00 Wb/s</span>
+                        </div>
+                        <div class="bg-canvasDark p-3 rounded-xl border border-gray-800/80 col-span-2 flex justify-between items-center">
+                            <div>
+                                <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Induced Current (I_ind)</span>
+                                <span id="telemetry-current" class="text-2xl font-mono font-bold text-physicsPurple">0.00 mA</span>
+                            </div>
+                            <div class="flex flex-col items-end">
+                                <span class="text-[10px] text-gray-400 uppercase tracking-wider">Direction</span>
+                                <span id="telemetry-dir" class="text-xs font-mono font-bold text-gray-400">STABLE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Physics Canvas Simulation Area -->
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div class="bg-panelDark rounded-2xl p-4 border border-gray-800 flex flex-col gap-4 relative overflow-hidden">
+                    
+                    <!-- Floating overlay guide -->
+                    <div class="flex justify-between items-center flex-wrap gap-2 bg-canvasDark/90 p-2.5 rounded-xl border border-gray-800 text-xs">
+                        <span class="text-gray-300 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 bg-physicsOrange rounded-full animate-ping"></span>
+                            💡 <strong>Sandbox Guide:</strong> Drag the <strong>Primary Solenoid Coil</strong> left/right, toggle power, or tweak variables to induce current!
+                        </span>
+                        <div class="flex items-center gap-3">
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="show-field-lines" checked class="accent-physicsBlue rounded">
+                                <span class="text-gray-400">Show B-Field Lines</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="show-electrons" checked class="accent-physicsPurple rounded">
+                                <span class="text-gray-400">Show Charges</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- The Simulation Canvas -->
+                    <div class="relative bg-canvasDark rounded-xl border border-gray-800 min-h-[420px] w-full flex items-center justify-center cursor-crosshair overflow-hidden">
+                        <canvas id="sandboxCanvas" class="w-full block"></canvas>
+                        
+                        <!-- Floating Instruction Banner on empty Canvas -->
+                        <div id="drag-indicator" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-full text-xs text-physicsBlue border border-physicsBlue/20 pointer-events-none flex items-center gap-2">
+                            <i class="fa-solid fa-arrows-left-right animate-bounce"></i> Drag current source left or right
+                        </div>
+                    </div>
+
+                    <!-- Galvanometer & Bulb Deflection Visual representation -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Simulated Galvanometer Panel -->
+                        <div class="bg-canvasDark p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-physicsBlue/10 p-2 rounded-lg border border-physicsBlue/20">
+                                    <i class="fa-solid fa-gauge-simple-high text-physicsBlue text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-gray-400 block uppercase tracking-wider">Galvanometer Needle</span>
+                                    <span id="galvanometer-text" class="text-sm font-bold text-white">Center Null (Zero Current)</span>
+                                </div>
+                            </div>
+                            <!-- Small Canvas for Analog Meter dial -->
+                            <canvas id="meterCanvas" width="120" height="60" class="bg-black/40 rounded border border-gray-800"></canvas>
+                        </div>
+
+                        <!-- Simulated Load/Bulb Light Intensity Panel -->
+                        <div class="bg-canvasDark p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div id="bulb-glow-container" class="bg-white/5 p-2 rounded-lg border border-white/10 transition-all duration-300">
+                                    <i id="bulb-icon" class="fa-regular fa-lightbulb text-gray-500 text-2xl transition-all duration-200"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-gray-400 block uppercase tracking-wider">Secondary Load Bulb</span>
+                                    <span id="bulb-intensity-text" class="text-sm font-bold text-white">No Induced EMF</span>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col justify-center">
+                                <span class="text-[10px] text-gray-400 block">Inductance state</span>
+                                <span id="bulb-state-badge" class="text-xs px-2.5 py-1 rounded bg-red-500/10 text-red-400 border border-red-500/10 font-bold inline-block">Off</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: FLEMING'S RIGHT HAND RULE INTERACTIVE -->
+        <section id="tab-content-fleming" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- Concept Theory & Quick Reference -->
+                <div class="bg-panelDark rounded-2xl p-5 border border-gray-800 flex flex-col gap-4">
+                    <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-hand text-physicsBlue"></i> Vector Guide
+                    </h3>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        To easily predict the orientation of induced EMF when moving a conductor through a static magnetic field, we align our right hand's three perpendicular axes.
+                    </p>
+                    <div class="bg-canvasDark p-4 rounded-xl border border-gray-800 flex flex-col gap-3">
+                        <div class="flex items-center gap-3 border-b border-gray-800 pb-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center font-bold text-xs">Thumb</div>
+                            <div>
+                                <span class="text-xs text-gray-400 block">Direction of</span>
+                                <span class="text-sm font-bold text-red-400">Motion of Conductor</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 border-b border-gray-800 pb-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">Index</div>
+                            <div>
+                                <span class="text-xs text-gray-400 block">Direction of</span>
+                                <span class="text-sm font-bold text-blue-400">Magnetic Field (N ➔ S)</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">Middle</div>
+                            <div>
+                                <span class="text-xs text-gray-400 block">Direction of</span>
+                                <span class="text-sm font-bold text-emerald-400">Induced Current (I)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Controls to challenge or manipulate the vectors -->
+                <div class="bg-panelDark rounded-2xl p-5 border border-gray-800 flex flex-col gap-5">
+                    <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad text-physicsOrange"></i> Challenge Vector Tester
+                    </h3>
+                    
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-gray-400 uppercase">1. Conductor Motion (Thumb)</label>
+                        <select id="fleming-motion" onchange="updateFlemingVectors()" class="bg-canvasDark border border-gray-800 text-white rounded-lg p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-physicsBlue">
+                            <option value="up">Moving Upwards (↑)</option>
+                            <option value="down">Moving Downwards (↓)</option>
+                            <option value="left">Moving Left (←)</option>
+                            <option value="right">Moving Right (→)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-gray-400 uppercase">2. Magnetic Field Vector (Index)</label>
+                        <select id="fleming-field" onchange="updateFlemingVectors()" class="bg-canvasDark border border-gray-800 text-white rounded-lg p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-physicsBlue">
+                            <option value="right">Left to Right (N ➔ S)</option>
+                            <option value="left">Right to Left (S ➔ N)</option>
+                            <option value="into">Into the Screen (⊗)</option>
+                            <option value="out">Out of the Screen (⊙)</option>
+                        </select>
+                    </div>
+
+                    <div class="p-4 bg-physicsPurple/10 border border-physicsPurple/20 rounded-xl">
+                        <span class="text-[10px] text-physicsPurple font-bold uppercase block tracking-wider">RESULTING INDUCED CURRENT</span>
+                        <div id="fleming-result" class="text-xl font-extrabold text-white mt-1 flex items-center gap-2">
+                            Calculating...
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1 leading-normal">
+                            Maximizes only when your conductor cuts the field lines precisely perpendicular (90° angle)!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div class="bg-panelDark rounded-2xl p-6 border border-gray-800 flex flex-col gap-4 min-h-[500px]">
+                    <div class="flex justify-between items-center flex-wrap gap-2">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Dynamic 3D Vector Alignment Helper</h3>
+                            <p class="text-xs text-gray-400">See mutual perpendicularity in full spatial visualization</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-mono">XYZ Axis Lock</span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Vector Canvas -->
+                    <div class="flex-1 bg-canvasDark rounded-xl border border-gray-800 flex items-center justify-center relative overflow-hidden p-4">
+                        <!-- Custom Vector Canvas with rotating control axes -->
+                        <canvas id="flemingCanvas" width="600" height="400" class="w-full max-w-lg aspect-[3/2] block"></canvas>
+                        
+                        <!-- Rotate Instructions -->
+                        <div class="absolute bottom-3 right-3 bg-black/60 px-3 py-1 rounded text-[10px] text-gray-400 flex items-center gap-1.5 border border-gray-800">
+                            <i class="fa-solid fa-arrows-spin text-physicsBlue"></i> Interactive 3D Orbit Display
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: MICHAEL FARADAY BIOGRAPHY (Interactive Notebook) -->
+        <section id="tab-content-biography" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left Side: Custom styling styled after a vintage book layout -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+                <div class="bg-amber-50 rounded-2xl p-6 md:p-8 text-slate-900 border-4 border-amber-200/50 shadow-2xl relative overflow-hidden">
+                    <!-- Retro Paper Style Lines -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-amber-200/10 rounded-full blur-xl"></div>
+                    
+                    <div class="flex items-center justify-between border-b-2 border-amber-200 pb-4 mb-6">
+                        <span class="font-mono text-xs font-bold text-amber-800 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fa-solid fa-feather-pointed"></i> HISTORIC DIARY ENTRY (1791 - 1867)
+                        </span>
+                        <span class="text-xs bg-amber-100 text-amber-900 px-2 py-1 rounded font-serif italic">London, Royal Institution</span>
+                    </div>
+
+                    <div class="flex flex-col gap-5 font-serif leading-relaxed">
+                        <h2 class="text-3xl font-extrabold text-amber-950 tracking-tight font-serif">
+                            The Bookbinder's Spark
+                        </h2>
+
+                        <p class="text-base text-slate-800">
+                            Michael Faraday was born into poverty, the son of an ailing blacksmith. He was never formally trained in calculus or advanced geometry. But where academies saw a teenager without credentials, the universe saw an unmatched engine of raw sensory curiosity.
+                        </p>
+
+                        <div class="bg-amber-100/60 p-5 rounded-xl border border-amber-200/80 italic text-slate-700 my-2 relative">
+                            <span class="absolute top-1 left-2 text-4xl text-amber-300 font-serif">“</span>
+                            <p class="pl-6 relative z-10 text-sm">
+                                "I was a very lively imaginative person and could believe in the Arabian Nights as easily as in the Encyclopedia. But I wanted facts, and facts were important to me. I could trust a fact only if I had caught it myself."
+                            </p>
+                        </div>
+
+                        <p class="text-base text-slate-800">
+                            At age 14, bound to a London Bookbinder's shop, young Michael didn’t just assemble paper. He consumed it. Reading the articles on electricity in the books he bound, he began building homemade electrostatic devices from scrap glass and copper wire. 
+                        </p>
+
+                        <p class="text-base text-slate-800 font-semibold text-amber-900">
+                            His chance came when a customer gifted him tickets to Sir Humphry Davy's lectures. He bounds Davy's lecture notes into a beautiful 300-page manuscript, submits it as his application, and lands a role as Davy's laboratory assistant.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Chronology and Career Timeline -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <div class="bg-panelDark rounded-2xl p-5 border border-gray-800">
+                    <h3 class="font-bold text-white text-base mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-timeline text-physicsOrange"></i> Timeline of Discovery
+                    </h3>
+
+                    <div class="relative pl-6 border-l-2 border-gray-800 flex flex-col gap-5">
+                        <!-- Dot 1 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1.5 w-4 h-4 bg-physicsBlue rounded-full border-4 border-panelDark"></div>
+                            <span class="text-xs text-physicsBlue font-mono font-bold block">1805 ➔ Age 14</span>
+                            <span class="text-sm font-bold text-white block">The Bookbinding Apprentice</span>
+                            <p class="text-xs text-gray-400 mt-1">Reads Mrs. Jane Marcet's "Conversations on Chemistry" while binding it, igniting his lifetime obsession with natural science.</p>
+                        </div>
+                        <!-- Dot 2 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1.5 w-4 h-4 bg-physicsOrange rounded-full border-4 border-panelDark"></div>
+                            <span class="text-xs text-physicsOrange font-mono font-bold block">1813 ➔ Age 21</span>
+                            <span class="text-sm font-bold text-white block">Assisting Sir Humphry Davy</span>
+                            <p class="text-xs text-gray-400 mt-1">Begins washing glassware at the Royal Institution, quickly graduating to co-experimenter, surpassing his mentor's renown.</p>
+                        </div>
+                        <!-- Dot 3 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1.5 w-4 h-4 bg-physicsPurple rounded-full border-4 border-panelDark"></div>
+                            <span class="text-xs text-physicsPurple font-mono font-bold block">1831 ➔ Age 39</span>
+                            <span class="text-sm font-bold text-white block">Electromagnetic Induction</span>
+                            <p class="text-xs text-gray-400 mt-1">Discovers that moving magnetic flux induces current—the operational physics behind modern power grids.</p>
+                        </div>
+                        <!-- Dot 4 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1.5 w-4 h-4 bg-white/20 rounded-full border-4 border-panelDark"></div>
+                            <span class="text-xs text-gray-400 font-mono font-bold block">Legacy</span>
+                            <span class="text-sm font-bold text-white block">Rejecting Knighthoods</span>
+                            <p class="text-xs text-gray-400 mt-1">Declines Honorary University doctorates and even the British Knighthood twice, wanting to remain plain Michael Faraday to the end.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: LAB QUESTS (GAMIFIED CHALLENGES) -->
+        <section id="tab-content-quests" class="hidden flex flex-col gap-6">
+            <div class="bg-panelDark rounded-2xl p-6 border border-gray-800 text-center max-w-2xl mx-auto w-full">
+                <i class="fa-solid fa-trophy text-5xl text-physicsOrange mb-3 animate-bounce"></i>
+                <h2 class="text-2xl font-extrabold text-white">Interactive Certification</h2>
+                <p class="text-sm text-gray-300 mt-1">
+                    Complete these experimental sandbox puzzles to prove your expertise in induction physics!
+                </p>
+                <div class="flex justify-center gap-4 mt-4">
+                    <div class="bg-canvasDark px-4 py-2 rounded-lg border border-gray-800">
+                        <span class="text-[10px] text-gray-400 uppercase block">Completed Quests</span>
+                        <span id="quest-score-display" class="text-lg font-bold text-physicsBlue font-mono">0 / 4</span>
+                    </div>
+                    <div class="bg-canvasDark px-4 py-2 rounded-lg border border-gray-800">
+                        <span class="text-[10px] text-gray-400 uppercase block">Earned Rank</span>
+                        <span id="quest-rank" class="text-lg font-bold text-physicsOrange">Novice Scholar</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Grid of Quests -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full">
+                <!-- Quest 1 -->
+                <div id="quest-card-1" class="bg-panelDark border border-gray-800 rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all duration-300">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <span class="text-xs text-physicsBlue font-bold font-mono">QUEST 1: INITIAL IGNITION</span>
+                            <h4 class="text-lg font-extrabold text-white mt-1">Power the Lightbulb</h4>
+                            <p class="text-sm text-gray-300 mt-2">
+                                Change the magnetic environment to induce enough electrical force ($V_{ind}$) to light up the load bulb to over 80% maximum brightness.
+                            </p>
+                        </div>
+                        <span id="quest-status-1" class="bg-yellow-500/10 text-yellow-400 text-xs px-2.5 py-1 rounded font-bold border border-yellow-500/20 shrink-0">Incomplete</span>
+                    </div>
+                    <div class="bg-canvasDark p-3 rounded-xl flex items-center justify-between text-xs font-mono text-gray-400">
+                        <span>Target: Bulb Intensity > 80%</span>
+                        <button onclick="activateQuest(1)" class="bg-physicsBlue hover:bg-physicsBlue/80 text-black px-3 py-1.5 rounded font-bold transition-all">Go to Lab</button>
+                    </div>
+                </div>
+
+                <!-- Quest 2 -->
+                <div id="quest-card-2" class="bg-panelDark border border-gray-800 rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all duration-300">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <span class="text-xs text-physicsOrange font-bold font-mono">QUEST 2: LENZ'S DEFIANCE</span>
+                            <h4 class="text-lg font-extrabold text-white mt-1">Polarity Reversal</h4>
+                            <p class="text-sm text-gray-300 mt-2">
+                                Induce current in the positive direction (Galvanometer dial right), then instantly shift direction to make it swing left (negative).
+                            </p>
+                        </div>
+                        <span id="quest-status-2" class="bg-yellow-500/10 text-yellow-400 text-xs px-2.5 py-1 rounded font-bold border border-yellow-500/20 shrink-0">Incomplete</span>
+                    </div>
+                    <div class="bg-canvasDark p-3 rounded-xl flex items-center justify-between text-xs font-mono text-gray-400">
+                        <span>Target: Achieve Positive, then Negative swings</span>
+                        <button onclick="activateQuest(2)" class="bg-physicsOrange hover:bg-physicsOrange/80 text-black px-3 py-1.5 rounded font-bold transition-all">Go to Lab</button>
+                    </div>
+                </div>
+
+                <!-- Quest 3 -->
+                <div id="quest-card-3" class="bg-panelDark border border-gray-800 rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all duration-300">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <span class="text-xs text-physicsPurple font-bold font-mono">QUEST 3: MATERIAL OPTIMIZATION</span>
+                            <h4 class="text-lg font-extrabold text-white mt-1">Core Amplification</h4>
+                            <p class="text-sm text-gray-300 mt-2">
+                                Experiment with cores. Iron cores channel magnetic lines of force much tighter than air. Complete this by switching core material to Iron Core.
+                            </p>
+                        </div>
+                        <span id="quest-status-3" class="bg-yellow-500/10 text-yellow-400 text-xs px-2.5 py-1 rounded font-bold border border-yellow-500/20 shrink-0">Incomplete</span>
+                    </div>
+                    <div class="bg-canvasDark p-3 rounded-xl flex items-center justify-between text-xs font-mono text-gray-400">
+                        <span>Target: Select Iron Core core material</span>
+                        <button onclick="activateQuest(3)" class="bg-physicsPurple hover:bg-physicsPurple/80 text-white px-3 py-1.5 rounded font-bold transition-all">Go to Lab</button>
+                    </div>
+                </div>
+
+                <!-- Quest 4 -->
+                <div id="quest-card-4" class="bg-panelDark border border-gray-800 rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all duration-300">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <span class="text-xs text-emerald-400 font-bold font-mono">QUEST 4: FLEMING'S CHECKPOINT</span>
+                            <h4 class="text-lg font-extrabold text-white mt-1">The Perpendicular Peak</h4>
+                            <p class="text-sm text-gray-300 mt-2">
+                                Set Conductor motion Upwards (↑) and Field right (N➔S) on the Fleming's Tab to verify the resulting induced current direction.
+                            </p>
+                        </div>
+                        <span id="quest-status-4" class="bg-yellow-500/10 text-yellow-400 text-xs px-2.5 py-1 rounded font-bold border border-yellow-500/20 shrink-0">Incomplete</span>
+                    </div>
+                    <div class="bg-canvasDark p-3 rounded-xl flex items-center justify-between text-xs font-mono text-gray-400">
+                        <span>Target: Correct combination matched on Tab 2</span>
+                        <button onclick="activateQuest(4)" class="bg-emerald-500 hover:bg-emerald-400 text-black px-3 py-1.5 rounded font-bold transition-all">Go to Fleming's</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Lab Success Modal Overlay -->
+    <div id="success-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-panelDark border border-physicsBlue/30 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl relative">
+            <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-physicsBlue/10 border border-physicsBlue/30 rounded-full flex items-center justify-center text-5xl text-physicsBlue">
+                <i class="fa-solid fa-medal animate-pulse"></i>
+            </div>
+            <div class="mt-12 flex flex-col gap-2">
+                <h3 class="text-2xl font-extrabold text-white">Quest Accomplished!</h3>
+                <p id="modal-desc" class="text-sm text-gray-300 mt-1">
+                    You have perfectly demonstrated Faraday's discoveries on dynamic induction voltage.
+                </p>
+                <div class="bg-canvasDark p-4 rounded-xl border border-gray-800 my-4 text-left">
+                    <span class="text-xs text-gray-400 uppercase tracking-widest block font-mono">Current Rank achieved:</span>
+                    <span id="modal-rank" class="text-lg font-bold text-physicsOrange">Faraday's Fellow Scholar</span>
+                </div>
+                <button onclick="closeModal()" class="w-full py-3 bg-gradient-to-r from-physicsBlue to-physicsPurple text-black font-extrabold rounded-xl shadow-lg transition-all hover:brightness-110">
+                    Perfect, continue!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Summary Section -->
+    <footer class="bg-panelDark border-t border-gray-800 p-6 mt-12 text-center text-xs text-gray-400">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>© 2026 Interactive Physics Lab. Designed for educational classrooms and inquisitive minds.</p>
+            <div class="flex gap-4">
+                <span class="hover:text-physicsBlue transition-colors"><i class="fa-solid fa-circle-nodes"></i> Vector Science</span>
+                <span class="hover:text-physicsOrange transition-colors"><i class="fa-solid fa-atom"></i> Electromagnetic Theory</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MAIN LAB PHYSICS & GRAPHICS SYSTEM (Core Engine) -->
+    <script>
+        // State variables for physics environment
+        let coreMaterial = 'iron'; // 'air', 'iron', 'copper'
+        let solenoidPowered = true;
+        let primaryVoltage = 12; // Volts
+        let primaryTurns = 400; // Loops
+        let secondaryTurnsCount = 3; // N loops
+        let currentSolenoidX = 220; // Draggable X center
+        let isDraggingPrimary = false;
+        let dragOffsetX = 0;
+
+        // Interactive physics variables
+        let fluxValue = 0;
+        let rateOfChangeFlux = 0;
+        let lastFluxValue = 0;
+        let inducedEMF = 0; // Voltage induced
+        let inducedCurrent = 0; // mA
+        let prevInducedCurrent = 0;
+        let currentFlowDirection = 0; // -1, 0, 1
+        
+        // Render loop variables
+        let animationFrameId;
+        let linePhase = 0; // animation phase for magnetic field moving lines
+        let electronPhase = 0; // moving animation phase for electrons in wire
+
+        // Element caches
+        const sCanvas = document.getElementById('sandboxCanvas');
+        const sCtx = sCanvas.getContext('2d');
+        const mCanvas = document.getElementById('meterCanvas');
+        const mCtx = mCanvas.getContext('2d');
+
+        // Gamified Quest completion tracks
+        let questsCompleted = {
+            1: false,
+            2: false,
+            3: false,
+            4: false
+        };
+        // tracking indicators for Quest 2 sequence
+        let q2SwingPos = false;
+        let q2SwingNeg = false;
+
+        // Init Sandbox dimensions
+        function resizeSandboxCanvas() {
+            const rect = sCanvas.parentNode.getBoundingClientRect();
+            sCanvas.width = rect.width;
+            sCanvas.height = 360; // Keep locked visual height
+        }
+
+        window.addEventListener('resize', () => {
+            resizeSandboxCanvas();
+            renderSandbox();
+        });
+
+        // Initialize Everything
+        window.onload = function() {
+            resizeSandboxCanvas();
+            initSandboxPhysicsEvents();
+            startPhysicsLoop();
+            updateFlemingVectors(); // Render initial Fleming hand directions
+            
+            // Render Analog Zero Center meter
+            renderMeter(0);
+        };
+
+        // Navigation controls
+        function switchTab(tabId) {
+            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 text-gray-400 hover:text-white flex items-center gap-2";
+            });
+
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            if (tabId === 'sandbox') {
+                activeBtn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 bg-physicsBlue text-black shadow-lg shadow-physicsBlue/20";
+                // Trigger dynamic resize check to render correctly
+                setTimeout(() => {
+                    resizeSandboxCanvas();
+                }, 50);
+            } else if (tabId === 'fleming') {
+                activeBtn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 bg-physicsBlue text-black shadow-lg shadow-physicsBlue/20";
+                setTimeout(() => {
+                    updateFlemingVectors();
+                }, 50);
+            } else if (tabId === 'biography') {
+                activeBtn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 bg-amber-200 text-slate-900 shadow-lg shadow-amber-200/20";
+            } else {
+                activeBtn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 bg-physicsOrange text-black shadow-lg shadow-physicsOrange/20";
+            }
+        }
+
+        // Active selection for core elements
+        function setCore(material) {
+            coreMaterial = material;
+            document.querySelectorAll('[id^="core-btn-"]').forEach(btn => {
+                btn.className = "py-2 px-1 rounded-lg text-xs font-medium transition-all duration-200 text-gray-400 hover:text-white";
+            });
+            const activeBtn = document.getElementById(`core-btn-${material}`);
+            activeBtn.className = "py-2 px-1 rounded-lg text-xs font-bold transition-all duration-200 bg-physicsBlue text-black shadow";
+
+            const labelEl = document.getElementById('core-label');
+            if (material === 'air') {
+                labelEl.innerText = "Air Core (No Magnetic Focus)";
+                labelEl.className = "text-gray-400 font-bold";
+            } else if (material === 'iron') {
+                labelEl.innerText = "Iron Core (Concentrates Flux LINES!)";
+                labelEl.className = "text-physicsBlue font-bold";
+            } else {
+                labelEl.innerText = "Copper Core (Opposes Shifting Flux)";
+                labelEl.className = "text-physicsPurple font-bold";
+            }
+
+            // Check Quest 3
+            if (material === 'iron' && !questsCompleted[3]) {
+                completeQuest(3);
+            }
+        }
+
+        function toggleSolenoidPower() {
+            solenoidPowered = !solenoidPowered;
+            const btn = document.getElementById('solenoid-switch');
+            const slider = document.getElementById('solenoid-switch-slider');
+            
+            if (solenoidPowered) {
+                btn.className = "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-physicsOrange";
+                slider.className = "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5";
+            } else {
+                btn.className = "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-gray-700";
+                slider.className = "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0";
+            }
+        }
+
+        function updateVoltage(val) {
+            primaryVoltage = parseInt(val);
+            document.getElementById('solenoid-voltage-val').innerText = `${val} V`;
+        }
+
+        function updateSolenoidTurns(val) {
+            primaryTurns = parseInt(val);
+            document.getElementById('solenoid-turns-val').innerText = `${val} Loops`;
+        }
+
+        function updateSecondaryTurns(val) {
+            secondaryTurnsCount = parseInt(val);
+            document.getElementById('secondary-turns-val').innerText = `${val} Loops`;
+        }
+
+        function triggerPulse() {
+            // Momentarily switches off and back on rapidly
+            toggleSolenoidPower();
+            setTimeout(() => {
+                toggleSolenoidPower();
+            }, 180);
+        }
+
+        function resetSandbox() {
+            coreMaterial = 'iron';
+            solenoidPowered = true;
+            primaryVoltage = 12;
+            primaryTurns = 400;
+            secondaryTurnsCount = 3;
+            currentSolenoidX = 220;
+            
+            // Reset UI inputs
+            document.getElementById('solenoid-voltage').value = 12;
+            document.getElementById('solenoid-turns').value = 400;
+            document.getElementById('secondary-turns').value = 3;
+            setCore('iron');
+            
+            const pBtn = document.getElementById('solenoid-switch');
+            const slider = document.getElementById('solenoid-switch-slider');
+            pBtn.className = "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-physicsOrange";
+            slider.className = "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5";
+            
+            document.getElementById('solenoid-voltage-val').innerText = `12 V`;
+            document.getElementById('solenoid-turns-val').innerText = `400 Loops`;
+            document.getElementById('secondary-turns-val').innerText = `3 Loops`;
+        }
+
+        // Initialize Canvas Drag/Touch listeners for solenoid
+        function initSandboxPhysicsEvents() {
+            function getEventX(e) {
+                if (e.touches && e.touches.length > 0) {
+                    return e.touches[0].clientX;
+                }
+                return e.clientX;
+            }
+
+            function handleStart(clientX) {
+                const rect = sCanvas.getBoundingClientRect();
+                const relativeX = clientX - rect.left;
+                
+                // Hit check for primary solenoid dragging (centered around currentSolenoidX, 180px width)
+                if (Math.abs(relativeX - currentSolenoidX) < 90) {
+                    isDraggingPrimary = true;
+                    dragOffsetX = relativeX - currentSolenoidX;
+                    document.getElementById('drag-indicator').style.display = 'none';
+                }
+            }
+
+            function handleMove(clientX) {
+                if (!isDraggingPrimary) return;
+                const rect = sCanvas.getBoundingClientRect();
+                const relativeX = clientX - rect.left;
+                
+                // Limit range to prevent dragging off canvas
+                const targetX = relativeX - dragOffsetX;
+                if (targetX > 80 && targetX < sCanvas.width - 150) {
+                    currentSolenoidX = targetX;
+                }
+            }
+
+            function handleEnd() {
+                isDraggingPrimary = false;
+            }
+
+            // Mouse Events
+            sCanvas.addEventListener('mousedown', (e) => handleStart(e.clientX));
+            window.addEventListener('mousemove', (e) => handleMove(e.clientX));
+            window.addEventListener('mouseup', handleEnd);
+
+            // Touch Events
+            sCanvas.addEventListener('touchstart', (e) => {
+                handleStart(getEventX(e));
+                e.preventDefault();
+            }, { passive: false });
+            
+            window.addEventListener('touchmove', (e) => {
+                handleMove(getEventX(e));
+            }, { passive: true });
+            
+            window.addEventListener('touchend', handleEnd);
+        }
+
+        // Loop to compute actual induction physics and animate canvas
+        function startPhysicsLoop() {
+            function tick() {
+                updatePhysicsAndTelemetry();
+                renderSandbox();
+                animationFrameId = requestAnimationFrame(tick);
+            }
+            tick();
+        }
+
+        function updatePhysicsAndTelemetry() {
+            // Real Physics modeling variables:
+            // Center of secondary loop remains stationary at x = sCanvas.width * 0.72
+            const secondaryX = sCanvas.width * 0.72;
+            const distance = Math.abs(currentSolenoidX - secondaryX);
+
+            // Primary magnetic field produced by Electromagnet (Solenoid)
+            // B = u * (turns) * Current(voltage/resistance equivalent)
+            // Core multiplier (u)
+            let permeability = 1.0; 
+            if (coreMaterial === 'iron') permeability = 8.5; // Highly concentrates field lines
+            if (coreMaterial === 'copper') permeability = 0.6; // Slightly diamagnetic suppression
+
+            const solenoidB = solenoidPowered ? (permeability * (primaryTurns / 100) * (primaryVoltage / 10)) : 0;
+
+            // Magnetic Flux (Φ) cutting through secondary is inversely proportional to distance squared
+            // Modelled: Φ = A * B * cos(theta) / (r^2 + c)
+            const decayFactor = 30000; // tuned factor to fit nicely on screen
+            const nominalArea = 50; 
+            const newFlux = (solenoidB * nominalArea * decayFactor) / (Math.pow(distance, 2) + 12000);
+
+            fluxValue = newFlux;
+
+            // Faraday's Law: E = -N * (dΦ/dt)
+            // Calculate rate of change (dt based on browser animation frame, ~16.6ms)
+            // Using exponential decay to smooth noise
+            const dFlux = fluxValue - lastFluxValue;
+            rateOfChangeFlux = rateOfChangeFlux * 0.8 + dFlux * 0.2; // smoothed
+            lastFluxValue = fluxValue;
+
+            // Induced EMF
+            // Negative sign signifies Lenz's law opposing change
+            inducedEMF = -secondaryTurnsCount * rateOfChangeFlux * 8.5; // scaled for visibility
+
+            // Calculate current flowing in coil (Ohm's Law: I = V/R, with arbitrary coil Resistance = 2 Ohms)
+            inducedCurrent = inducedEMF / 2.0; 
+
+            // Smooth the needle update slightly
+            if (Math.abs(inducedCurrent) < 0.01) inducedCurrent = 0;
+
+            // Direction telemetry mapping
+            let dirText = "STABLE";
+            if (inducedCurrent > 0.1) {
+                dirText = "CW ➔";
+                currentFlowDirection = 1;
+            } else if (inducedCurrent < -0.1) {
+                dirText = "⟽ CCW";
+                currentFlowDirection = -1;
+            } else {
+                currentFlowDirection = 0;
+            }
+
+            // Update DOM telemetry
+            document.getElementById('telemetry-flux').innerText = `${fluxValue.toFixed(2)} Wb`;
+            document.getElementById('telemetry-dflux').innerText = `${(rateOfChangeFlux * 60).toFixed(2)} Wb/s`;
+            document.getElementById('telemetry-current').innerText = `${(inducedCurrent * 25).toFixed(2)} mA`;
+            document.getElementById('telemetry-dir').innerText = dirText;
+            
+            if (Math.abs(inducedCurrent) > 0.05) {
+                document.getElementById('telemetry-dir').className = `text-xs font-mono font-bold ${inducedCurrent > 0 ? 'text-physicsBlue' : 'text-physicsOrange'}`;
+            } else {
+                document.getElementById('telemetry-dir').className = "text-xs font-mono font-bold text-gray-400";
+            }
+
+            // Real-time animation speeds based on voltage levels
+            if (solenoidPowered && primaryVoltage > 0) {
+                linePhase += (primaryVoltage / 10) * 0.5;
+            }
+            if (Math.abs(inducedCurrent) > 0) {
+                electronPhase += inducedCurrent * 1.5;
+            }
+
+            // Render analog load reactions
+            updateLoadVisuals();
+
+            // Gamified Quest verification engine
+            checkQuestStatus();
+        }
+
+        // Render analog dial indicator and light intensity based on active state
+        function updateLoadVisuals() {
+            // 1. Galvanometer needle deflection (normalized to radians or degree)
+            // Full deflection represents roughly 15mA
+            const deflectionNormalized = Math.max(-1, Math.min(1, (inducedCurrent * 25) / 15.0));
+            renderMeter(deflectionNormalized);
+
+            // Update indicator descriptions
+            const galvText = document.getElementById('galvanometer-text');
+            if (deflectionNormalized > 0.1) {
+                galvText.innerText = `Deflected Right (+${(deflectionNormalized * 15).toFixed(1)} mA)`;
+                galvText.className = "text-sm font-bold text-physicsBlue";
+            } else if (deflectionNormalized < -0.1) {
+                galvText.innerText = `Deflected Left (-${Math.abs(deflectionNormalized * 15).toFixed(1)} mA)`;
+                galvText.className = "text-sm font-bold text-physicsOrange";
+            } else {
+                galvText.innerText = "Center Null (Zero Current)";
+                galvText.className = "text-sm font-bold text-gray-400";
+            }
+
+            // 2. Lightbulb Glowing effect
+            const brightness = Math.min(100, Math.pow(Math.abs(inducedCurrent) * 12.0, 1.8)); // quadratic glow
+            const bulbIcon = document.getElementById('bulb-icon');
+            const bulbGlowContainer = document.getElementById('bulb-glow-container');
+            const bulbText = document.getElementById('bulb-intensity-text');
+            const bulbStateBadge = document.getElementById('bulb-state-badge');
+
+            if (brightness > 2) {
+                bulbIcon.className = "fa-solid fa-lightbulb text-yellow-400 text-2xl drop-shadow-[0_0_20px_rgba(250,204,21,0.8)]";
+                bulbGlowContainer.style.background = `rgba(250,204,21, ${brightness / 350})`;
+                bulbGlowContainer.style.borderColor = `rgba(250,204,21, ${brightness / 150})`;
+                bulbText.innerText = `Glowing at ${brightness.toFixed(0)}% Brightness`;
+                bulbText.className = "text-sm font-bold text-yellow-300";
+                
+                bulbStateBadge.innerText = "Induced EMF";
+                bulbStateBadge.className = "text-xs px-2.5 py-1 rounded bg-yellow-400/20 text-yellow-400 border border-yellow-400/30 font-bold inline-block";
+            } else {
+                bulbIcon.className = "fa-regular fa-lightbulb text-gray-500 text-2xl";
+                bulbGlowContainer.style.background = "rgba(255, 255, 255, 0.05)";
+                bulbGlowContainer.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                bulbText.innerText = "No Induced EMF";
+                bulbText.className = "text-sm font-bold text-white";
+                
+                bulbStateBadge.innerText = "Off";
+                bulbStateBadge.className = "text-xs px-2.5 py-1 rounded bg-red-500/10 text-red-400 border border-red-500/10 font-bold inline-block";
+            }
+        }
+
+        // Draw visual assets directly inside Canvas viewport
+        function renderSandbox() {
+            if (!sCtx) return;
+
+            // Clean Canvas
+            sCtx.clearRect(0, 0, sCanvas.width, sCanvas.height);
+
+            // Draw Background Field Lines if checked
+            const showLines = document.getElementById('show-field-lines').checked;
+            const secondaryX = sCanvas.width * 0.72;
+
+            if (showLines && solenoidPowered && primaryVoltage > 0) {
+                drawMagneticFieldLines();
+            }
+
+            // Draw Secondary Loop Receiver
+            drawSecondaryLoop(secondaryX);
+
+            // Draw Solenoid (Primary Magnet Source) - Draggable item
+            drawSolenoid(currentSolenoidX);
+
+            // Highlight interaction box when dragging
+            if (isDraggingPrimary) {
+                sCtx.strokeStyle = 'rgba(0, 210, 255, 0.3)';
+                sCtx.lineWidth = 1.5;
+                sCtx.setLineDash([6, 4]);
+                sCtx.strokeRect(currentSolenoidX - 85, sCanvas.height / 2 - 60, 170, 120);
+                sCtx.setLineDash([]);
+            }
+        }
+
+        function drawSolenoid(x) {
+            const y = sCanvas.height / 2;
+            const width = 140;
+            const height = 70;
+
+            // Solenoid Core bar represent current core state
+            sCtx.fillStyle = coreMaterial === 'iron' ? '#3A4255' : (coreMaterial === 'copper' ? '#B87333' : '#1D2130');
+            sCtx.beginPath();
+            sCtx.roundRect(x - width/2 - 15, y - 10, width + 30, 20, 4);
+            sCtx.fill();
+            sCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            sCtx.lineWidth = 1;
+            sCtx.stroke();
+
+            // Draw Solenoid Wire Loops
+            const numWindings = Math.floor(primaryTurns / 15);
+            sCtx.lineWidth = 3;
+            
+            for (let i = 0; i < numWindings; i++) {
+                const stepX = (x - width/2) + (i / numWindings) * width;
+                
+                // Color solenoid loop based on power state
+                sCtx.strokeStyle = solenoidPowered ? '#FF9F1C' : '#5C6370';
+                
+                sCtx.beginPath();
+                sCtx.arc(stepX, y, height/2, -Math.PI/2, Math.PI/2);
+                sCtx.stroke();
+            }
+
+            // Draw battery connection schematic leads
+            sCtx.strokeStyle = '#2D3142';
+            sCtx.lineWidth = 2.5;
+            sCtx.beginPath();
+            sCtx.moveTo(x - width/2, y + 25);
+            sCtx.lineTo(x - width/2, y + 70);
+            sCtx.lineTo(x + width/2, y + 70);
+            sCtx.lineTo(x + width/2, y + 25);
+            sCtx.stroke();
+
+            // Render miniature battery schematic symbol under solenoid
+            const battY = y + 70;
+            sCtx.strokeStyle = '#FF9F1C';
+            sCtx.beginPath();
+            sCtx.moveTo(x - 15, battY - 6);
+            sCtx.lineTo(x - 15, battY + 6);
+            sCtx.moveTo(x - 5, battY - 12);
+            sCtx.lineTo(x - 5, battY + 12);
+            sCtx.moveTo(x + 5, battY - 6);
+            sCtx.lineTo(x + 5, battY + 6);
+            sCtx.moveTo(x + 15, battY - 12);
+            sCtx.lineTo(x + 15, battY + 12);
+            sCtx.stroke();
+
+            // Text tag for safety & identity
+            sCtx.fillStyle = '#94A3B8';
+            sCtx.font = 'bold 9px "JetBrains Mono", monospace';
+            sCtx.textAlign = 'center';
+            sCtx.fillText("SOLENOID (PRIMARY SOURCE)", x, y - 48);
+            sCtx.fillText(`${primaryTurns} TURNS`, x, y - 36);
+        }
+
+        function drawSecondaryLoop(x) {
+            const y = sCanvas.height / 2;
+            const radius = 55;
+            const showCharges = document.getElementById('show-electrons').checked;
+
+            // Draw Leads running downwards to represent galvanometer wire paths
+            sCtx.strokeStyle = '#3F3F46';
+            sCtx.lineWidth = 3;
+            sCtx.beginPath();
+            sCtx.moveTo(x, y + radius);
+            sCtx.lineTo(x, y + 105);
+            sCtx.moveTo(x + 25, y + radius - 15);
+            sCtx.lineTo(x + 25, y + 105);
+            sCtx.stroke();
+
+            // Draw dynamic flowing charge carriers in wiring path if checked
+            if (showCharges && Math.abs(inducedCurrent) > 0.05) {
+                sCtx.fillStyle = '#9d4edd';
+                const count = 5;
+                const sign = currentFlowDirection;
+                for (let i = 0; i < count; i++) {
+                    const eY = (y + radius + ((electronPhase * sign + i * 20) % 40));
+                    if (eY < y + 105) {
+                        sCtx.beginPath();
+                        sCtx.arc(x, eY, 3, 0, Math.PI*2);
+                        sCtx.fill();
+                    }
+                }
+            }
+
+            // Draw N turn layered receiver loops
+            for (let t = 0; t < secondaryTurnsCount; t++) {
+                const loopRadius = radius - (t * 6);
+                
+                // Color loop relative to charge excitation
+                let loopColor = '#4B5563'; // neutral
+                if (currentFlowDirection > 0) loopColor = `rgba(0, 210, 255, ${0.4 + (t * 0.15)})`;
+                if (currentFlowDirection < 0) loopColor = `rgba(255, 159, 28, ${0.4 + (t * 0.15)})`;
+
+                sCtx.strokeStyle = loopColor;
+                sCtx.lineWidth = 4;
+                sCtx.beginPath();
+                sCtx.arc(x + 10, y, loopRadius, -Math.PI * 0.8, Math.PI * 0.8);
+                sCtx.stroke();
+            }
+
+            // Annotation
+            sCtx.fillStyle = '#94A3B8';
+            sCtx.font = 'bold 9px "JetBrains Mono", monospace';
+            sCtx.textAlign = 'center';
+            sCtx.fillText("PICKUP LOOP (COIL)", x + 10, y - 68);
+            sCtx.fillText(`N = ${secondaryTurnsCount} LOOPS`, x + 10, y - 56);
+        }
+
+        // Draw mathematically accurate magnetic field patterns propagating from primary solenoid
+        function drawMagneticFieldLines() {
+            const cy = sCanvas.height / 2;
+            const cx = currentSolenoidX;
+
+            // Generate field profile vectors matching standard magnetic dipole lines
+            sCtx.lineWidth = 1.5;
+            
+            // Loop scale adjusts based on current core materials
+            let fieldExtent = 4;
+            if (coreMaterial === 'air') fieldExtent = 2; // quickly decays
+            if (coreMaterial === 'copper') fieldExtent = 1.5;
+
+            for (let i = 1; i <= fieldExtent; i++) {
+                const rx = 65 * i;
+                const ry = 28 * i;
+
+                // Flux concentration alpha relative to proximity density
+                sCtx.strokeStyle = `rgba(0, 210, 255, ${0.45 / i})`;
+
+                // Animate running line segments along field path representing B field vector arrows
+                sCtx.setLineDash([12, 18]);
+                sCtx.lineDashOffset = -linePhase * (primaryVoltage / 12) * 2;
+
+                // Outer magnetic loop pairs
+                sCtx.beginPath();
+                sCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                sCtx.stroke();
+            }
+
+            // Reset dashboard defaults
+            sCtx.setLineDash([]);
+        }
+
+        // Draw Analog Galvanometer Needle Panel
+        function renderMeter(value) {
+            if (!mCtx) return;
+
+            // Clean background
+            mCtx.fillStyle = '#11131E';
+            mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+
+            // Arch boundaries
+            const cx = mCanvas.width / 2;
+            const cy = mCanvas.height - 5;
+            const radius = 40;
+
+            mCtx.strokeStyle = '#2D3142';
+            mCtx.lineWidth = 2.5;
+            mCtx.beginPath();
+            mCtx.arc(cx, cy, radius, Math.PI, 0);
+            mCtx.stroke();
+
+            // Center markings
+            mCtx.strokeStyle = '#E2E8F0';
+            mCtx.beginPath();
+            mCtx.moveTo(cx, cy - radius);
+            mCtx.lineTo(cx, cy - radius + 6);
+            mCtx.stroke();
+
+            // Outer scale indicators
+            mCtx.strokeStyle = '#4B5563';
+            mCtx.lineWidth = 1;
+            const numTicks = 6;
+            for (let i = 0; i <= numTicks; i++) {
+                const angle = Math.PI + (i / numTicks) * Math.PI;
+                mCtx.beginPath();
+                mCtx.moveTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+                mCtx.lineTo(cx + Math.cos(angle) * (radius - 5), cy + Math.sin(angle) * (radius - 5));
+                mCtx.stroke();
+            }
+
+            // Draw needle deflected by target value
+            const targetAngle = -Math.PI / 2 + (value * (Math.PI / 2.5)); // clamp deflection scale to preserve instrument safety limits
+            mCtx.strokeStyle = value > 0.05 ? '#00D2FF' : (value < -0.05 ? '#FF9F1C' : '#E2E8F0');
+            mCtx.lineWidth = 2;
+            mCtx.beginPath();
+            mCtx.moveTo(cx, cy);
+            mCtx.lineTo(cx + Math.cos(targetAngle) * (radius - 2), cy + Math.sin(targetAngle) * (radius - 2));
+            mCtx.stroke();
+
+            // Center pivot cap
+            mCtx.fillStyle = '#374151';
+            mCtx.beginPath();
+            mCtx.arc(cx, cy, 5, 0, Math.PI*2);
+            mCtx.fill();
+        }
+
+
+        // ==========================================
+        // TAB 2: FLEMING'S RULE RENDER ENGINE
+        // ==========================================
+        const fCanvas = document.getElementById('flemingCanvas');
+        const fCtx = fCanvas.getContext('2d');
+
+        function updateFlemingVectors() {
+            if (!fCtx) return;
+
+            const motionVal = document.getElementById('fleming-motion').value;
+            const fieldVal = document.getElementById('fleming-field').value;
+            const resultEl = document.getElementById('fleming-result');
+
+            // Determine resultant current direction matching physics cross products:
+            // F = q (V x B)
+            // Thumb = Motion, Index = Field, Middle = Current
+            let currentDir = "";
+            let description = "";
+
+            if (motionVal === 'up') {
+                if (fieldVal === 'right') { currentDir = "Into Screen (⊗)"; description = "Current flows directly away from you!"; }
+                else if (fieldVal === 'left') { currentDir = "Out of Screen (⊙)"; description = "Current flows directly towards you!"; }
+                else if (fieldVal === 'into') { currentDir = "Moving Left (←)"; description = "Current flows laterally to the left."; }
+                else { currentDir = "Moving Right (→)"; description = "Current flows laterally to the right."; }
+            } else if (motionVal === 'down') {
+                if (fieldVal === 'right') { currentDir = "Out of Screen (⊙)"; description = "Current flows directly towards you!"; }
+                else if (fieldVal === 'left') { currentDir = "Into Screen (⊗)"; description = "Current flows directly away from you!"; }
+                else if (fieldVal === 'into') { currentDir = "Moving Right (→)"; description = "Current flows laterally to the right."; }
+                else { currentDir = "Moving Left (←)"; description = "Current flows laterally to the left."; }
+            } else if (motionVal === 'left') {
+                if (fieldVal === 'right') { currentDir = "No Deflection (Parallel)"; description = "0V! Motion must cross magnetic lines, not run parallel!"; }
+                else if (fieldVal === 'left') { currentDir = "No Deflection (Parallel)"; description = "0V! Motion must cross magnetic lines, not run parallel!"; }
+                else if (fieldVal === 'into') { currentDir = "Moving Upwards (↑)"; description = "Current pushes upwards in the loop."; }
+                else { currentDir = "Moving Downwards (↓)"; description = "Current pushes downwards in the loop."; }
+            } else { // right
+                if (fieldVal === 'right') { currentDir = "No Deflection (Parallel)"; description = "0V! Motion must cross magnetic lines, not run parallel!"; }
+                else if (fieldVal === 'left') { currentDir = "No Deflection (Parallel)"; description = "0V! Motion must cross magnetic lines, not run parallel!"; }
+                else if (fieldVal === 'into') { currentDir = "Moving Downwards (↓)"; description = "Current pushes downwards in the loop."; }
+                else { currentDir = "Moving Upwards (↑)"; description = "Current pushes upwards in the loop."; }
+            }
+
+            resultEl.innerHTML = `<span>${currentDir}</span>`;
+            if (currentDir.includes("Parallel")) {
+                resultEl.className = "text-lg font-extrabold text-red-400 mt-1 flex items-center gap-2";
+            } else {
+                resultEl.className = "text-lg font-extrabold text-emerald-400 mt-1 flex items-center gap-2";
+            }
+
+            // Check Quest 4 combination
+            if (motionVal === 'up' && fieldVal === 'right' && !questsCompleted[4]) {
+                completeQuest(4);
+            }
+
+            renderFlemingHand(motionVal, fieldVal, currentDir);
+        }
+
+        // Draw a neat Vector map demonstrating right hand rule
+        function renderFlemingHand(motion, field, result) {
+            fCtx.clearRect(0, 0, fCanvas.width, fCanvas.height);
+
+            const cx = fCanvas.width / 2;
+            const cy = fCanvas.height / 2 + 30;
+
+            // Coordinate directions representing isometric 3D vectors
+            const originX = cx;
+            const originY = cy - 20;
+
+            // Draw axis grids
+            fCtx.strokeStyle = 'rgba(255,255,255,0.03)';
+            fCtx.lineWidth = 1;
+            for (let i = 20; i < fCanvas.width; i += 40) {
+                fCtx.beginPath(); fCtx.moveTo(i, 0); fCtx.lineTo(i, fCanvas.height); fCtx.stroke();
+            }
+
+            // Draw Thumb Axis (Motion of conductor)
+            let thumbX = originX;
+            let thumbY = originY - 100; // default UP
+            if (motion === 'down') { thumbX = originX; thumbY = originY + 100; }
+            if (motion === 'left') { thumbX = originX - 100; thumbY = originY; }
+            if (motion === 'right') { thumbX = originX + 100; thumbY = originY; }
+
+            // Draw Index Axis (Magnetic Field)
+            let fieldX = originX + 100; // default RIGHT
+            let fieldY = originY;
+            if (field === 'left') { fieldX = originX - 100; fieldY = originY; }
+            if (field === 'into') { fieldX = originX - 60; fieldY = originY - 40; } // Isometric projection
+            if (field === 'out') { fieldX = originX + 60; fieldY = originY + 40; }
+
+            // Draw Middle Axis (Induced Current)
+            // Isometric projection to simulate Into/Out of screen depth
+            let currentX = originX - 60;
+            let currentY = originY + 40; // Default Out/Forward projection for "into screen"
+            if (result.includes("Out of Screen")) { currentX = originX + 60; currentY = originY + 45; }
+            if (result.includes("Into Screen")) { currentX = originX - 60; currentY = originY - 45; }
+            if (result.includes("Upwards")) { currentX = originX; currentY = originY - 100; }
+            if (result.includes("Downwards")) { currentX = originX; currentY = originY + 100; }
+            if (result.includes("Left")) { currentX = originX - 100; currentY = originY; }
+            if (result.includes("Right")) { currentX = originX + 100; currentY = originY; }
+            if (result.includes("Parallel")) {
+                currentX = originX; currentY = originY; // Zero out vector lines
+            }
+
+            // Helper function to draw dynamic vector arrow
+            function drawArrow(x1, y1, x2, y2, color, label) {
+                fCtx.strokeStyle = color;
+                fCtx.fillStyle = color;
+                fCtx.lineWidth = 4;
+                fCtx.lineCap = 'round';
+
+                fCtx.beginPath();
+                fCtx.moveTo(x1, y1);
+                fCtx.lineTo(x2, y2);
+                fCtx.stroke();
+
+                // Arrow head
+                const angle = Math.atan2(y2 - y1, x2 - x1);
+                fCtx.beginPath();
+                fCtx.moveTo(x2, y2);
+                fCtx.lineTo(x2 - 12 * Math.cos(angle - Math.PI/6), y2 - 12 * Math.sin(angle - Math.PI/6));
+                fCtx.lineTo(x2 - 12 * Math.cos(angle + Math.PI/6), y2 - 12 * Math.sin(angle + Math.PI/6));
+                fCtx.fill();
+
+                // Label tag
+                fCtx.fillStyle = '#E2E8F0';
+                fCtx.font = 'bold 11px sans-serif';
+                fCtx.fillText(label, x2 + Math.cos(angle)*15 - 15, y2 + Math.sin(angle)*15 + 5);
+            }
+
+            // Draw vectors
+            drawArrow(originX, originY, thumbX, thumbY, '#EF4444', "MOTION (Thumb)");
+            drawArrow(originX, originY, fieldX, fieldY, '#3B82F6', "B-FIELD (Index)");
+            if (!result.includes("Parallel")) {
+                drawArrow(originX, originY, currentX, currentY, '#10B981', "CURRENT I (Middle)");
+            }
+
+            // Draw Vector Center Junction Anchor
+            fCtx.fillStyle = '#FFFFFF';
+            fCtx.beginPath();
+            fCtx.arc(originX, originY, 6, 0, Math.PI*2);
+            fCtx.fill();
+
+            // Background diagram labels
+            fCtx.fillStyle = '#4B5563';
+            fCtx.font = '9px "JetBrains Mono", monospace';
+            fCtx.textAlign = 'center';
+            fCtx.fillText("MUTUALLY PERPENDICULAR COORDINATE AXIS SYSTEM", fCanvas.width/2, 25);
+        }
+
+
+        // ==========================================
+        // TAB 4: QUEST / CERTIFICATION GAME LOGIC
+        // ==========================================
+        function activateQuest(id) {
+            if (id === 4) {
+                switchTab('fleming');
+            } else {
+                switchTab('sandbox');
+            }
+        }
+
+        function checkQuestStatus() {
+            // Quest 1: Power Lightbulb above 80% brightness
+            const brightness = Math.min(100, Math.pow(Math.abs(inducedCurrent) * 12.0, 1.8));
+            if (brightness > 80 && !questsCompleted[1]) {
+                completeQuest(1);
+            }
+
+            // Quest 2: Swing galvanometer needle positive, then negative
+            if (!questsCompleted[2]) {
+                if (inducedCurrent > 0.4) {
+                    q2SwingPos = true;
+                }
+                if (inducedCurrent < -0.4 && q2SwingPos) {
+                    q2SwingNeg = true;
+                }
+                if (q2SwingPos && q2SwingNeg) {
+                    completeQuest(2);
+                }
+            }
+        }
+
+        function completeQuest(id) {
+            questsCompleted[id] = true;
+            
+            // Update Card visual
+            const card = document.getElementById(`quest-card-${id}`);
+            const badge = document.getElementById(`quest-status-${id}`);
+            if (card) card.className = "bg-panelDark border border-emerald-500/40 rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all duration-300 shadow-lg shadow-emerald-500/5";
+            if (badge) {
+                badge.innerText = "Completed!";
+                badge.className = "bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded font-bold border border-emerald-500/20 shrink-0";
+            }
+
+            // Update badge marker
+            document.getElementById('quest-badge').classList.remove('hidden');
+
+            // Calculate tally count
+            let total = 0;
+            for (let q in questsCompleted) {
+                if (questsCompleted[q]) total++;
+            }
+
+            document.getElementById('quest-score-display').innerText = `${total} / 4`;
+
+            let rank = "Novice Scholar";
+            if (total === 1) rank = "Lab Assistant";
+            if (total === 2) rank = "Induction Engineer";
+            if (total === 3) rank = "Field Investigator";
+            if (total === 4) rank = "Master of Fields (Faraday Rank!)";
+
+            document.getElementById('quest-rank').innerText = rank;
+
+            // Trigger success alert dialog
+            showQuestCompletionDialog(id, rank);
+        }
+
+        function showQuestCompletionDialog(id, rank) {
+            const modal = document.getElementById('success-modal');
+            const desc = document.getElementById('modal-desc');
+            const rankLabel = document.getElementById('modal-rank');
+
+            let questName = "";
+            if (id === 1) questName = "Quest 1: Powered the Bulb with High EMF!";
+            if (id === 2) questName = "Quest 2: Mastered Lenz's Defiance via polar switching!";
+            if (id === 3) questName = "Quest 3: Enhanced magnetic permeability with an Iron Core!";
+            if (id === 4) questName = "Quest 4: Verified spatial vectors via Right-Hand Rule!";
+
+            desc.innerText = `You completed ${questName}`;
+            rankLabel.innerText = rank;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
