@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sadguru Science Classes Lab - Interactive Simulations Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .filter-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+        }
+        .subject-btn.active {
+            background-color: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans flex flex-col min-h-screen selection:bg-blue-100">
+
+    <!-- Top Banner Notification -->
+    <div class="bg-blue-900 text-blue-100 text-xs py-2 px-4 text-center font-medium">
+        <i class="fas fa-bullhorn mr-2"></i> Heat & Thermal Properties of Matter simulations have been successfully added!
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-blue-600 to-indigo-700 p-2.5 rounded-xl text-white flex items-center justify-center w-12 h-12 shadow-md">
+                    <i class="fas fa-atom text-2xl animate-spin-slow"></i>
+                </div>
+                <div class="text-center sm:text-left">
+                    <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-900">Sadguru Science Classes</h1>
+                    <p class="text-xs text-blue-600 font-bold tracking-widest uppercase">Virtual Lab Environment</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-200 font-medium hidden md:inline-block">
+                    <i class="fas fa-info-circle mr-1 text-blue-600"></i> Local Server Active
+                </span>
+                <div class="text-sm bg-blue-50 text-blue-700 font-semibold px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-2">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Interactive Portal</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero / Stats Dashboard Section -->
+    <section class="bg-gradient-to-b from-blue-50 to-white border-b border-slate-200 py-12 px-4">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight max-w-3xl mx-auto mb-4 leading-tight">
+                Empowering Concept Clarity Through <span class="text-blue-600 underline decoration-indigo-400 decoration-wavy">Virtual Experiments</span>
+            </h2>
+            <p class="text-slate-600 text-base md:text-lg max-w-2xl mx-auto mb-8">
+                Access self-paced interactive models for physics and chemistry. Learn by adjusting sliders, visualizing graphs, and generating live data reports.
+            </p>
+
+            <!-- Dashboard Fast Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200/80">
+                    <p class="text-3xl font-black text-blue-600">12th</p>
+                    <p class="text-xs font-bold text-slate-500 uppercase mt-1">Physics & Chem</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200/80">
+                    <p class="text-3xl font-black text-blue-600">11th</p>
+                    <p class="text-xs font-bold text-slate-500 uppercase mt-1">Physics & Chem</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200/80">
+                    <p class="text-3xl font-black text-indigo-600">10th</p>
+                    <p class="text-xs font-bold text-slate-500 uppercase mt-1">Science Library</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200/80">
+                    <p class="text-3xl font-black text-indigo-600">9th</p>
+                    <p class="text-xs font-bold text-slate-500 uppercase mt-1">Science Library</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
+        
+        <!-- Search & Advanced Filter Card -->
+        <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                
+                <!-- Search Input -->
+                <div class="relative">
+                    <label for="search-input" class="sr-only">Search chapters</label>
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Search by chapter, topic, or law..." class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all placeholder:text-slate-400 font-medium">
+                </div>
+
+                <!-- Class Filters -->
+                <div class="lg:col-span-2">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">Filter by Standard:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setClassFilter('all')" id="btn-all" class="filter-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                            All Classes
+                        </button>
+                        <button onclick="setClassFilter('class-9')" id="btn-class-9" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                            Class 9th
+                        </button>
+                        <button onclick="setClassFilter('class-10')" id="btn-class-10" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                            Class 10th
+                        </button>
+                        <button onclick="setClassFilter('class-11')" id="btn-class-11" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                            Class 11th
+                        </button>
+                        <button onclick="setClassFilter('class-12')" id="btn-class-12" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                            Class 12th
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Subject Badges Quick Filters -->
+            <div class="mt-5 pt-5 border-t border-slate-100 flex flex-wrap items-center gap-3">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Subject Focus:</span>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setSubjectFilter('all')" id="subj-all" class="subject-btn active px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                        All Subjects
+                    </button>
+                    <button onclick="setSubjectFilter('physics')" id="subj-physics" class="subject-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                        Physics
+                    </button>
+                    <button onclick="setSubjectFilter('chemistry')" id="subj-chemistry" class="subject-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                        Chemistry
+                    </button>
+                    <button onclick="setSubjectFilter('science')" id="subj-science" class="subject-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+                        General Science
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Heading -->
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <i class="fas fa-th-large text-blue-600"></i> Simulation Catalog
+            </h3>
+            <span id="results-count" class="text-xs bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-full">Loading Simulations...</span>
+        </div>
+
+        <!-- Simulations Grid (Dynamically Populated) -->
+        <div id="simulations-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dynamic elements will be injected here via JavaScript -->
+        </div>
+
+        <!-- No Results Fallback -->
+        <div id="no-results" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 max-w-md mx-auto mt-6">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-search text-2xl text-slate-400"></i>
+            </div>
+            <h4 class="text-lg font-bold text-slate-800 mb-1">No matches found</h4>
+            <p class="text-slate-500 text-sm max-w-xs mx-auto">Try selecting another standard, subject filter, or clear your search bar.</p>
+        </div>
+    </main>
+
+    <!-- Support Help Request Form Card -->
+    <section class="bg-slate-100 py-12 px-4 border-t border-slate-200">
+        <div class="max-w-4xl mx-auto text-center">
+            <h3 class="text-xl font-bold text-slate-900 mb-2">Need a specific experiment added?</h3>
+            <p class="text-slate-600 text-sm mb-6 max-w-md mx-auto">
+                Teachers and students can request specific chapter simulations. Our developer team will build it.
+            </p>
+            <button onclick="openRequestModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl text-sm transition-colors shadow-xs cursor-pointer inline-flex items-center gap-2">
+                <i class="fas fa-lightbulb"></i> Request New Simulation
+            </button>
+        </div>
+    </section>
+
+    <!-- Modal for Simulation Request -->
+    <div id="request-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button onclick="closeRequestModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Request Custom Simulation</h3>
+            <p class="text-xs text-slate-500 mb-4">Submit the topic and we will design the interactive model soon.</p>
+            
+            <form onsubmit="handleRequestForm(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Topic / Theory Name</label>
+                    <input required type="text" placeholder="e.g., Archimedes Principle" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Standard / Class</label>
+                    <select class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Class 9th</option>
+                        <option>Class 10th</option>
+                        <option>Class 11th</option>
+                        <option>Class 12th</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors">
+                    Send Request
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Alert -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <i class="fas fa-check-circle text-emerald-400"></i>
+        <span id="toast-message" class="text-sm font-medium">Request submitted successfully!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-sm border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+            <div>
+                <p class="font-semibold text-slate-300">Sadguru Science Classes Virtual Lab Hub</p>
+                <p class="text-xs text-slate-500 mt-1">&copy; 2026 Sadguru Science Classes Lab. All rights reserved.</p>
+            </div>
+            <div class="text-xs tracking-wide">
+                Made with <i class="fas fa-heart text-red-500 animate-pulse"></i> by <span class="font-bold text-white">Sadguru Solutions</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS Logic and JSON Data Store -->
+    <script>
+        // Centralized JSON database for all simulation metadata
+        const simulationsData = [
+            {
+                id: "class9_laws_of_motion",
+                class: "class-9",
+                className: "Class 9th",
+                subject: "science",
+                subjectName: "Science (Physics)",
+                title: "Laws of Motion",
+                icon: "fas fa-running",
+                iconBg: "bg-blue-50 text-blue-600",
+                badgeClass: "bg-emerald-100 text-emerald-800",
+                desc: "Explore Newton's laws of motion, velocity, mass variations, and custom force graphs in motion.",
+                url: "class9_laws_of_motion.html"
+            },
+            {
+                id: "class9_sound_waves",
+                class: "class-9",
+                className: "Class 9th",
+                subject: "science",
+                subjectName: "Science (Physics)",
+                title: "Sound Wave Propagation",
+                icon: "fas fa-wave-square",
+                iconBg: "bg-blue-50 text-blue-600",
+                badgeClass: "bg-emerald-100 text-emerald-800",
+                desc: "Observe propagation of compression and rarefaction particles in air. Alter wavelength and frequency.",
+                url: "class9_sound_waves.html"
+            },
+            {
+                id: "class10_light_reflection",
+                class: "class-10",
+                className: "Class 10th",
+                subject: "science",
+                subjectName: "Science (Physics)",
+                title: "Light Reflection & Refraction",
+                icon: "fas fa-glasses",
+                iconBg: "bg-blue-50 text-blue-600",
+                badgeClass: "bg-emerald-100 text-emerald-800",
+                desc: "Adjust lenses and concave/convex mirrors to see real-time focal configurations, image shifts, and ray tracks.",
+                url: "class10_light_reflection.html"
+            },
+            {
+                id: "class10_electricity_ohms_law",
+                class: "class-10",
+                className: "Class 10th",
+                subject: "science",
+                subjectName: "Science (Physics)",
+                title: "Ohm's Law Circuit Setup",
+                icon: "fas fa-bolt",
+                iconBg: "bg-blue-50 text-blue-600",
+                badgeClass: "bg-emerald-100 text-emerald-800",
+                desc: "Alter Voltage and Resistance parameters to calculate Current. View standard virtual ammeter reactions.",
+                url: "class10_electricity_ohms_law.html"
+            },
+            {
+                id: "class10_heat_latent_heat",
+                class: "class-10",
+                className: "Class 10th",
+                subject: "science",
+                subjectName: "Science (Ch. 5 - Heat)",
+                title: "Latent Heat & Phase Change",
+                icon: "fas fa-temperature-high",
+                iconBg: "bg-orange-50 text-orange-600",
+                badgeClass: "bg-emerald-100 text-emerald-800",
+                desc: "Visualize how temperature remains constant during phase transitions (ice to water, water to vapor) under constant heating.",
+                url: "class10_heat_latent_heat.html"
+            },
+            {
+                id: "class10_heat_anomalous_water",
+                class: "class-10",
+                className: "Class 10th",
+                subject: "science",
+                subjectName: "Science (Ch. 5 - Heat)",
+                title: "Anomalous Expansion (Hope's Apparatus)",
+                icon: "fas fa-snowflake",
+                iconBg: "bg-cyan-50 text-cyan-600",
+                badgeClass: "bg-emerald-100 text-emerald-800",
+                desc: "Simulate Hope's Apparatus to study the anomalous density of water between 0°C and 4°C with dual-temperature markers.",
+                url: "class10_heat_anomalous_water.html"
+            },
+            {
+                id: "class10_heat_specific_calorimetry",
+                class: "class-10",
+                className: "Class 10th",
+                subject: "science",
+                subjectName: "Science (Ch. 5 - Heat)",
+                title: "Specific Heat & Calorimetry",
+                icon: "fas fa-fire-burner",
+                iconBg: "bg-teal-50 text-teal-600",
+                badgeClass: "bg-emerald-100 text-emerald-800",
+                desc: "Perform virtual mixing of liquids at different temperatures. Calculate specific heat capacities of metals and verify heat exchanges.",
+                url: "class10_heat_specific_calorimetry.html"
+            },
+            {
+                id: "class11_physics_projectile",
+                class: "class-11",
+                className: "Class 11th",
+                subject: "physics",
+                subjectName: "Physics",
+                title: "Projectile Motion Parabola",
+                icon: "fas fa-rocket",
+                iconBg: "bg-blue-50 text-blue-600",
+                badgeClass: "bg-purple-100 text-purple-800",
+                desc: "Alter horizontal angles, elevations, and atmospheric friction. Record time values and coordinates.",
+                url: "class11_physics_projectile.html"
+            },
+            {
+                id: "class11_chemistry_gas_laws",
+                class: "class-11",
+                className: "Class 11th",
+                subject: "chemistry",
+                subjectName: "Chemistry",
+                title: "Boyle's & Charles's Gas Laws",
+                icon: "fas fa-cloud",
+                iconBg: "bg-blue-50 text-blue-600",
+                badgeClass: "bg-purple-100 text-purple-800",
+                desc: "Compress virtual gas containers. See the immediate pressure and heat metrics rise in relation to PV = nRT.",
+                url: "class11_chemistry_gas_laws.html"
+            },
+            {
+                id: "class11_physics_thermal_expansion",
+                class: "class-11",
+                className: "Class 11th",
+                subject: "physics",
+                subjectName: "Physics (Ch. 7 - Thermal)",
+                title: "Thermal Expansion Coefficients",
+                icon: "fas fa-expand-arrows-alt",
+                iconBg: "bg-red-50 text-red-600",
+                badgeClass: "bg-purple-100 text-purple-800",
+                desc: "Investigate linear, areal, and volumetric expansion of copper, brass, and aluminum bars under heat variation.",
+                url: "class11_physics_thermal_expansion.html"
+            },
+            {
+                id: "class11_physics_thermal_conductivity",
+                class: "class-11",
+                className: "Class 11th",
+                subject: "physics",
+                subjectName: "Physics (Ch. 7 - Thermal)",
+                title: "Thermal Conductivity & Heat Transfer",
+                icon: "fas fa-arrows-spin",
+                iconBg: "bg-amber-50 text-amber-600",
+                badgeClass: "bg-purple-100 text-purple-800",
+                desc: "Experiment with rates of heat conduction through metals. Adjust thickness, temperature difference, and thermal constants.",
+                url: "class11_physics_thermal_conductivity.html"
+            },
+            {
+                id: "class12_physics_generator",
+                class: "class-12",
+                className: "Class 12th",
+                subject: "physics",
+                subjectName: "Physics",
+                title: "AC Generator Mechanics",
+                icon: "fas fa-car-battery",
+                iconBg: "bg-blue-50 text-blue-600",
+                badgeClass: "bg-amber-100 text-amber-800",
+                desc: "Spin coils manually or trigger custom water streams. Follow magnetic flux loops generating sinus waves.",
+                url: "class12_physics_generator.html"
+            },
+            {
+                id: "class12_chemistry_kinetics",
+                class: "class-12",
+                className: "Class 12th",
+                subject: "chemistry",
+                subjectName: "Chemistry",
+                title: "Chemical Kinetics Rates",
+                icon: "fas fa-vial",
+                iconBg: "bg-blue-50 text-blue-600",
+                badgeClass: "bg-amber-100 text-amber-800",
+                desc: "Simulate concentration and thermal shifts on first-order and zero-order chemical formulas.",
+                url: "class12_chemistry_kinetics.html"
+            }
+        ];
+
+        // Filter and Search States
+        let currentClass = 'all';
+        let currentSubject = 'all';
+        let searchQuery = '';
+
+        // Initial setup on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            applyCombinedFilters();
+        });
+
+        // Function to render simulations cards dynamically
+        function renderSimulations(list) {
+            const container = document.getElementById('simulations-container');
+            container.innerHTML = ''; // Clear previous items
+
+            list.forEach(sim => {
+                const cardHTML = `
+                    <div class="sim-card bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+                        <div class="p-5">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="${sim.badgeClass} text-xs font-bold px-2.5 py-1 rounded-md">${sim.className}</span>
+                                <span class="bg-slate-100 text-slate-800 text-xs font-bold px-2.5 py-1 rounded-md">${sim.subjectName}</span>
+                            </div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg ${sim.iconBg} flex items-center justify-center text-sm font-bold">
+                                    <i class="${sim.icon}"></i>
+                                </div>
+                                <h4 class="text-lg font-bold text-slate-900 tracking-tight leading-snug">${sim.title}</h4>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-2">${sim.desc}</p>
+                        </div>
+                        <div class="p-5 pt-0">
+                            <a href="${sim.url}" class="w-full inline-flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition-colors shadow-xs">
+                                Open Simulation <i class="fas fa-circle-play text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        function setClassFilter(classId) {
+            currentClass = classId;
+            
+            // Manage Active Class Buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${classId}`).classList.add('active');
+
+            applyCombinedFilters();
+        }
+
+        function setSubjectFilter(subjectId) {
+            currentSubject = subjectId;
+
+            // Manage Active Subject Buttons
+            document.querySelectorAll('.subject-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`subj-${subjectId}`).classList.add('active');
+
+            applyCombinedFilters();
+        }
+
+        function handleSearch() {
+            const input = document.getElementById('search-input');
+            searchQuery = input.value.toLowerCase().trim();
+            applyCombinedFilters();
+        }
+
+        // The core data-processing filtering algorithm
+        function applyCombinedFilters() {
+            const filteredList = simulationsData.filter(sim => {
+                const matchesClass = (currentClass === 'all' || sim.class === currentClass);
+                const matchesSubject = (currentSubject === 'all' || sim.subject === currentSubject);
+                
+                const titleMatch = sim.title.toLowerCase().includes(searchQuery);
+                const descMatch = sim.desc.toLowerCase().includes(searchQuery);
+                const matchesSearch = (searchQuery === '' || titleMatch || descMatch);
+
+                return matchesClass && matchesSubject && matchesSearch;
+            });
+
+            // Render output
+            renderSimulations(filteredList);
+
+            // Toggle No Results State
+            const fallback = document.getElementById('no-results');
+            if (filteredList.length === 0) {
+                fallback.classList.remove('hidden');
+            } else {
+                fallback.classList.add('hidden');
+            }
+
+            updateResultsCount(filteredList.length);
+        }
+
+        function updateResultsCount(count) {
+            const displayEl = document.getElementById('results-count');
+            displayEl.innerText = `Showing ${count} Simulation${count !== 1 ? 's' : ''}`;
+        }
+
+        // Modal Action Scripts
+        function openRequestModal() {
+            const modal = document.getElementById('request-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeRequestModal() {
+            const modal = document.getElementById('request-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function handleRequestForm(e) {
+            e.preventDefault();
+            closeRequestModal();
+            showToast("Topic request sent to Sadguru Solutions team!");
+            e.target.reset();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = message;
+            
+            // Slide in
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                // Slide out
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
