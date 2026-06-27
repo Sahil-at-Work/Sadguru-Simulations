@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anomalous Behaviour of Water Simulation Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .dark-glass {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-12 transition-colors duration-300">
+
+    <!-- Premium Navigation Bar -->
+    <nav class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-droplet text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-lg bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">HYDRO-SIM</span>
+                    <span class="text-xs block text-slate-400 font-medium tracking-wider uppercase">Physics Interactive Suite</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full font-semibold border border-emerald-500/20 flex items-center gap-1.5">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span> Live Physics Engine
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <!-- Hero Section -->
+        <div class="mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-2">
+                Anomalous Behaviour of Water & Hope's Apparatus
+            </h1>
+            <p class="text-slate-400 max-w-3xl leading-relaxed text-sm sm:text-base">
+                Discover the exceptional physical property of water where it contracts instead of expanding when heated from $0^\circ\text{C}$ to $4^\circ\text{C}$. Experience a real-time thermo-convection simulator of Hope's Apparatus and examine water's density changes at both macroscopic and molecular scales.
+            </p>
+        </div>
+
+        <!-- Simulation Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- COLUMN 1: Lab Apparatus & Molecular Viewers (5 Cols) -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                
+                <!-- Hope's Apparatus Interactive Canvas -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-vial text-blue-400"></i> Hope's Apparatus
+                        </h2>
+                        <span id="apparatusStatus" class="text-xs bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-md font-semibold border border-blue-500/30">
+                            Status: Ready
+                        </span>
+                    </div>
+
+                    <!-- Simulator viewport -->
+                    <div class="relative bg-slate-950 rounded-xl border border-slate-800 p-4 flex justify-center items-center min-h-[410px]">
+                        <!-- Legend overlay -->
+                        <div class="absolute left-3 top-3 bg-slate-900/90 border border-slate-800 p-2 rounded-lg text-[10px] text-slate-400 flex flex-col gap-1 z-10">
+                            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-blue-500"></span> Cooling Flow</span>
+                            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-cyan-400"></span> Rising Buoyant layer</span>
+                            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-red-500"></span> Thermometer bulb</span>
+                        </div>
+
+                        <canvas id="hopeApparatus" width="340" height="390" class="w-full h-auto max-w-[340px]"></canvas>
+                    </div>
+
+                    <!-- Real-time Thermodynamic Output metrics -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                        <div class="bg-slate-900/50 p-2.5 rounded-xl border border-slate-700/30">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-0.5">Time Elapsed</span>
+                            <span id="metricTime" class="text-base font-bold text-slate-100 code-font">0.0m</span>
+                        </div>
+                        <div class="bg-slate-900/50 p-2.5 rounded-xl border border-slate-700/30">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-0.5">T₂ Temp (Top)</span>
+                            <span id="metricT2" class="text-base font-bold text-blue-400 code-font">12.0°C</span>
+                        </div>
+                        <div class="bg-slate-900/50 p-2.5 rounded-xl border border-slate-700/30">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-0.5">T₁ Temp (Base)</span>
+                            <span id="metricT1" class="text-base font-bold text-red-400 code-font">12.0°C</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Molecular Level Visualizer (Why does water behave like this?) -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-atom text-cyan-400"></i> Microscopic Molecular Structure
+                    </h2>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                        Watch how H₂O molecules behave. Below $4^\circ\text{C}$, they arrange themselves into a spacious, hexagonal open-cage lattice due to hydrogen bonds, increasing the overall volume (decreasing density).
+                    </p>
+                    <div class="relative bg-slate-950 rounded-xl border border-slate-800 p-2 flex justify-center items-center">
+                        <canvas id="molecularCanvas" width="340" height="150" class="w-full h-auto max-w-[340px]"></canvas>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 text-xs text-slate-400">
+                        <span id="moleculePhaseText">State: Dynamic Liquid</span>
+                        <span id="hydrogenBondCount" class="text-cyan-400 font-semibold">Active bonds: Low</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLUMN 2: Configuration & Analytical Graphs (7 Cols) -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+                
+                <!-- Laboratory Control Panel -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i> Lab Controller Configuration
+                    </h2>
+
+                    <!-- Inputs panel -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                                Starting Temperature (°C)
+                            </label>
+                            <div class="flex items-center gap-3">
+                                <input type="range" id="startTempInput" min="8" max="15" value="12" class="w-full accent-blue-500">
+                                <span id="startTempLabel" class="text-sm font-bold code-font bg-slate-900 px-2.5 py-1 rounded border border-slate-700">12°C</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                                Freezing Mixture Strength
+                            </label>
+                            <select id="coolantStrength" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                                <option value="1.0">Standard Ice + Salt (Fast)</option>
+                                <option value="0.5">Pure Crushed Ice (Slow)</option>
+                                <option value="1.5">Intense Freezing Jacket (Ultra)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                                Simulation Rate Speed
+                            </label>
+                            <div class="flex items-center gap-3">
+                                <input type="range" id="simSpeedInput" min="1" max="4" value="2" class="w-full accent-emerald-500">
+                                <span id="simSpeedLabel" class="text-sm font-bold code-font bg-slate-900 px-2.5 py-1 rounded border border-slate-700">2x</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Physics State Alerts -->
+                    <div id="physicsFeedbackAlert" class="bg-blue-950/40 border border-blue-900/50 text-blue-200 text-xs rounded-xl p-4 flex items-start gap-3 mb-6 transition-all duration-300">
+                        <i class="fa-solid fa-circle-info text-blue-400 text-lg mt-0.5"></i>
+                        <div>
+                            <span class="font-bold block mb-1">State: Room Temperature Stabilization</span>
+                            <span id="alertDescription">The initial system starts with standard fluid density distribution. Click 'Start Experiment' below to deposit the cooling mixture and observe convection trends.</span>
+                        </div>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="flex flex-wrap gap-3">
+                        <button id="startBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition duration-150 transform active:scale-95 shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> Start Experiment
+                        </button>
+                        <button id="pauseBtn" class="hidden flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-6 rounded-xl transition duration-150 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-pause"></i> Pause Lab
+                        </button>
+                        <button id="resetBtn" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 font-bold py-3 px-6 rounded-xl transition duration-150 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-left"></i> Reset System
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs & Analytical Charts -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 shadow-xl flex-1 flex flex-col">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-700 pb-4 mb-4">
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-violet-400"></i> Graphical Analysis
+                        </h2>
+                        <div class="flex gap-2">
+                            <button id="tabHope" class="text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg font-semibold transition active-tab shadow-md shadow-violet-900/30" onclick="toggleActiveTab('hope')">
+                                Hope's Time-Temp Curves
+                            </button>
+                            <button id="tabVolume" class="text-xs bg-slate-700 text-slate-300 hover:bg-slate-600 px-3 py-1.5 rounded-lg font-semibold transition" onclick="toggleActiveTab('volume')">
+                                Water Density & Vol Curve
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hope's Time-Temp Chart -->
+                    <div id="chartHopeContainer" class="relative w-full h-[320px]">
+                        <canvas id="hopeChartLive"></canvas>
+                    </div>
+
+                    <!-- Volume & Density Chart -->
+                    <div id="chartVolumeContainer" class="relative w-full h-[320px] hidden">
+                        <canvas id="volumeChartLive"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Practical Applications & Phenomenon Deep Dive -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-800/30 border border-slate-700/30 p-5 rounded-2xl hover:border-slate-700 transition">
+                <div class="h-10 w-10 bg-sky-500/10 rounded-lg flex items-center justify-center text-sky-400 mb-3 text-lg">
+                    <i class="fa-solid fa-fish"></i>
+                </div>
+                <h3 class="text-base font-bold text-white mb-2">Aquatic Life Survival</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    In cold regions during winters, when the atmosphere goes below freezing point, the top surface water cools to $4^\circ\text{C}$ first and sinks down due to high density. As cooling continues, water on top drops towards $0^\circ\text{C}$ forming ice. Since ice is less dense, it floats and insulates the deeper water layers, allowing aquatic life to survive below.
+                </p>
+            </div>
+            <div class="bg-slate-800/30 border border-slate-700/30 p-5 rounded-2xl hover:border-slate-700 transition">
+                <div class="h-10 w-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400 mb-3 text-lg">
+                    <i class="fa-solid fa-icicles"></i>
+                </div>
+                <h3 class="text-base font-bold text-white mb-2">Winter pipe bursts</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    When water inside pipes cools below $4^\circ\text{C}$, it expands rather than contracting. Once it solidifies completely to ice, this anomalous expansion exerts massive outwards hydrostatic pressure, often rupturing plumbing pipes or weathering rocks in freezing environments.
+                </p>
+            </div>
+            <div class="bg-slate-800/30 border border-slate-700/30 p-5 rounded-2xl hover:border-slate-700 transition">
+                <div class="h-10 w-10 bg-cyan-500/10 rounded-lg flex items-center justify-center text-cyan-400 mb-3 text-lg">
+                    <i class="fa-solid fa-weight-hanging"></i>
+                </div>
+                <h3 class="text-base font-bold text-white mb-2">Maximum Density Core</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    At exactly $4^\circ\text{C}$ ($3.98^\circ\text{C}$ precisely), water possesses its absolute highest density of $1.0000\text{ g/cm}^3$. No matter how much colder or warmer it gets, its density will always be lower than this peak, leading to structural separation in still water bodies.
+                </p>
+            </div>
+        </div>
+
+        <!-- Interactive Conceptual Quiz Section -->
+        <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 sm:p-8 mt-8 shadow-xl">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-slate-700 pb-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-question text-yellow-400"></i> Interactive Knowledge Check
+                    </h2>
+                    <p class="text-xs text-slate-400">Test your mastery of the concepts behind the Hope's experiment.</p>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">
+                    <span>Quiz Score:</span>
+                    <span id="scoreDisplay" class="text-yellow-400 font-bold">0 / 4</span>
+                </div>
+            </div>
+
+            <!-- Quiz Questions Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Q1 -->
+                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+                    <span class="text-[10px] bg-blue-500/20 text-blue-300 font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2.5 inline-block">Question 1</span>
+                    <p class="text-sm font-semibold text-white mb-3">At what temperature does water achieve its absolute maximum density?</p>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <button onclick="checkAnswer(1, 'A')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">$0^\circ\text{C}$</button>
+                        <button onclick="checkAnswer(1, 'B')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">$4^\circ\text{C}$</button>
+                        <button onclick="checkAnswer(1, 'C')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">$100^\circ\text{C}$</button>
+                    </div>
+                    <p id="q-feedback-1" class="text-[11px] mt-2 hidden"></p>
+                </div>
+
+                <!-- Q2 -->
+                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+                    <span class="text-[10px] bg-blue-500/20 text-blue-300 font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2.5 inline-block">Question 2</span>
+                    <p class="text-sm font-semibold text-white mb-3">During cooling from $4^\circ\text{C}$ to $0^\circ\text{C}$, what happens to the specific volume of water?</p>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <button onclick="checkAnswer(2, 'A')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">It steadily decreases</button>
+                        <button onclick="checkAnswer(2, 'B')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">It steadily increases</button>
+                        <button onclick="checkAnswer(2, 'C')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">It remains completely unchanged</button>
+                    </div>
+                    <p id="q-feedback-2" class="text-[11px] mt-2 hidden"></p>
+                </div>
+
+                <!-- Q3 -->
+                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+                    <span class="text-[10px] bg-blue-500/20 text-blue-300 font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2.5 inline-block">Question 3</span>
+                    <p class="text-sm font-semibold text-white mb-3">Which thermometer (T₁ or T₂) registers $0^\circ\text{C}$ first in Hope's apparatus?</p>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <button onclick="checkAnswer(3, 'A')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">Thermometer T₂ (Upper part)</button>
+                        <button onclick="checkAnswer(3, 'B')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">Thermometer T₁ (Lower part)</button>
+                        <button onclick="checkAnswer(3, 'C')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">Both hit $0^\circ\text{C}$ at identical rates</button>
+                    </div>
+                    <p id="q-feedback-3" class="text-[11px] mt-2 hidden"></p>
+                </div>
+
+                <!-- Q4 -->
+                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+                    <span class="text-[10px] bg-blue-500/20 text-blue-300 font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2.5 inline-block">Question 4</span>
+                    <p class="text-sm font-semibold text-white mb-3">Why does water expand below $4^\circ\text{C}$ at the molecular level?</p>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <button onclick="checkAnswer(4, 'A')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">Due to rapid decay of chemical bonds</button>
+                        <button onclick="checkAnswer(4, 'B')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">Due to highly ordered open hexagonal hydrogen-bonded cage structures</button>
+                        <button onclick="checkAnswer(4, 'C')" class="q-opt w-full text-left bg-slate-800/80 hover:bg-slate-700 text-slate-300 py-2.5 px-4 rounded-lg transition duration-150">Due to increased thermal agitation of H₂O molecules</button>
+                    </div>
+                    <p id="q-feedback-4" class="text-[11px] mt-2 hidden"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Block -->
+    <script>
+        // State Machine
+        let isRunning = false;
+        let animationFrameId;
+        
+        let initialTemp = 12.0;
+        let T1 = 12.0;
+        let T2 = 12.0;
+        let centerTemp = 12.0;
+        let timeInSeconds = 0;
+        let simSpeedMultiplier = 2; // Controls update rate
+        let coolantPower = 1.0;     // Cooling modifier
+
+        // Physics Constants & Calculations
+        // Calculating Density of water using standard empirical estimation:
+        // peak at 4°C is 1.0000 g/cm³.
+        function getDensityOfWater(t) {
+            return (1 - 0.000008 * Math.pow(t - 3.98, 2)).toFixed(5);
+        }
+
+        function getVolumeOfWater(t) {
+            return (1 / parseFloat(getDensityOfWater(t))).toFixed(6);
+        }
+
+        // Particle system elements for macroscopic convection animation
+        const particles = [];
+        const numParticles = 28;
+
+        for (let i = 0; i < numParticles; i++) {
+            particles.push({
+                x: 140 + Math.random() * 60,
+                y: 55 + Math.random() * 300,
+                vy: 0,
+                color: 'rgba(255,255,255,0.4)',
+                direction: 0 // 1: sinking, -1: rising, 0: neutral
+            });
+        }
+
+        // Molecular rendering elements
+        const molecules = [];
+        const numMolecules = 20;
+        for (let i = 0; i < numMolecules; i++) {
+            molecules.push({
+                x: 20 + Math.random() * 300,
+                y: 20 + Math.random() * 110,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5,
+                targetX: null,
+                targetY: null
+            });
+        }
+
+        // Setup Canvas elements
+        const hopeCanvas = document.getElementById('hopeApparatus');
+        const hopeCtx = hopeCanvas.getContext('2d');
+
+        const molCanvas = document.getElementById('molecularCanvas');
+        const molCtx = molCanvas.getContext('2d');
+
+        // Charts configuration
+        let chartHope, chartVolume;
+        let dataTime = [0];
+        let dataT1 = [12];
+        let dataT2 = [12];
+
+        function initCharts() {
+            // Live Hope Experiment Temperature Chart
+            const ctxHope = document.getElementById('hopeChartLive').getContext('2d');
+            chartHope = new Chart(ctxHope, {
+                type: 'line',
+                data: {
+                    labels: dataTime,
+                    datasets: [
+                        {
+                            label: 'T₁ (Lower Bottom)',
+                            data: dataT1,
+                            borderColor: '#ef4444',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'T₂ (Upper Top)',
+                            data: dataT2,
+                            borderColor: '#3b82f6',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            title: { display: true, text: 'Time (minutes)', color: '#94a3b8' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            title: { display: true, text: 'Temperature (°C)', color: '#94a3b8' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#f1f5f9' } }
+                    }
+                }
+            });
+
+            // Density & Volume Reference Curves
+            const ctxVol = document.getElementById('volumeChartLive').getContext('2d');
+            const volTemps = [];
+            const volData = [];
+            const densityData = [];
+            for (let t = 0; t <= 12; t += 0.5) {
+                volTemps.push(t + '°');
+                volData.push(parseFloat(getVolumeOfWater(t)));
+                densityData.push(parseFloat(getDensityOfWater(t)));
+            }
+
+            chartVolume = new Chart(ctxVol, {
+                type: 'line',
+                data: {
+                    labels: volTemps,
+                    datasets: [
+                        {
+                            label: 'Volume (cm³/g)',
+                            data: volData,
+                            borderColor: '#a855f7',
+                            borderWidth: 2.5,
+                            tension: 0.4,
+                            yAxisID: 'yVol',
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Density (g/cm³)',
+                            data: densityData,
+                            borderColor: '#10b981',
+                            borderWidth: 2.5,
+                            tension: 0.4,
+                            yAxisID: 'yDen',
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        yVol: {
+                            type: 'linear',
+                            position: 'left',
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            title: { display: true, text: 'Specific Volume (cm³/g)', color: '#a855f7' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        yDen: {
+                            type: 'linear',
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Density (g/cm³)', color: '#10b981' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#f1f5f9' } }
+                    }
+                }
+            });
+        }
+
+        // Macro-Scale Hope Apparatus Graphics Draw Call
+        function drawApparatus() {
+            hopeCtx.clearRect(0, 0, hopeCanvas.width, hopeCanvas.height);
+
+            // Water cylinder coordinates
+            const x = 135;
+            const y = 40;
+            const w = 70;
+            const h = 320;
+
+            // Gradient for water column based on T1, center temp, and T2
+            let waterGrad = hopeCtx.createLinearGradient(0, y, 0, y + h);
+            
+            // Generate visual thermodynamic profiles
+            // cold <4 = cyan/light blue, hot/normal = deep blue
+            let cTop = getColorForTemp(T2);
+            let cMid = getColorForTemp(centerTemp);
+            let cBot = getColorForTemp(T1);
+
+            waterGrad.addColorStop(0, cTop);
+            waterGrad.addColorStop(0.5, cMid);
+            waterGrad.addColorStop(1, cBot);
+
+            hopeCtx.fillStyle = waterGrad;
+            hopeCtx.fillRect(x, y, w, h);
+
+            // Symmetrical cylinder outline glass layer
+            hopeCtx.strokeStyle = '#64748b';
+            hopeCtx.lineWidth = 4;
+            hopeCtx.beginPath();
+            hopeCtx.moveTo(x, y - 5);
+            hopeCtx.lineTo(x, y + h);
+            hopeCtx.lineTo(x + w, y + h);
+            hopeCtx.lineTo(x + w, y - 5);
+            hopeCtx.stroke();
+
+            // Symmetrical horizontal glass rim line
+            hopeCtx.strokeStyle = '#475569';
+            hopeCtx.lineWidth = 2;
+            hopeCtx.beginPath();
+            hopeCtx.moveTo(x - 5, y - 5);
+            hopeCtx.lineTo(x + w + 5, y - 5);
+            hopeCtx.stroke();
+
+            // Draw freezing mixture outer jacket bowl
+            // Central belt position
+            const jx = 55;
+            const jy = 170;
+            const jw = 230;
+            const jh = 70;
+
+            // Draw freezing bowl background
+            hopeCtx.fillStyle = '#e2e8f0';
+            hopeCtx.strokeStyle = '#94a3b8';
+            hopeCtx.lineWidth = 3;
+            hopeCtx.beginPath();
+            hopeCtx.moveTo(jx, jy);
+            hopeCtx.lineTo(jx + jw, jy);
+            hopeCtx.lineTo(jx + jw - 30, jy + jh);
+            hopeCtx.lineTo(jx + 30, jy + jh);
+            hopeCtx.closePath();
+            hopeCtx.fill();
+            hopeCtx.stroke();
+
+            // Draw Ice chunks inside the coolant jacket bowl
+            hopeCtx.fillStyle = '#bae6fd';
+            hopeCtx.strokeStyle = '#7dd3fc';
+            hopeCtx.lineWidth = 1;
+            for (let i = 0; i < 24; i++) {
+                let px = jx + 35 + (i * 6.5) + (Math.sin(i) * 5);
+                let py = jy + 15 + (Math.cos(i) * 35);
+                if (py < jy + jh - 5) {
+                    hopeCtx.fillRect(px, py, 10, 10);
+                    hopeCtx.strokeRect(px, py, 10, 10);
+                }
+            }
+
+            // Label text for cooling bowl
+            hopeCtx.fillStyle = '#1e293b';
+            hopeCtx.font = 'bold 9px sans-serif';
+            hopeCtx.fillText('FREEZING MIXTURE', jx + 40, jy + jh - 35);
+            hopeCtx.fillText('(ICE + SALT)', jx + 60, jy + jh - 22);
+
+            // Draw Thermometers stems & bulbs
+            // Upper Thermometer T2 (T2 stem is at index y + 80)
+            const t2y = y + 70;
+            drawThermometer(x + w, t2y, T2, 'T₂');
+
+            // Lower Thermometer T1 (T1 stem is at index y + 260)
+            const t1y = y + 270;
+            drawThermometer(x + w, t1y, T1, 'T₁');
+
+            // Draw physical Ice layer on top if T2 <= 0
+            if (T2 <= 0) {
+                hopeCtx.fillStyle = 'rgba(224, 242, 254, 0.85)';
+                hopeCtx.strokeStyle = '#e0f2fe';
+                hopeCtx.lineWidth = 1;
+                hopeCtx.fillRect(x, y, w, 25);
+                
+                // Draw floating dynamic ice spikes
+                hopeCtx.beginPath();
+                hopeCtx.moveTo(x, y + 25);
+                for (let i = 0; i <= w; i += 10) {
+                    hopeCtx.lineTo(x + i, y + 20 + Math.sin(i) * 5);
+                }
+                hopeCtx.stroke();
+            }
+
+            // Particle Engine updates (visual fluid convection flow)
+            particles.forEach(p => {
+                // Sinking dynamic convection
+                if (centerTemp < initialTemp && centerTemp > 4.0) {
+                    // Cooling makes water dense, forcing it to sink
+                    if (p.y > jy && p.y < y + h - 15) {
+                        p.vy = 0.8 * simSpeedMultiplier;
+                        p.color = 'rgba(59, 130, 246, 0.6)'; // Blue sinking indicators
+                    } else {
+                        p.vy = 0.2;
+                        p.color = 'rgba(148, 163, 184, 0.2)';
+                    }
+                } 
+                // Rising dynamic convection when cooler than 4°C
+                else if (centerTemp <= 4.0 && centerTemp > 0) {
+                    if (p.y > y + 40 && p.y < jy + jh) {
+                        p.vy = -1.0 * simSpeedMultiplier; // Sinks up to top
+                        p.color = 'rgba(34, 211, 238, 0.7)'; // Cyan rising indicators
+                    } else {
+                        p.vy = 0.1;
+                        p.color = 'rgba(148, 163, 184, 0.2)';
+                    }
+                } else {
+                    p.vy = 0.1;
+                    p.color = 'rgba(148, 163, 184, 0.25)';
+                }
+
+                p.y += p.vy;
+
+                // Loop borders bounds check
+                if (p.y > y + h - 10) p.y = y + 10;
+                if (p.y < y + 5) p.y = y + h - 15;
+
+                // Draw convection visualizer particles
+                hopeCtx.fillStyle = p.color;
+                hopeCtx.beginPath();
+                hopeCtx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+                hopeCtx.fill();
+            });
+        }
+
+        function drawThermometer(tx, ty, temp, label) {
+            // Horizontal entry stem
+            hopeCtx.strokeStyle = '#94a3b8';
+            hopeCtx.lineWidth = 6;
+            hopeCtx.beginPath();
+            hopeCtx.moveTo(tx - 5, ty);
+            hopeCtx.lineTo(tx + 45, ty);
+            hopeCtx.stroke();
+
+            // Inner Red physical indicator core
+            hopeCtx.strokeStyle = '#ef4444';
+            hopeCtx.lineWidth = 2;
+            hopeCtx.beginPath();
+            hopeCtx.moveTo(tx - 5, ty);
+            hopeCtx.lineTo(tx + 40, ty);
+            hopeCtx.stroke();
+
+            // External bulb unit representation
+            hopeCtx.fillStyle = '#64748b';
+            hopeCtx.beginPath();
+            hopeCtx.arc(tx + 45, ty, 10, 0, Math.PI * 2);
+            hopeCtx.fill();
+
+            hopeCtx.fillStyle = '#ef4444';
+            hopeCtx.beginPath();
+            hopeCtx.arc(tx + 45, ty, 7, 0, Math.PI * 2);
+            hopeCtx.fill();
+
+            // Label text string
+            hopeCtx.fillStyle = '#f8fafc';
+            hopeCtx.font = 'bold 11px sans-serif';
+            hopeCtx.fillText(`${label}: ${temp.toFixed(1)}°C`, tx + 58, ty + 4);
+        }
+
+        // Color thermal mapper lookup
+        function getColorForTemp(t) {
+            if (t > 8) return 'rgba(30, 58, 138, 0.6)';   // Warm deep blue
+            if (t > 4) return 'rgba(59, 130, 246, 0.7)';  // Convective active medium blue
+            if (t > 0) return 'rgba(34, 211, 238, 0.8)';  // Expanding cyan cold layer
+            return 'rgba(224, 242, 254, 0.95)';          // Near ice/frozen white-blue
+        }
+
+        // Micro-Scale Molecular Engine Graphics Draw Call
+        function drawMolecules() {
+            molCtx.clearRect(0, 0, molCanvas.width, molCanvas.height);
+
+            // Title banner rendering in canvas
+            molCtx.fillStyle = '#94a3b8';
+            molCtx.font = 'bold 10px monospace';
+            molCtx.fillText(`CO-EXISTENCE STATE AT ${T2.toFixed(1)}°C`, 10, 18);
+
+            // Lattice state flags configuration
+            let isStructuredHexagon = T2 <= 4.1;
+
+            // Compute positions and dynamic structures
+            molecules.forEach((m, idx) => {
+                if (isStructuredHexagon) {
+                    // Structure the particles into an open hexagonal lattice arrangement
+                    let ringIndex = idx % 6;
+                    let angle = (ringIndex * (Math.PI / 3)) + (Math.floor(idx / 6) * 0.4);
+                    let radius = 32 + Math.floor(idx / 6) * 28;
+                    
+                    m.targetX = (molCanvas.width / 2) + Math.cos(angle) * radius;
+                    m.targetY = (molCanvas.height / 2) + Math.sin(angle) * radius * 0.7;
+
+                    // Interpolate smoothly
+                    m.x += (m.targetX - m.x) * 0.1;
+                    m.y += (m.targetY - m.y) * 0.1;
+                } else {
+                    // Fluid chaotic moving molecules
+                    m.x += m.vx * simSpeedMultiplier * 0.7;
+                    m.y += m.vy * simSpeedMultiplier * 0.7;
+
+                    // Boundary collision rebound bounds check
+                    if (m.x < 15 || m.x > molCanvas.width - 15) m.vx *= -1;
+                    if (m.y < 25 || m.y > molCanvas.height - 15) m.vy *= -1;
+                }
+
+                // Draw Hydrogen Bonds line connections if structured
+                if (isStructuredHexagon) {
+                    molecules.forEach((mOther, oIdx) => {
+                        if (idx !== oIdx) {
+                            let dist = Math.hypot(m.x - mOther.x, m.y - mOther.y);
+                            if (dist < 38) {
+                                molCtx.strokeStyle = 'rgba(34, 211, 238, 0.45)';
+                                molCtx.lineWidth = 1.5;
+                                molCtx.setLineDash([2, 3]);
+                                molCtx.beginPath();
+                                molCtx.moveTo(m.x, m.y);
+                                molCtx.lineTo(mOther.x, mOther.y);
+                                molCtx.stroke();
+                                molCtx.setLineDash([]);
+                            }
+                        }
+                    });
+                }
+
+                // Render dynamic representation of H2O model (large O ball + small H ears)
+                molCtx.fillStyle = '#ef4444'; // Oxygen core
+                molCtx.beginPath();
+                molCtx.arc(m.x, m.y, 6, 0, Math.PI * 2);
+                molCtx.fill();
+
+                // Small Hydrogen ears
+                molCtx.fillStyle = '#f8fafc'; 
+                molCtx.beginPath();
+                molCtx.arc(m.x - 4, m.y - 4, 3, 0, Math.PI * 2);
+                molCtx.arc(m.x + 4, m.y - 4, 3, 0, Math.PI * 2);
+                molCtx.fill();
+            });
+
+            // State indicators
+            const phaseText = document.getElementById('moleculePhaseText');
+            const hBondText = document.getElementById('hydrogenBondCount');
+            if (T2 <= 0) {
+                phaseText.innerHTML = "State: <span class='text-sky-300 font-bold'>Solid Hexagonal Ice Lattice</span>";
+                hBondText.innerText = "Active bonds: Maximum";
+            } else if (T2 <= 4.0) {
+                phaseText.innerHTML = "State: <span class='text-cyan-400 font-bold'>Hexagonal Clusters Forming</span>";
+                hBondText.innerText = "Active bonds: Moderate";
+            } else {
+                phaseText.innerHTML = "State: <span class='text-blue-400 font-bold'>Dynamic Liquid Movement</span>";
+                hBondText.innerText = "Active bonds: Low";
+            }
+        }
+
+        // Analytical Math Loop Processor (Updates Hope Apparatus Temperatures)
+        function updateThermodynamics() {
+            if (!isRunning) return;
+
+            // Simulating steps logic rate
+            timeInSeconds += (0.8 * simSpeedMultiplier);
+            let timeInMinutes = timeInSeconds / 60;
+
+            // Central belt cooling speed calculation
+            let coolingRate = 0.015 * coolantPower * simSpeedMultiplier;
+
+            // 1. Ice mixture cools central zone
+            if (centerTemp > 0) {
+                centerTemp -= coolingRate * 1.5;
+            } else {
+                centerTemp = 0;
+            }
+
+            // Phase 1: Cool water shrinks in volume, gets dense & sinks to the bottom (affecting T1)
+            if (T1 > 4.0) {
+                T1 -= coolingRate * 2.2; // Rapid reduction
+                T2 -= coolingRate * 0.4; // Very slow drop on top
+                
+                updatePhysicsStateFeedback(
+                    "Phase 1: Center Cooling & Sinking currents",
+                    `Water molecules near the freezing jacket contract. Density increases, causing them to plunge straight to the bottom container base. Thermometer T₁ registers a rapid drop to 4.0°C.`
+                );
+            } 
+            // Phase 2: Bottom zone stabilizes at 4°C (maximum density floor). 
+            // Water colder than 4°C expands, gets lighter, and floats upward (affecting T2)
+            else {
+                T1 = 4.0; // Stabilizes
+
+                if (T2 > 0.0) {
+                    T2 -= coolingRate * 2.5; // Top cools rapidly now
+                    
+                    updatePhysicsStateFeedback(
+                        "Phase 2: Anomalous Buoyant Expansion rising",
+                        `Lower water remains trapped at 4°C due to maximum density. Water cooling below 4°C undergoes anomalous expansion (density drops) and rises to the top, causing T₂ to plummet to 0°C.`
+                    );
+                } else {
+                    T2 = 0.0; // Top freezes and turns to ice
+
+                    // Once T2 forms ice layer, T1 starts dropping from 4°C to 0°C slowly
+                    if (T1 > 0.0) {
+                        T1 -= coolingRate * 0.8;
+                        
+                        updatePhysicsStateFeedback(
+                            "Phase 3: Deep column structural freezing",
+                            `Ice layer acts as an insulator on the surface ($0^\circ\\text{C}$). The remaining deep column starts freezing downwards slowly towards absolute thermal equilibrium.`
+                        );
+                    } else {
+                        T1 = 0.0;
+                        isRunning = false;
+                        
+                        updatePhysicsStateFeedback(
+                            "Phase 4: Dynamic Equilibrium achieved",
+                            `Total crystallization achieved. Both indicators register $0^\circ\\text{C}$ throughout the column, completing Hope's simulation.`
+                        );
+                        togglePauseState(true);
+                    }
+                }
+            }
+
+            // Real-time metric outputs
+            document.getElementById('metricTime').innerText = timeInMinutes.toFixed(1) + 'm';
+            document.getElementById('metricT2').innerText = T2.toFixed(1) + '°C';
+            document.getElementById('metricT1').innerText = T1.toFixed(1) + '°C';
+
+            // Push values into Chart.js
+            if (Math.floor(timeInSeconds) % 5 === 0) {
+                dataTime.push(timeInMinutes.toFixed(2));
+                dataT1.push(T1);
+                dataT2.push(T2);
+                chartHope.update();
+            }
+        }
+
+        // Master UI controller logic
+        function updatePhysicsStateFeedback(title, desc) {
+            const container = document.getElementById('physicsFeedbackAlert');
+            container.querySelector('span.font-bold').innerText = title;
+            document.getElementById('alertDescription').innerText = desc;
+        }
+
+        function togglePauseState(isDone = false) {
+            if (isDone) {
+                document.getElementById('startBtn').classList.remove('hidden');
+                document.getElementById('pauseBtn').classList.add('hidden');
+                document.getElementById('apparatusStatus').innerText = "Status: Finished";
+            } else {
+                document.getElementById('startBtn').classList.add('hidden');
+                document.getElementById('pauseBtn').classList.remove('hidden');
+                document.getElementById('apparatusStatus').innerText = "Status: Live";
+            }
+        }
+
+        // Main Loop
+        function loop() {
+            updateThermodynamics();
+            drawApparatus();
+            drawMolecules();
+            animationFrameId = requestAnimationFrame(loop);
+        }
+
+        // Initialize actions
+        document.getElementById('startBtn').addEventListener('click', () => {
+            isRunning = true;
+            togglePauseState(false);
+            loop();
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            isRunning = false;
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('pauseBtn').classList.add('hidden');
+            document.getElementById('apparatusStatus').innerText = "Status: Paused";
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            isRunning = false;
+            cancelAnimationFrame(animationFrameId);
+
+            // Re-read sliders
+            initialTemp = parseFloat(document.getElementById('startTempInput').value);
+            T1 = initialTemp;
+            T2 = initialTemp;
+            centerTemp = initialTemp;
+            timeInSeconds = 0;
+
+            // Flush arrays
+            dataTime.length = 0;
+            dataT1.length = 0;
+            dataT2.length = 0;
+
+            dataTime.push(0);
+            dataT1.push(initialTemp);
+            dataT2.push(initialTemp);
+
+            chartHope.update();
+            drawApparatus();
+            drawMolecules();
+
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('pauseBtn').classList.add('hidden');
+            document.getElementById('apparatusStatus').innerText = "Status: Ready";
+            
+            document.getElementById('metricTime').innerText = '0.0m';
+            document.getElementById('metricT2').innerText = initialTemp.toFixed(1) + '°C';
+            document.getElementById('metricT1').innerText = initialTemp.toFixed(1) + '°C';
+
+            updatePhysicsStateFeedback(
+                "State: Room Temperature Stabilization",
+                "The initial system starts with standard fluid density distribution. Click 'Start Experiment' below to deposit the cooling mixture and observe convection trends."
+            );
+        });
+
+        // Config element listeners
+        document.getElementById('startTempInput').addEventListener('input', (e) => {
+            let val = parseFloat(e.target.value);
+            document.getElementById('startTempLabel').innerText = val + '°C';
+            if (!isRunning) {
+                T1 = val;
+                T2 = val;
+                centerTemp = val;
+                initialTemp = val;
+                document.getElementById('metricT2').innerText = val.toFixed(1) + '°C';
+                document.getElementById('metricT1').innerText = val.toFixed(1) + '°C';
+                
+                dataT1[0] = val;
+                dataT2[0] = val;
+                chartHope.update();
+                drawApparatus();
+            }
+        });
+
+        document.getElementById('coolantStrength').addEventListener('change', (e) => {
+            coolantPower = parseFloat(e.target.value);
+        });
+
+        document.getElementById('simSpeedInput').addEventListener('input', (e) => {
+            simSpeedMultiplier = parseInt(e.target.value);
+            document.getElementById('simSpeedLabel').innerText = simSpeedMultiplier + 'x';
+        });
+
+        // Analytical Tab toggler
+        function toggleActiveTab(tabName) {
+            const hTab = document.getElementById('tabHope');
+            const vTab = document.getElementById('tabVolume');
+            const hCont = document.getElementById('chartHopeContainer');
+            const vCont = document.getElementById('chartVolumeContainer');
+
+            if (tabName === 'hope') {
+                hTab.className = "text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg font-semibold transition active-tab shadow-md shadow-violet-900/30";
+                vTab.className = "text-xs bg-slate-700 text-slate-300 hover:bg-slate-600 px-3 py-1.5 rounded-lg font-semibold transition";
+                hCont.classList.remove('hidden');
+                vCont.classList.add('hidden');
+            } else {
+                vTab.className = "text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold transition active-tab shadow-md shadow-emerald-900/30";
+                hTab.className = "text-xs bg-slate-700 text-slate-300 hover:bg-slate-600 px-3 py-1.5 rounded-lg font-semibold transition";
+                vCont.classList.remove('hidden');
+                hCont.classList.add('hidden');
+            }
+        }
+
+        // Self-assessment Quiz Logic
+        const quizAnswers = {
+            1: 'B',
+            2: 'B',
+            3: 'A',
+            4: 'B'
+        };
+        const solvedQuestions = {};
+
+        function checkAnswer(qNum, choice) {
+            if (solvedQuestions[qNum]) return; // Stop multi-clicks
+            
+            solvedQuestions[qNum] = true;
+            const feedbackEl = document.getElementById(`q-feedback-${qNum}`);
+            feedbackEl.classList.remove('hidden');
+
+            // Select option buttons inside this parent card
+            const buttons = feedbackEl.parentElement.querySelectorAll('button');
+            
+            if (choice === quizAnswers[qNum]) {
+                feedbackEl.innerText = "✓ Correct! Excellent grasp of water physics.";
+                feedbackEl.className = "text-[11px] mt-2 text-emerald-400 font-bold";
+                
+                // Highlight correct in green
+                buttons.forEach(btn => {
+                    if (btn.innerText.includes(getChoiceLabel(qNum, choice))) {
+                        btn.className = "q-opt w-full text-left bg-emerald-950 border border-emerald-500/50 text-emerald-300 py-2.5 px-4 rounded-lg transition duration-150";
+                    }
+                });
+            } else {
+                feedbackEl.innerText = `✗ Incorrect. The correct choice was Option ${quizAnswers[qNum]}.`;
+                feedbackEl.className = "text-[11px] mt-2 text-rose-400 font-bold";
+                
+                // Highlight wrong in red & correct in green
+                buttons.forEach(btn => {
+                    if (btn.innerText.includes(getChoiceLabel(qNum, choice))) {
+                        btn.className = "q-opt w-full text-left bg-rose-950 border border-rose-500/50 text-rose-300 py-2.5 px-4 rounded-lg transition duration-150";
+                    }
+                    if (btn.innerText.includes(getChoiceLabel(qNum, quizAnswers[qNum]))) {
+                        btn.className = "q-opt w-full text-left bg-emerald-950 border border-emerald-500/50 text-emerald-300 py-2.5 px-4 rounded-lg transition duration-150";
+                    }
+                });
+            }
+
+            // Update global Score counter
+            let correctCount = 0;
+            for (let q in solvedQuestions) {
+                // If it exists in solved questions, get correct buttons match count
+                const card = document.getElementById(`q-feedback-${q}`).parentElement;
+                const correctButton = Array.from(card.querySelectorAll('button')).find(btn => btn.className.includes('bg-emerald-950'));
+                if (correctButton) {
+                    // Check if clicked button was the correct one
+                    const clickedIdx = Array.from(card.querySelectorAll('button')).indexOf(correctButton);
+                    correctCount++;
+                }
+            }
+            document.getElementById('scoreDisplay').innerText = `${correctCount} / 4`;
+        }
+
+        // Helper mapper to associate choices with button text content
+        function getChoiceLabel(qNum, choice) {
+            if (qNum === 1) {
+                if (choice === 'A') return '0°';
+                if (choice === 'B') return '4°';
+                return '100°';
+            }
+            if (qNum === 2) {
+                if (choice === 'A') return 'steadily decreases';
+                if (choice === 'B') return 'steadily increases';
+                return 'unchanged';
+            }
+            if (qNum === 3) {
+                if (choice === 'A') return 'T₂';
+                if (choice === 'B') return 'T₁';
+                return 'identical';
+            }
+            if (qNum === 4) {
+                if (choice === 'A') return 'decay';
+                if (choice === 'B') return 'hexagonal';
+                return 'agitation';
+            }
+        }
+
+        // Page execution trigger
+        window.onload = () => {
+            initCharts();
+            drawApparatus();
+            drawMolecules();
+        };
+    </script>
+</body>
+</html>
