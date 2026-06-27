@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kepler's Space Lab: Interactive Orbits</title>
+    <!-- Tailwind CSS for modern responsive layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=300;400;500;600;700&family=Space+Mono:ital,wght=0,400;0,700;1,400&display=swap');
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #05050d;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+        }
+
+        .mono {
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Custom Scrollbar for modern look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090916;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Navbar / Header -->
+    <header class="border-b border-blue-900/30 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-amber-400 to-rose-500 w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                    <svg class="w-6 h-6 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-200 to-amber-200 uppercase">KEPLER'S SPACE LAB</h1>
+                    <p class="text-xs text-blue-400/80 tracking-widest uppercase mono">Interactive Planetary Physics Platform</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full text-slate-400 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Virtual Sandbox Active
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full flex-grow">
+        
+        <!-- Left Column: Interactive Simulation (7 Cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            <!-- Canvas Window -->
+            <div class="relative bg-slate-950/90 border border-blue-900/40 rounded-2xl p-4 shadow-2xl flex flex-col items-center">
+                
+                <!-- Telemetry HUD -->
+                <div class="absolute top-6 left-6 right-6 flex justify-between pointer-events-none z-10">
+                    <div class="bg-slate-900/95 border border-slate-800/80 rounded-lg p-2 text-[11px] mono text-blue-400 shadow-md backdrop-blur-md">
+                        <div class="font-semibold text-slate-300 border-b border-slate-800 pb-1 mb-1 uppercase tracking-wider">SYSTEM STATUS</div>
+                        <div>Velocity: <span id="hud-vel" class="text-amber-400">---</span> km/s</div>
+                        <div>Distance: <span id="hud-dist" class="text-amber-400">---</span> AU</div>
+                        <div>True Anomaly: <span id="hud-angle" class="text-amber-400">---</span>°</div>
+                    </div>
+
+                    <div class="bg-slate-900/95 border border-slate-800/80 rounded-lg p-2 text-[11px] mono text-pink-400 shadow-md backdrop-blur-md text-right">
+                        <div class="font-semibold text-slate-300 border-b border-slate-800 pb-1 mb-1 uppercase tracking-wider">MATH CALCULATOR</div>
+                        <div>Period (T): <span id="hud-period" class="text-white">---</span> yr</div>
+                        <div>Distance (r): <span id="hud-r" class="text-white">---</span> AU</div>
+                        <div>Ratio T²/r³: <span id="hud-ratio" class="text-green-400">---</span></div>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <div class="w-full flex justify-center bg-slate-950 rounded-xl relative overflow-hidden border border-slate-900 shadow-inner">
+                    <canvas id="simulationCanvas" class="w-full max-w-[620px] aspect-video sm:aspect-square md:max-h-[500px]" width="600" height="600"></canvas>
+                    
+                    <!-- Overlay Notification Banner -->
+                    <div id="canvas-overlay" class="absolute bottom-4 left-4 right-4 bg-slate-900/90 border border-slate-800 rounded-lg px-4 py-2 text-xs flex justify-between items-center text-slate-300 transition-opacity duration-300">
+                        <span id="overlay-text">💡 Tip: Slide the eccentricity up to see the planet speed up at perihelion (near Sun).</span>
+                        <button onclick="dismissOverlay()" class="text-slate-500 hover:text-white ml-2">✕</button>
+                    </div>
+                </div>
+
+                <!-- Live Control Interface -->
+                <div class="w-full mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-900 pt-4">
+                    <!-- Left Interactive Group -->
+                    <div class="space-y-4">
+                        <!-- Eccentricity Control -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="font-medium text-slate-400 flex items-center gap-1">
+                                    Orbit Eccentricity <span class="text-[10px] mono text-blue-400">($e$)</span>
+                                </span>
+                                <span id="ecc-val" class="mono text-blue-400 font-bold">0.40</span>
+                            </div>
+                            <input type="range" id="slider-ecc" min="0" max="0.85" step="0.01" value="0.40" 
+                                   class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                                <span>0.0 (Circular)</span>
+                                <span>0.85 (Highly Elliptic)</span>
+                            </div>
+                        </div>
+
+                        <!-- Semi-Major Axis Control -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="font-medium text-slate-400 flex items-center gap-1">
+                                    Semi-major Axis <span class="text-[10px] mono text-indigo-400">($a$)</span>
+                                </span>
+                                <span id="sma-val" class="mono text-indigo-400 font-bold">1.50 AU</span>
+                            </div>
+                            <input type="range" id="slider-sma" min="0.6" max="3.0" step="0.05" value="1.50" 
+                                   class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                                <span>0.6 AU (Inner Planet)</span>
+                                <span>3.0 AU (Outer Planet)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Controls / Presets -->
+                    <div class="flex flex-col justify-between gap-3">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 block mb-2">Preset Astronomical Profiles</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="setPreset('earth')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-800 px-2 py-1.5 rounded transition">Earth</button>
+                                <button onclick="setPreset('mars')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-800 px-2 py-1.5 rounded transition">Mars</button>
+                                <button onclick="setPreset('comet')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-800 px-2 py-1.5 rounded transition text-amber-400 font-semibold">Comet</button>
+                            </div>
+                        </div>
+
+                        <!-- Main Action Triggers -->
+                        <div class="grid grid-cols-2 gap-2 mt-auto">
+                            <button id="btn-play-pause" class="text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 transition text-white">
+                                <svg id="svg-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                <svg id="svg-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Pause</span>
+                            </button>
+                            <button onclick="logCurrentOrbit()" class="text-xs font-semibold py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 transition text-white flex items-center justify-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>Log Data</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Backstory Feature -->
+            <div class="bg-slate-950/60 border border-slate-900 rounded-xl p-4 text-xs text-slate-400 leading-relaxed">
+                <span class="font-semibold text-slate-300">Historical Engineering Context:</span> Before Johannes Kepler, astronomers believed planetary paths had to be perfect circles. He spent over 10 years analyzing raw celestial coordinate data collected with the naked eye by Tycho Brahe. Lacking computer engines, Kepler solved these geometric anomalies manually, sparking the scientific revolution that enabled Isaac Newton's Gravity equations.
+            </div>
+        </div>
+
+        <!-- Right Column: Learning Sandbox, Explanations & Missions (5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Gamified Interactive Challenges Panel -->
+            <div class="bg-gradient-to-br from-slate-950 to-slate-900 border border-indigo-900/40 rounded-2xl p-5 shadow-xl">
+                <div class="flex items-center gap-2 mb-3.5">
+                    <span class="p-1 rounded bg-indigo-500/10 text-indigo-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </span>
+                    <h2 class="text-sm font-bold tracking-widest text-slate-200 uppercase">Interactive Flight Missions</h2>
+                </div>
+
+                <div class="space-y-2.5">
+                    <!-- Mission 1 -->
+                    <div id="mission-1" class="border border-slate-800/80 bg-slate-950/50 rounded-xl p-3 flex justify-between items-center transition duration-300">
+                        <div>
+                            <h4 class="text-xs font-semibold text-slate-200">Mission 1: Achieve circular geometry</h4>
+                            <p class="text-[10px] text-slate-500">Tune the Orbit Eccentricity until the orbit is a perfect circle.</p>
+                        </div>
+                        <span id="m1-status" class="text-[10px] mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase">Incomplete</span>
+                    </div>
+
+                    <!-- Mission 2 -->
+                    <div id="mission-2" class="border border-slate-800/80 bg-slate-950/50 rounded-xl p-3 flex justify-between items-center transition duration-300">
+                        <div>
+                            <h4 class="text-xs font-semibold text-slate-200">Mission 2: Chart a fast cosmic whip</h4>
+                            <p class="text-[10px] text-slate-500">Tune the orbit for maximum stretch (eccentricity above 0.70).</p>
+                        </div>
+                        <span id="m2-status" class="text-[10px] mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase">Incomplete</span>
+                    </div>
+
+                    <!-- Mission 3 -->
+                    <div id="mission-3" class="border border-slate-800/80 bg-slate-950/50 rounded-xl p-3 flex justify-between items-center transition duration-300">
+                        <div>
+                            <h4 class="text-xs font-semibold text-slate-200">Mission 3: Keplerian Constant Alignment</h4>
+                            <p class="text-[10px] text-slate-500">Record at least three distinct planets into the Empirical Data log below.</p>
+                        </div>
+                        <span id="m3-status" class="text-[10px] mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase">0/3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kepler's Interactive Learning Tabs -->
+            <div class="bg-slate-950/90 border border-slate-900 rounded-2xl flex flex-col overflow-hidden shadow-xl">
+                <!-- Tab Controls -->
+                <div class="grid grid-cols-3 border-b border-slate-900 text-xs text-center font-semibold">
+                    <button id="tab-law1" onclick="switchTab(1)" class="py-3 text-blue-400 border-b-2 border-blue-500 bg-slate-900/30 transition">1st Law</button>
+                    <button id="tab-law2" onclick="switchTab(2)" class="py-3 text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">2nd Law</button>
+                    <button id="tab-law3" onclick="switchTab(3)" class="py-3 text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">3rd Law</button>
+                </div>
+
+                <!-- Tab Content Boxes -->
+                <div class="p-5 flex-grow min-h-[250px]">
+                    <!-- Law 1 Content -->
+                    <div id="content-law1" class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-blue-400 tracking-wider uppercase">The Law of Orbits</h3>
+                            <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20">Sun at F1</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            "The orbit of a planet is an ellipse with the Sun at one of the foci."
+                        </p>
+                        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-3 text-xs leading-relaxed space-y-2">
+                            <div>
+                                <strong class="text-slate-200 block mb-0.5">Explore This Visually:</strong>
+                                Tick the auxiliary tools to reveal the geometry of the ellipse:
+                            </div>
+                            <div class="flex flex-wrap gap-4 mt-2">
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="checkbox" id="chk-show-foci" checked class="rounded border-slate-800 text-blue-500 focus:ring-0 bg-slate-950">
+                                    <span class="text-[11px] text-slate-400">Show Foci (F₁, F₂)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="checkbox" id="chk-show-axes" class="rounded border-slate-800 text-blue-500 focus:ring-0 bg-slate-950">
+                                    <span class="text-[11px] text-slate-400">Show Semimajor Axis (a)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Law 2 Content -->
+                    <div id="content-law2" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-amber-400 tracking-wider uppercase">The Law of Areas</h3>
+                            <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">Equal Time, Equal Area</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            "The line joining the planet and the Sun sweeps equal areas in equal intervals of time."
+                        </p>
+                        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-3.5 space-y-3">
+                            <p class="text-[11px] text-slate-300 leading-normal">
+                                Click the trigger button below to construct equal-time orbital sweeps. Notice how the visual slices at perihelion (near focus) are narrow and long, holding the exact same area as those far away (aphelion) which are wide and short!
+                            </p>
+                            <button onclick="triggerAreaSweeps()" class="w-full text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 font-bold py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
+                                <span id="sweep-btn-text">Simulate Equal-Area Sweeps</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Law 3 Content -->
+                    <div id="content-law3" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-emerald-400 tracking-wider uppercase">The Law of Periods</h3>
+                            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">T² ∝ r³</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            "The square of its period of revolution around the Sun (T²) is directly proportional to the cube of the mean distance of a planet from the Sun (r³)."
+                        </p>
+                        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-3 text-xs leading-normal space-y-2">
+                            <p class="text-slate-300 text-[11px]">
+                                This mathematically links planetary speed directly to how far it orbits from the parent star:
+                            </p>
+                            <div class="bg-slate-950 p-2.5 rounded text-center text-sm font-semibold text-slate-100 border border-slate-800 mono">
+                                T² / r³ = Constant (K) = 1.00
+                            </div>
+                            <p class="text-[10px] text-slate-400">
+                                Verify this absolute constraint by running planets with different radii, clicking the "Log Data" button to record their coordinates below, and looking at the resulting K ratio.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Panel: Empirical Data Log Table -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 pb-12 w-full">
+        <div class="bg-slate-950/80 border border-slate-900 rounded-2xl p-5 shadow-xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                <div>
+                    <h2 class="text-sm font-bold tracking-widest text-slate-200 uppercase flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Empirical Mission Data Log
+                    </h2>
+                    <p class="text-[11px] text-slate-500">Collect empirical evidence inside your custom sandbox. Confirm Kepler's 3rd Law ratio (T²/r³ = K) with data points.</p>
+                </div>
+                <button onclick="clearDataLog()" class="text-xs text-slate-500 hover:text-red-400 transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    Clear Empirical Log
+                </button>
+            </div>
+
+            <!-- Desktop / Mobile Scrollable Data Log -->
+            <div class="overflow-x-auto rounded-xl border border-slate-900">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900/50 text-slate-400 text-[10px] uppercase tracking-wider border-b border-slate-900 mono">
+                            <th class="py-3 px-4">Orbit ID</th>
+                            <th class="py-3 px-4">Distance (r in AU)</th>
+                            <th class="py-3 px-4">Period (T in Yr)</th>
+                            <th class="py-3 px-4">Distance Cubed (r³)</th>
+                            <th class="py-3 px-4">Period Squared (T²)</th>
+                            <th class="py-3 px-4 text-emerald-400">Kepler's Ratio (T²/r³)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body" class="text-xs text-slate-300 divide-y divide-slate-900 mono">
+                        <!-- Instantiated dynamically -->
+                        <tr id="empty-log-row">
+                            <td colspan="6" class="py-8 text-center text-slate-500 text-xs italic">
+                                Your science log is empty. Try setting different orbit parameters above and click "Log Data" to record planetary anomalies.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 px-6 text-center text-xs text-slate-600">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>© 2026 Kepler's Space Lab. Built for curious young scientists and educators.</p>
+            <p>Mathematics: Classical Keplerian Integration</p>
+        </div>
+    </footer>
+
+    <script>
+        // Core Simulation Canvas Config
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Physics State Variables 
+        let a = 1.50;           // Semi-major axis (AU)
+        let e = 0.40;           // Eccentricity
+        let M = 0;              // Mean Anomaly (Radians)
+        let isRunning = true;
+        let showSweepActive = false;
+        let logCounter = 0;
+        let uniqueRadiiLogged = new Set();
+
+        // Control Sliders & Buttons
+        const sliderEcc = document.getElementById('slider-ecc');
+        const sliderSma = document.getElementById('slider-sma');
+        const eccValDisplay = document.getElementById('ecc-val');
+        const smaValDisplay = document.getElementById('sma-val');
+        const btnPlayPause = document.getElementById('btn-play-pause');
+        const svgPlay = document.getElementById('svg-play');
+        const svgPause = document.getElementById('svg-pause');
+
+        // HUD Elements
+        const hudVel = document.getElementById('hud-vel');
+        const hudDist = document.getElementById('hud-dist');
+        const hudAngle = document.getElementById('hud-angle');
+        const hudPeriod = document.getElementById('hud-period');
+        const hudR = document.getElementById('hud-r');
+        const hudRatio = document.getElementById('hud-ratio');
+
+        // Auxiliary Geometric Options
+        const chkShowFoci = document.getElementById('chk-show-foci');
+        const chkShowAxes = document.getElementById('chk-show-axes');
+
+        // Event Handling Integration
+        sliderEcc.addEventListener('input', (event) => {
+            e = parseFloat(event.target.value);
+            eccValDisplay.innerText = e.toFixed(2);
+            checkMissions();
+        });
+
+        sliderSma.addEventListener('input', (event) => {
+            a = parseFloat(event.target.value);
+            smaValDisplay.innerText = a.toFixed(2) + " AU";
+            checkMissions();
+        });
+
+        btnPlayPause.addEventListener('click', () => {
+            isRunning = !isRunning;
+            if(isRunning) {
+                svgPlay.classList.add('hidden');
+                svgPause.classList.remove('hidden');
+                btnPlayPause.querySelector('span').innerText = "Pause";
+            } else {
+                svgPlay.classList.remove('hidden');
+                svgPause.classList.add('hidden');
+                btnPlayPause.querySelector('span').innerText = "Play";
+            }
+        });
+
+        function setPreset(type) {
+            if (type === 'earth') {
+                sliderEcc.value = 0.02;
+                sliderSma.value = 1.00;
+            } else if (type === 'mars') {
+                sliderEcc.value = 0.09;
+                sliderSma.value = 1.52;
+            } else if (type === 'comet') {
+                sliderEcc.value = 0.82;
+                sliderSma.value = 2.20;
+                // Educational guidance update
+                document.getElementById('overlay-text').innerText = "☄️ Comet Mode active! Watch how the speed rockets near the Sun and crawls in deep space.";
+            }
+            sliderEcc.dispatchEvent(new Event('input'));
+            sliderSma.dispatchEvent(new Event('input'));
+        }
+
+        function dismissOverlay() {
+            document.getElementById('canvas-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('canvas-overlay').remove(), 300);
+        }
+
+        function switchTab(lawIdx) {
+            for(let i=1; i<=3; i++) {
+                const tab = document.getElementById(`tab-law${i}`);
+                const content = document.getElementById(`content-law${i}`);
+                if(i === lawIdx) {
+                    tab.classList.add('text-blue-400', 'border-blue-500');
+                    tab.classList.remove('text-slate-400', 'border-transparent');
+                    content.classList.remove('hidden');
+                } else {
+                    tab.classList.remove('text-blue-400', 'border-blue-500');
+                    tab.classList.add('text-slate-400', 'border-transparent');
+                    content.classList.add('hidden');
+                }
+            }
+        }
+
+        // Toggles Equal Area visual slices display on the canvas
+        function triggerAreaSweeps() {
+            showSweepActive = !showSweepActive;
+            const btnText = document.getElementById('sweep-btn-text');
+            if (showSweepActive) {
+                btnText.innerText = "Hide Equal-Area Sweeps";
+                document.getElementById('overlay-text').innerText = "📐 Equal Areas active! Notice how sectors near the perihelion are short and wide while aphelion sectors are long and skinny.";
+            } else {
+                btnText.innerText = "Simulate Equal-Area Sweeps";
+            }
+            switchTab(2);
+        }
+
+        // Gamified Validation Check Engine
+        function checkMissions() {
+            // Mission 1: Circularity
+            const m1Status = document.getElementById('m1-status');
+            if (e <= 0.03) {
+                m1Status.innerText = "PASSED";
+                m1Status.className = "text-[10px] mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase";
+                document.getElementById('mission-1').classList.add('border-emerald-500/30');
+            } else {
+                m1Status.innerText = "Incomplete";
+                m1Status.className = "text-[10px] mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase";
+                document.getElementById('mission-1').classList.remove('border-emerald-500/30');
+            }
+
+            // Mission 2: Extreme Ellipse
+            const m2Status = document.getElementById('m2-status');
+            if (e >= 0.70) {
+                m2Status.innerText = "PASSED";
+                m2Status.className = "text-[10px] mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase";
+                document.getElementById('mission-2').classList.add('border-emerald-500/30');
+            } else {
+                m2Status.innerText = "Incomplete";
+                m2Status.className = "text-[10px] mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase";
+                document.getElementById('mission-2').classList.remove('border-emerald-500/30');
+            }
+        }
+
+        // Kepler's solver: Solves E - e * sin(E) = M using Newton-Raphson method
+        function solveKepler(meanAnomaly, ecc) {
+            let eccAnom = meanAnomaly;
+            for (let i = 0; i < 15; i++) {
+                eccAnom = eccAnom - (eccAnom - ecc * Math.sin(eccAnom) - meanAnomaly) / (1 - ecc * Math.cos(eccAnom));
+            }
+            return eccAnom;
+        }
+
+        // Data Capture Matrix 
+        function logCurrentOrbit() {
+            logCounter++;
+            const T = Math.sqrt(Math.pow(a, 3)); // Kepler's 3rd Law T = a^(1.5)
+            const r3 = Math.pow(a, 3);
+            const t2 = Math.pow(T, 2);
+            const ratio = t2 / r3;
+
+            uniqueRadiiLogged.add(a.toFixed(2));
+            
+            // Manage dynamic mission logging count
+            const m3Status = document.getElementById('m3-status');
+            const count = Math.min(3, uniqueRadiiLogged.size);
+            
+            if(count >= 3) {
+                m3Status.innerText = "PASSED";
+                m3Status.className = "text-[10px] mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase";
+                document.getElementById('mission-3').classList.add('border-emerald-500/30');
+            } else {
+                m3Status.innerText = `${count}/3`;
+            }
+
+            // Remove empty log message if present
+            const emptyRow = document.getElementById('empty-log-row');
+            if (emptyRow) emptyRow.remove();
+
+            // Populate table row
+            const logBody = document.getElementById('log-body');
+            const row = document.createElement('tr');
+            row.className = "border-b border-slate-900 hover:bg-slate-900/45 transition duration-150";
+            row.innerHTML = `
+                <td class="py-3 px-4 font-semibold text-blue-400">#${logCounter} Space Probe</td>
+                <td class="py-3 px-4">${a.toFixed(2)} AU</td>
+                <td class="py-3 px-4">${T.toFixed(3)} yr</td>
+                <td class="py-3 px-4">${r3.toFixed(3)}</td>
+                <td class="py-3 px-4">${t2.toFixed(3)}</td>
+                <td class="py-3 px-4 font-bold text-emerald-400">${ratio.toFixed(4)}</td>
+            `;
+            logBody.appendChild(row);
+        }
+
+        function clearDataLog() {
+            const logBody = document.getElementById('log-body');
+            logBody.innerHTML = `
+                <tr id="empty-log-row">
+                    <td colspan="6" class="py-8 text-center text-slate-500 text-xs italic">
+                        Your science log is empty. Try setting different orbit parameters above and click "Log Data" to record planetary anomalies.
+                    </td>
+                </tr>
+            `;
+            logCounter = 0;
+            uniqueRadiiLogged.clear();
+            const m3Status = document.getElementById('m3-status');
+            m3Status.innerText = "0/3";
+            m3Status.className = "text-[10px] mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase";
+            document.getElementById('mission-3').classList.remove('border-emerald-500/30');
+        }
+
+        // Standard simulation game frame loop
+        function tick() {
+            if (isRunning) {
+                // Period T in units where T = a^(1.5)
+                const T = Math.sqrt(Math.pow(a, 3));
+                // Angular mean motion n = 2pi / T. dt scaled for visual elegance.
+                const dt = 0.015 / T; 
+                M = (M + dt) % (2 * Math.PI);
+            }
+
+            // Responsive scale computations
+            const width = canvas.width;
+            const height = canvas.height;
+            const cx = width / 2;
+            const cy = height / 2;
+            
+            // Fits up to 3.0 AU safely with margins
+            const scale = Math.min(width, height) / 7.2;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw Background Stars Effect (Fine Grid)
+            ctx.strokeStyle = "rgba(30, 41, 59, 0.2)";
+            ctx.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x < width; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+            }
+            for (let y = 0; y < height; y += gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+            }
+
+            // Center / Focus offsets
+            // Sun is positioned at Focus 1: (cx + a * e * scale, cy)
+            const focusOffset = a * e * scale;
+            const sunX = cx + focusOffset;
+            const sunY = cy;
+            const f2X = cx - focusOffset;
+            const f2Y = cy;
+
+            // Compute b: Semi-minor axis (b = a * sqrt(1 - e^2))
+            const b = a * Math.sqrt(1 - e * e);
+
+            // Kepler-2 Equal Area Sweeps Demonstration Slices
+            if (showSweepActive) {
+                // Draw 4 equal-time slices (sectors) corresponding to equal intervals of Mean Anomaly (M)
+                // Let's sweep an angle delta_M = 0.35 rad (equal time block) at different starting M locations
+                const sectorStarts = [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2];
+                const deltaM = 0.45;
+                ctx.fillStyle = "rgba(245, 158, 11, 0.15)";
+                ctx.strokeStyle = "rgba(245, 158, 11, 0.4)";
+                ctx.lineWidth = 1.5;
+
+                sectorStarts.forEach((mStart) => {
+                    const E_start = solveKepler(mStart, e);
+                    const E_end = solveKepler(mStart + deltaM, e);
+
+                    ctx.beginPath();
+                    ctx.moveTo(sunX, sunY);
+
+                    // Step through arc points smoothly
+                    const arcPoints = 20;
+                    for (let step = 0; step <= arcPoints; step++) {
+                        const E_step = E_start + (E_end - E_start) * (step / arcPoints);
+                        const px = cx + a * Math.cos(E_step) * scale;
+                        const py = cy + b * Math.sin(E_step) * scale;
+                        ctx.lineTo(px, py);
+                    }
+                    ctx.lineTo(sunX, sunY);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                });
+            }
+
+            // Draw Orbit Ellipse path
+            ctx.strokeStyle = "rgba(59, 130, 246, 0.45)";
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([0]);
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, a * scale, b * scale, 0, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Draw Semimajor Axis (a) helper lines
+            if (chkShowAxes.checked) {
+                ctx.strokeStyle = "rgba(99, 102, 241, 0.6)";
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+                // Major axis line
+                ctx.beginPath();
+                ctx.moveTo(cx - a * scale, cy);
+                ctx.lineTo(cx + a * scale, cy);
+                ctx.stroke();
+
+                // Labeled bracket for Semi-major Axis (a)
+                ctx.fillStyle = "rgba(99, 102, 241, 0.85)";
+                ctx.font = "10px 'Space Mono', monospace";
+                ctx.fillText("Semi-major Axis (a)", cx + (a * scale) / 3, cy - 8);
+            }
+
+            // Draw Foci helpers
+            if (chkShowFoci.checked) {
+                // Focus 2 (Empty focal anomaly point)
+                ctx.fillStyle = "rgba(239, 68, 68, 0.7)";
+                ctx.beginPath();
+                ctx.arc(f2X, f2Y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+
+                ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+                ctx.font = "9px 'Space Mono', monospace";
+                ctx.fillText("Foci (F₂)", f2X - 20, f2Y - 10);
+            }
+
+            // Draw Glowing Sun (Focus 1)
+            const sunGlow = ctx.createRadialGradient(sunX, sunY, 3, sunX, sunY, 18);
+            sunGlow.addColorStop(0, "#fffbeb");
+            sunGlow.addColorStop(0.2, "#fde047");
+            sunGlow.addColorStop(0.6, "#f59e0b");
+            sunGlow.addColorStop(1, "transparent");
+
+            ctx.fillStyle = sunGlow;
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 20, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Tiny core circle for Sun
+            ctx.fillStyle = "#fff";
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Compute current planet position
+            const E_curr = solveKepler(M, e);
+            const planetX = cx + a * Math.cos(E_curr) * scale;
+            const planetY = cy + b * Math.sin(E_curr) * scale;
+
+            // Compute dynamic distance (r) from Sun Focus 1
+            const dx = planetX - sunX;
+            const dy = planetY - sunY;
+            const distPixels = Math.sqrt(dx * dx + dy * dy);
+            const distAU = distPixels / scale;
+
+            // Draw line from Sun to Planet
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(sunX, sunY);
+            ctx.lineTo(planetX, planetY);
+            ctx.stroke();
+
+            // Draw Planet
+            ctx.setLineDash([]);
+            // Dynamic planet atmosphere glow based on proximity to Sun
+            const planetGlow = ctx.createRadialGradient(planetX, planetY, 1, planetX, planetY, 10);
+            planetGlow.addColorStop(0, "#93c5fd");
+            planetGlow.addColorStop(0.3, "#3b82f6");
+            planetGlow.addColorStop(1, "transparent");
+
+            ctx.fillStyle = planetGlow;
+            ctx.beginPath();
+            ctx.arc(planetX, planetY, 12, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Planet Core
+            ctx.fillStyle = "#38bdf8";
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(planetX, planetY, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // Calculate exact Physical Velocity from Vis-Viva Equation: v = sqrt(G*M*(2/r - 1/a))
+            // Standardized so Earth (a=1, e=0) orbits at approx 29.78 km/s
+            const G_M = 886.82; // Normalizer constant
+            const velocity = Math.sqrt(G_M * (2 / distAU - 1 / a));
+
+            // Calculate True Anomaly angle (theta) starting from perihelion (closest approach, right side)
+            let trueAnomalyRad = Math.atan2(b * Math.sin(E_curr), a * (Math.cos(E_curr) - e));
+            // Standardize 0-360 degrees rotation clockwise match
+            let angleDeg = Math.round((trueAnomalyRad * 180 / Math.PI + 360) % 360);
+
+            // Update Live Telemetry Displays
+            hudVel.innerText = velocity.toFixed(2);
+            hudDist.innerText = distAU.toFixed(2);
+            hudAngle.innerText = angleDeg;
+
+            const T_val = Math.sqrt(Math.pow(a, 3));
+            hudPeriod.innerText = T_val.toFixed(2);
+            hudR.innerText = distAU.toFixed(2);
+            hudRatio.innerText = (Math.pow(T_val, 2) / Math.pow(a, 3)).toFixed(2);
+
+            requestAnimationFrame(tick);
+        }
+
+        // Initialize frame loop sequence on page load
+        window.onload = function() {
+            checkMissions();
+            tick();
+        }
+    </script>
+</body>
+</html>
