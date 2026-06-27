@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latent Heat Simulation Lab</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for premium look -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- Header -->
+  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-gradient-to-tr from-sky-600 to-indigo-600 rounded-xl shadow-md text-white">
+          <!-- SVG Icon for Heat/Phase change -->
+          <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            Latent Heat &amp; State Transitions Lab
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">Textbook Section 7.8.4 - Thermal Properties of Matter</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-xs font-semibold px-3 py-1 bg-slate-800/80 rounded-full border border-slate-700/60 text-sky-400">
+          ⚡ 30s sim = 1s real-time
+        </span>
+        <span class="text-xs font-semibold px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+          ✓ Active Physics Engine
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT SIDE: Simulation Visuals and Controls (5 Columns) -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+
+      <!-- Molecular Chamber -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col relative overflow-hidden h-[420px]">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            Microscopic Chamber
+          </span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-sky-400 font-semibold" id="chamber-state-tag">
+            State: SOLID
+          </span>
+        </div>
+
+        <!-- Beaker Rendering Container -->
+        <div class="flex-1 relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800/80 flex items-center justify-center">
+          <canvas id="molecule-canvas" class="w-full h-full block"></canvas>
+          
+          <!-- Overlay Info HUD -->
+          <div class="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
+            <div class="bg-slate-900/90 backdrop-blur px-2.5 py-1 rounded-md text-[11px] font-mono border border-slate-800 text-slate-300">
+              Substance: <span id="hud-name" class="text-sky-400 font-bold">Water</span>
+            </div>
+            <div class="bg-slate-900/90 backdrop-blur px-2.5 py-1 rounded-md text-[11px] font-mono border border-slate-800 text-slate-300">
+              Mass: <span id="hud-mass" class="text-yellow-400 font-bold">0.20 kg</span>
+            </div>
+          </div>
+
+          <!-- Phase Progress Bar Overlay (Only active during flat plateaus) -->
+          <div id="phase-progress-overlay" class="absolute bottom-4 left-4 right-4 bg-slate-900/95 border border-slate-800 p-3 rounded-xl backdrop-blur shadow-2xl hidden">
+            <div class="flex justify-between text-xs font-mono text-slate-300 mb-1.5">
+              <span class="font-semibold text-slate-200" id="phase-progress-label">🔄 Melting Transition:</span>
+              <span id="phase-progress-percent" class="font-bold text-sky-400">0%</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700/40">
+              <div id="phase-progress-bar" class="bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 h-full w-0 transition-all duration-100"></div>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+              Energy is breaking intermolecular forces; temperature remains constant.
+            </p>
+          </div>
+        </div>
+
+        <!-- Live Metrics Row -->
+        <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <p class="text-[10px] text-slate-400 uppercase font-semibold">Temperature</p>
+            <p id="metric-temp" class="text-sm font-bold text-sky-400 font-mono mt-0.5">-20.0°C</p>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <p class="text-[10px] text-slate-400 uppercase font-semibold">Heat Input Q</p>
+            <p id="metric-heat" class="text-sm font-bold text-emerald-400 font-mono mt-0.5">0.0 kJ</p>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <p class="text-[10px] text-slate-400 uppercase font-semibold">Specific Heat</p>
+            <p id="metric-cp" class="text-sm font-bold text-indigo-400 font-mono mt-0.5">2100 J/kg·K</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Rig -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+        <h3 class="text-sm font-bold text-slate-300 border-b border-slate-800 pb-2.5 flex items-center gap-2">
+          <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+          </svg>
+          Chamber Control Rig
+        </h3>
+
+        <!-- Play, Pause, Reset Controls -->
+        <div class="flex gap-2.5">
+          <button id="btn-play-pause" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition duration-200 shadow-md shadow-emerald-900/30">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+            </svg>
+            Heat / Run
+          </button>
+          <button id="btn-reset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 border border-slate-700 transition duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 4.79M9 9h3.5" stroke-dasharray="30" stroke-dashoffset="0"></path>
+            </svg>
+            Reset
+          </button>
+        </div>
+
+        <!-- Toggle Direction of Heat Transfer -->
+        <div class="flex rounded-xl bg-slate-950 p-1 border border-slate-800/80">
+          <button id="btn-heat-add" class="flex-1 text-xs py-2 rounded-lg font-bold transition duration-200 bg-red-600 text-white shadow shadow-red-950/40">
+            🔥 Heat (Burner ON)
+          </button>
+          <button id="btn-heat-remove" class="flex-1 text-xs py-2 rounded-lg font-bold transition duration-200 text-slate-400 hover:text-slate-200">
+            ❄️ Cool (Freezer ON)
+          </button>
+        </div>
+
+        <!-- Sliders and Inputs -->
+        <div class="space-y-4">
+          <!-- Substance Selection -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Selected Substance</label>
+            <select id="select-substance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 focus:outline-none focus:border-sky-500 font-medium transition duration-200">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Mass Slider -->
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Substance Mass (<span class="italic">m</span>)</span>
+              <span id="label-mass" class="text-yellow-400 font-mono font-bold">0.20 kg</span>
+            </div>
+            <input type="range" id="input-mass" min="0.05" max="1.0" step="0.05" value="0.2" class="w-full accent-sky-500 bg-slate-950 rounded-lg appearance-none h-1.5">
+          </div>
+
+          <!-- Heater Power Slider -->
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Heater Power (<span class="italic">P</span>)</span>
+              <span id="label-power" class="text-emerald-400 font-mono font-bold">1500 W</span>
+            </div>
+            <input type="range" id="input-power" min="200" max="5000" step="100" value="1500" class="w-full accent-sky-500 bg-slate-950 rounded-lg appearance-none h-1.5">
+          </div>
+
+          <!-- Initial Temp Slider -->
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Initial Temperature (<span class="italic">T<sub>init</sub></span>)</span>
+              <span id="label-init-temp" class="text-rose-400 font-mono font-bold">-20°C</span>
+            </div>
+            <input type="range" id="input-init-temp" min="-150" max="250" step="5" value="-20" class="w-full accent-sky-500 bg-slate-950 rounded-lg appearance-none h-1.5">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDE: Plotting & Solver Modules (7 Columns) -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+
+      <!-- Interactive Curve Chart Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h12a2 2 0 002-2V7a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Interactive Heating Curve: Temperature vs. Heat Energy (Q)
+          </h3>
+          <span class="text-[10px] font-semibold text-slate-400 uppercase bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">
+            Realtime Plot
+          </span>
+        </div>
+
+        <!-- Graph Plot Box -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 h-[240px] relative overflow-hidden flex flex-col justify-end">
+          <div id="grid-lines-bg" class="absolute inset-0 flex flex-col justify-between p-8 pointer-events-none opacity-20">
+            <div class="border-b border-dashed border-slate-600 w-full"></div>
+            <div class="border-b border-dashed border-slate-600 w-full"></div>
+            <div class="border-b border-dashed border-slate-600 w-full"></div>
+            <div class="border-b border-dashed border-slate-600 w-full"></div>
+          </div>
+
+          <!-- Dynamic SVG Chart Surface -->
+          <svg id="svg-graph" class="w-full h-full overflow-visible" viewBox="0 0 500 200" preserveAspectRatio="none">
+            <!-- X and Y Baseline Axes -->
+            <line x1="45" y1="180" x2="500" y2="180" stroke="#475569" stroke-width="2" />
+            <line x1="45" y1="10" x2="45" y2="180" stroke="#475569" stroke-width="2" />
+            
+            <!-- Dynamic Path Plot goes here -->
+            <path id="graph-curve-line" d="" fill="none" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round" />
+            
+            <!-- Dynamic Live Tracker Dot -->
+            <circle id="graph-tracker-dot" cx="-100" cy="-100" r="6" fill="#ffffff" stroke="#ef4444" stroke-width="2" />
+            
+            <!-- Axes Titles -->
+            <text x="495" y="195" fill="#94a3b8" font-size="9" text-anchor="end" font-weight="600">Heat Added Q (kJ)</text>
+            <text x="15" y="20" fill="#94a3b8" font-size="9" transform="rotate(-90 15 20)" text-anchor="end" font-weight="600">Temp T (°C)</text>
+            
+            <!-- Threshold Markers -->
+            <text id="graph-label-mp" x="40" y="130" fill="#cbd5e1" font-size="8" text-anchor="end">MP</text>
+            <text id="graph-label-bp" x="40" y="55" fill="#cbd5e1" font-size="8" text-anchor="end">BP</text>
+          </svg>
+
+          <!-- Graph State Legend overlay -->
+          <div class="absolute top-2.5 right-2.5 bg-slate-900/95 border border-slate-800 p-2.5 rounded-lg flex flex-col gap-1 text-[9px] font-mono leading-none shadow-md">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1.5 rounded-full bg-blue-300"></span>Solid Stage</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1.5 rounded-full bg-orange-400"></span>Melting (Lf Phase)</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1.5 rounded-full bg-cyan-500"></span>Liquid Stage</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1.5 rounded-full bg-rose-500"></span>Boiling (Lv Phase)</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1.5 rounded-full bg-purple-400"></span>Vapor Stage</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DUAL-ENGINE MATHEMATICAL SOLVERS -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+        
+        <!-- Solver Tab Selector -->
+        <div class="border-b border-slate-800 flex bg-slate-950/40">
+          <button id="tab-solver-basic" class="flex-1 py-3 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 border-sky-500 text-sky-400 bg-slate-900/40 transition duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            1. Latent Phase Solver (Q = mL)
+          </button>
+          <button id="tab-solver-mixer" class="flex-1 py-3 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+            2. Calorimeter Mixer (Example 7.16)
+          </button>
+        </div>
+
+        <!-- TAB CONTENT 1: Latent Phase Solver (Q = mL) -->
+        <div id="content-solver-basic" class="p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5">
+            <h4 class="text-sm font-bold text-slate-200">
+              Solve for state transitions: <span class="text-sky-400 font-mono font-bold">Q = m · L</span>
+            </h4>
+            
+            <!-- Solver Target Selector -->
+            <div class="flex items-center gap-1 text-xs bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <span class="text-slate-400 px-1.5 font-medium">Solve for:</span>
+              <button id="btn-target-q" class="px-2.5 py-1 rounded-lg font-bold bg-sky-600 text-white transition">Q</button>
+              <button id="btn-target-m" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-slate-200 transition">m</button>
+              <button id="btn-target-l" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-slate-200 transition">L</button>
+            </div>
+          </div>
+
+          <!-- Solver Inputs Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1.5">Mass of Substance (m in kg)</label>
+              <input type="number" id="basic-solve-m" value="0.5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 font-mono focus:outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1.5">Latent Heat (L in J/kg)</label>
+              <input type="number" id="basic-solve-l" value="333000" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 font-mono focus:outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1.5">Heat Absorbed (Q in J)</label>
+              <input type="number" id="basic-solve-q" value="166500" disabled class="w-full bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-500 font-mono focus:outline-none cursor-not-allowed">
+            </div>
+          </div>
+
+          <!-- Formula Solution Details Box -->
+          <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 font-serif">
+            <h5 class="text-xs font-sans font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Step-By-Step Solution Breakdown
+            </h5>
+            <div id="basic-solver-explanation" class="text-sm text-slate-300 space-y-2 leading-relaxed">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 2: Calorimeter Mixer Solver (Example 7.16) -->
+        <div id="content-solver-mixer" class="p-5 space-y-4 hidden">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div>
+              <h4 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+                Ice-Water Calorimeter Mixer Solver
+              </h4>
+              <p class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                System energy balance: ΣQ = Q<sub>lost by water</sub> + Q<sub>melt ice</sub> + Q<sub>raise melted ice</sub> = 0
+              </p>
+            </div>
+            <button id="btn-load-textbook" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 font-bold px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition duration-200">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              </svg>
+              Load Example 7.16 Params
+            </button>
+          </div>
+
+          <!-- Mixer Solver Inputs Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Ice Mass (m<sub>ice</sub> in kg)</label>
+              <input type="number" id="mixer-m-ice" value="0.1" step="0.01" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Water Mass (m<sub>water</sub> in kg)</label>
+              <input type="number" id="mixer-m-water" value="0.32" step="0.01" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Warm Water Temp (T<sub>water</sub> in °C)</label>
+              <input type="number" id="mixer-t-water" value="35" step="0.5" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Ice Temp (T<sub>ice</sub> in °C)</label>
+              <input type="number" id="mixer-t-ice" value="0" disabled class="w-full bg-slate-950/60 border border-slate-800 rounded-lg p-2 text-xs text-slate-500 font-mono cursor-not-allowed">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Equilibrium Temp (T<sub>F</sub> in °C)</label>
+              <input type="number" id="mixer-t-final" value="7.8" step="0.1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Water Sp. Heat (s<sub>water</sub> J/kg·K)</label>
+              <input type="number" id="mixer-s-water" value="4186" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-sky-500">
+            </div>
+          </div>
+
+          <!-- Mathematical Solved Output -->
+          <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 font-serif">
+            <h5 class="text-xs font-sans font-bold text-slate-400 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Calculated Heat Balance Trace
+            </h5>
+
+            <div class="space-y-3.5 text-xs sm:text-sm">
+              <div class="border-b border-slate-900 pb-2.5">
+                <p class="text-slate-400 font-sans text-[11px] uppercase font-bold tracking-wider mb-1">Step 1: Heat Released By Cooling Water</p>
+                <div class="bg-slate-900/50 p-2 rounded border border-slate-800/50 font-mono text-[11px] text-sky-300">
+                  Q<sub>lost</sub> = m<sub>water</sub> · s<sub>water</sub> · (T<sub>F</sub> - T<sub>water</sub>)<br>
+                  Q<sub>lost</sub> = <span id="trace-m-water">0.32</span> kg × <span id="trace-s-water">4186</span> J/kg·K × (<span id="trace-tf">7.8</span> - <span id="trace-tw">35</span>)°C = 
+                  <strong class="text-rose-400 font-bold" id="trace-qlost">-36434.9 J</strong>
+                </div>
+              </div>
+
+              <div class="border-b border-slate-900 pb-2.5">
+                <p class="text-slate-400 font-sans text-[11px] uppercase font-bold tracking-wider mb-1">Step 2: Heat Needed To Warm Up Melted Ice Water</p>
+                <div class="bg-slate-900/50 p-2 rounded border border-slate-800/50 font-mono text-[11px] text-sky-300">
+                  Q<sub>warm</sub> = m<sub>ice</sub> · s<sub>water</sub> · (T<sub>F</sub> - T<sub>ice</sub>)<br>
+                  Q<sub>warm</sub> = <span id="trace-m-ice">0.1</span> kg × <span id="trace-s-water-2">4186</span> J/kg·K × (<span id="trace-tf-2">7.8</span> - 0)°C = 
+                  <strong class="text-emerald-400 font-bold" id="trace-qwarm">3265.1 J</strong>
+                </div>
+              </div>
+
+              <div class="pt-1">
+                <p class="text-slate-400 font-sans text-[11px] uppercase font-bold tracking-wider mb-1">Step 3: Solve for Latent Heat of Fusion L<sub>f</sub></p>
+                <p class="text-slate-300 text-xs mb-2">
+                  Applying conservation of energy: Total Heat Gained = Total Heat Lost
+                </p>
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-sky-300 space-y-1.5">
+                  <div>m<sub>ice</sub> · L<sub>f</sub> + Q<sub>warm</sub> = |Q<sub>lost</sub>|</div>
+                  <div>L<sub>f</sub> = (|Q<sub>lost</sub>| - Q<sub>warm</sub>) / m<sub>ice</sub></div>
+                  <div>L<sub>f</sub> = (<span id="trace-abs-qlost">36434.9</span> - <span id="trace-qwarm-val">3265.1</span>) / <span id="trace-m-ice-val">0.1</span></div>
+                  <div class="text-sm text-yellow-400 font-bold pt-1.5 border-t border-slate-800 mt-1.5">
+                    Result: L<sub>f</sub> = <span id="trace-lf-result" class="bg-slate-950 px-2 py-0.5 rounded border border-slate-800/80">3.317 × 10<sup>5</sup> J/kg</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footnotes & Real-world Thermal Explanations -->
+  <footer class="bg-slate-900/50 border-t border-slate-800 p-6 mt-6">
+    <div class="max-w-7xl mx-auto space-y-4">
+      <h4 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Understanding Latent Heat Concepts
+      </h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-400">
+        <div class="space-y-2">
+          <p>
+            Whenever there is a <strong class="text-white">change in state</strong> of a substance, heat is either absorbed or given out but there is <strong class="text-white">no change in the temperature</strong> of the substance.
+          </p>
+          <p>
+            Latent heat of a substance is the quantity of heat required to change the state of unit mass of the substance without changing its temperature.
+          </p>
+          <p>
+            This fundamental thermodynamic relationship is represented as:
+            <span class="block text-center text-sky-400 font-mono text-xs my-2 bg-slate-950 p-2 rounded border border-slate-800">Q = mL</span>
+            Where <span class="text-white">L</span> is the latent heat constant of the substance (measured in J/kg).
+          </p>
+        </div>
+        <div class="space-y-2.5">
+          <p>
+            <strong class="text-white">Latent Heat of Fusion (L<sub>f</sub>):</strong> Energy needed to convert a unit mass of substance from solid to liquid state at its melting point.
+          </p>
+          <p>
+            <strong class="text-white">Latent Heat of Vaporization (L<sub>v</sub>):</strong> Energy needed to convert a unit mass of substance from liquid to gas state at its boiling point.
+          </p>
+          <div class="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg text-amber-300">
+            <span class="font-bold text-xs block mb-1">Why is L<sub>v</sub> much larger than L<sub>f</sub>?</span>
+            Completely separating molecules into vapor breaks all existing intermolecular bonds, requiring vastly more energy than simply shifting standard solid atomic lattice bonds.
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Simulation Control Logic Script -->
+  <script>
+    // --- DATABASE ---
+    const SUBSTANCES = {
+      water: {
+        name: "Water",
+        mp: 0,
+        bp: 100,
+        lf: 3.33e5,
+        lv: 22.6e5,
+        cSolid: 2100,
+        cLiquid: 4186,
+        cGas: 1996,
+        color: "#3b82f6",
+        solidColor: "#93c5fd",
+        gasColor: "#bfdbfe"
+      },
+      gold: {
+        name: "Gold",
+        mp: 1063,
+        bp: 2660,
+        lf: 0.645e5,
+        lv: 15.8e5,
+        cSolid: 129,
+        cLiquid: 150,
+        cGas: 158,
+        color: "#eab308",
+        solidColor: "#fef08a",
+        gasColor: "#fef9c3"
+      },
+      lead: {
+        name: "Lead",
+        mp: 328,
+        bp: 1744,
+        lf: 0.25e5,
+        lv: 8.67e5,
+        cSolid: 128,
+        cLiquid: 136,
+        cGas: 142,
+        color: "#6b7280",
+        solidColor: "#d1d5db",
+        gasColor: "#f3f4f6"
+      },
+      ethyl_alcohol: {
+        name: "Ethyl Alcohol",
+        mp: -114,
+        bp: 78,
+        lf: 1.0e5,
+        lv: 8.5e5,
+        cSolid: 970,
+        cLiquid: 2440,
+        cGas: 1700,
+        color: "#ec4899",
+        solidColor: "#fbcfe8",
+        gasColor: "#fce7f3"
+      },
+      mercury: {
+        name: "Mercury",
+        mp: -39,
+        bp: 357,
+        lf: 0.12e5,
+        lv: 2.7e5,
+        cSolid: 140,
+        cLiquid: 139,
+        cGas: 136,
+        color: "#a1a1aa",
+        solidColor: "#e4e4e7",
+        gasColor: "#f4f4f5"
+      },
+      nitrogen: {
+        name: "Nitrogen",
+        mp: -210,
+        bp: -196,
+        lf: 0.26e5,
+        lv: 2.0e5,
+        cSolid: 1600,
+        cLiquid: 2040,
+        cGas: 1040,
+        color: "#a7f3d0",
+        solidColor: "#ecfdf5",
+        gasColor: "#f0fdf4"
+      },
+      oxygen: {
+        name: "Oxygen",
+        mp: -219,
+        bp: -183,
+        lf: 0.14e5,
+        lv: 2.1e5,
+        cSolid: 1680,
+        cLiquid: 1700,
+        cGas: 918,
+        color: "#22d3ee",
+        solidColor: "#cffafe",
+        gasColor: "#ecfeff"
+      }
+    };
+
+    // --- State Variables ---
+    let activeKey = "water";
+    let mass = 0.2;
+    let heaterPower = 1500;
+    let initialTemp = -20;
+    let isHeating = true;
+    let isPlaying = false;
+
+    let currentTemp = -20;
+    let cumulativeHeat = 0; // J
+    let currentPhase = "SOLID"; // SOLID, MELTING, LIQUID, BOILING, GAS
+    let phaseProgress = 0; // 0 to 1
+
+    let history = []; // list of { heat: J, temp: °C, phase: string }
+    let particles = [];
+
+    // Solver 1 State
+    let basicSolverTarget = "q"; // q, m, l
+
+    // DOM References
+    const selectSubstance = document.getElementById("select-substance");
+    const inputMass = document.getElementById("input-mass");
+    const inputPower = document.getElementById("input-power");
+    const inputInitTemp = document.getElementById("input-init-temp");
+    
+    const labelMass = document.getElementById("label-mass");
+    const labelPower = document.getElementById("label-power");
+    const labelInitTemp = document.getElementById("label-init-temp");
+    
+    const btnPlayPause = document.getElementById("btn-play-pause");
+    const btnReset = document.getElementById("btn-reset");
+    const btnHeatAdd = document.getElementById("btn-heat-add");
+    const btnHeatRemove = document.getElementById("btn-heat-remove");
+
+    const hudName = document.getElementById("hud-name");
+    const hudMass = document.getElementById("hud-mass");
+    const metricTemp = document.getElementById("metric-temp");
+    const metricHeat = document.getElementById("metric-heat");
+    const metricCp = document.getElementById("metric-cp");
+    const chamberStateTag = document.getElementById("chamber-state-tag");
+
+    const phaseProgressOverlay = document.getElementById("phase-progress-overlay");
+    const phaseProgressLabel = document.getElementById("phase-progress-label");
+    const phaseProgressPercent = document.getElementById("phase-progress-percent");
+    const phaseProgressBar = document.getElementById("phase-progress-bar");
+
+    const canvas = document.getElementById("molecule-canvas");
+    const ctx = canvas.getContext("2d");
+
+    // Solver DOM
+    const tabSolverBasic = document.getElementById("tab-solver-basic");
+    const tabSolverMixer = document.getElementById("tab-solver-mixer");
+    const contentSolverBasic = document.getElementById("content-solver-basic");
+    const contentSolverMixer = document.getElementById("content-solver-mixer");
+
+    const btnTargetQ = document.getElementById("btn-target-q");
+    const btnTargetM = document.getElementById("btn-target-m");
+    const btnTargetL = document.getElementById("btn-target-l");
+
+    const basicSolveM = document.getElementById("basic-solve-m");
+    const basicSolveL = document.getElementById("basic-solve-l");
+    const basicSolveQ = document.getElementById("basic-solve-q");
+    const basicSolverExplanation = document.getElementById("basic-solver-explanation");
+
+    const btnLoadTextbook = document.getElementById("btn-load-textbook");
+
+    // --- Populators ---
+    function initUI() {
+      // Substance drop list
+      Object.keys(SUBSTANCES).forEach(key => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.innerText = `${SUBSTANCES[key].name} (MP: ${SUBSTANCES[key].mp}°C)`;
+        selectSubstance.appendChild(option);
+      });
+
+      // Resize canvas on start
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // Event handlers
+      selectSubstance.addEventListener("change", (e) => {
+        activeKey = e.target.value;
+        // Dynamically adjust initial temperature boundaries to make sense for extreme elements like Nitrogen/Oxygen
+        const sub = SUBSTANCES[activeKey];
+        inputInitTemp.min = sub.mp - 50;
+        inputInitTemp.max = sub.bp + 50;
+        inputInitTemp.value = sub.mp - 20;
+        initialTemp = parseInt(inputInitTemp.value);
+        labelInitTemp.innerText = `${initialTemp}°C`;
+        handleReset();
+      });
+
+      inputMass.addEventListener("input", (e) => {
+        mass = parseFloat(e.target.value);
+        labelMass.innerText = `${mass.toFixed(2)} kg`;
+        hudMass.innerText = `${mass.toFixed(2)} kg`;
+        handleReset();
+      });
+
+      inputPower.addEventListener("input", (e) => {
+        heaterPower = parseInt(e.target.value);
+        labelPower.innerText = `${heaterPower} W`;
+      });
+
+      inputInitTemp.addEventListener("input", (e) => {
+        initialTemp = parseInt(e.target.value);
+        labelInitTemp.innerText = `${initialTemp}°C`;
+        handleReset();
+      });
+
+      btnPlayPause.addEventListener("click", () => {
+        isPlaying = !isPlaying;
+        if (isPlaying) {
+          btnPlayPause.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg> Pause
+          `;
+          btnPlayPause.classList.replace("bg-emerald-600", "bg-amber-600");
+          btnPlayPause.classList.replace("hover:bg-emerald-500", "hover:bg-amber-500");
+        } else {
+          btnPlayPause.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+            </svg> Heat / Run
+          `;
+          btnPlayPause.classList.replace("bg-amber-600", "bg-emerald-600");
+          btnPlayPause.classList.replace("hover:bg-amber-500", "hover:bg-emerald-500");
+        }
+      });
+
+      btnReset.addEventListener("click", handleReset);
+
+      btnHeatAdd.addEventListener("click", () => {
+        isHeating = true;
+        btnHeatAdd.className = "flex-1 text-xs py-2 rounded-lg font-bold transition duration-200 bg-red-600 text-white shadow shadow-red-950/40";
+        btnHeatRemove.className = "flex-1 text-xs py-2 rounded-lg font-bold transition duration-200 text-slate-400 hover:text-slate-200";
+      });
+
+      btnHeatRemove.addEventListener("click", () => {
+        isHeating = false;
+        btnHeatRemove.className = "flex-1 text-xs py-2 rounded-lg font-bold transition duration-200 bg-blue-600 text-white shadow shadow-blue-950/40";
+        btnHeatAdd.className = "flex-1 text-xs py-2 rounded-lg font-bold transition duration-200 text-slate-400 hover:text-slate-200";
+      });
+
+      // Solvers
+      tabSolverBasic.addEventListener("click", () => toggleTabs(true));
+      tabSolverMixer.addEventListener("click", () => toggleTabs(false));
+
+      btnTargetQ.addEventListener("click", () => changeBasicSolveTarget("q"));
+      btnTargetM.addEventListener("click", () => changeBasicSolveTarget("m"));
+      btnTargetL.addEventListener("click", () => changeBasicSolveTarget("l"));
+
+      basicSolveM.addEventListener("input", runBasicSolver);
+      basicSolveL.addEventListener("input", runBasicSolver);
+      basicSolveQ.addEventListener("input", runBasicSolver);
+
+      // Mixer solver live updates
+      const mixerInputs = ["mixer-m-ice", "mixer-m-water", "mixer-t-water", "mixer-t-final", "mixer-s-water"];
+      mixerInputs.forEach(id => {
+        document.getElementById(id).addEventListener("input", runMixerSolver);
+      });
+
+      btnLoadTextbook.addEventListener("click", () => {
+        document.getElementById("mixer-m-ice").value = "0.1";
+        document.getElementById("mixer-m-water").value = "0.32";
+        document.getElementById("mixer-t-water").value = "35";
+        document.getElementById("mixer-t-final").value = "7.8";
+        document.getElementById("mixer-s-water").value = "4186";
+        runMixerSolver();
+      });
+
+      // Load initial substance presets
+      handleReset();
+      runBasicSolver();
+      runMixerSolver();
+    }
+
+    function toggleTabs(isBasic) {
+      if (isBasic) {
+        tabSolverBasic.className = "flex-1 py-3 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 border-sky-500 text-sky-400 bg-slate-900/40 transition duration-200";
+        tabSolverMixer.className = "flex-1 py-3 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition duration-200";
+        contentSolverBasic.classList.remove("hidden");
+        contentSolverMixer.classList.add("hidden");
+      } else {
+        tabSolverMixer.className = "flex-1 py-3 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 border-sky-500 text-sky-400 bg-slate-900/40 transition duration-200";
+        tabSolverBasic.className = "flex-1 py-3 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition duration-200";
+        contentSolverMixer.classList.remove("hidden");
+        contentSolverBasic.classList.add("hidden");
+      }
+    }
+
+    function resizeCanvas() {
+      const parent = canvas.parentElement;
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+      drawSimulation();
+    }
+
+    function handleReset() {
+      isPlaying = false;
+      btnPlayPause.innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+        </svg> Heat / Run
+      `;
+      btnPlayPause.className = "flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition duration-200 shadow-md shadow-emerald-900/30";
+      
+      currentTemp = initialTemp;
+      cumulativeHeat = 0;
+      phaseProgress = 0;
+
+      const sub = SUBSTANCES[activeKey];
+      currentPhase = getPhaseName(initialTemp, sub);
+      
+      history = [{ heat: 0, temp: initialTemp, phase: currentPhase }];
+      
+      initParticles(currentPhase);
+      updateHUD();
+      drawSimulation();
+      drawGraph();
+    }
+
+    function getPhaseName(temp, sub) {
+      if (temp < sub.mp) return "SOLID";
+      if (temp === sub.mp) return "MELTING";
+      if (temp < sub.bp) return "LIQUID";
+      if (temp === sub.bp) return "BOILING";
+      return "GAS";
+    }
+
+    function updateHUD() {
+      const sub = SUBSTANCES[activeKey];
+      hudName.innerText = sub.name;
+      hudMass.innerText = `${mass.toFixed(2)} kg`;
+      metricTemp.innerText = `${currentTemp.toFixed(1)}°C`;
+      metricHeat.innerText = `${(cumulativeHeat / 1000).toFixed(1)} kJ`;
+      
+      // Calculate active specific heat
+      let activeCp = sub.cLiquid;
+      if (currentPhase === "SOLID" || currentPhase === "MELTING") activeCp = sub.cSolid;
+      if (currentPhase === "GAS") activeCp = sub.cGas;
+      metricCp.innerText = `${activeCp} J/kg·K`;
+      
+      chamberStateTag.innerText = `State: ${currentPhase}`;
+
+      // Progress Overlay
+      if (currentPhase === "MELTING" || currentPhase === "BOILING") {
+        phaseProgressOverlay.classList.remove("hidden");
+        phaseProgressLabel.innerText = currentPhase === "MELTING" ? "🔄 Phase Change: Melting" : "🔄 Phase Change: Boiling";
+        phaseProgressPercent.innerText = `${(phaseProgress * 100).toFixed(0)}%`;
+        phaseProgressBar.style.width = `${phaseProgress * 100}%`;
+      } else {
+        phaseProgressOverlay.classList.add("hidden");
+      }
+    }
+
+    // --- molecular simulation particle setup ---
+    function initParticles(phase) {
+      particles = [];
+      const count = 120;
+      const width = canvas.width || 360;
+      const height = canvas.height || 260;
+
+      const beakerX = 50;
+      const beakerW = width - 100;
+      const beakerH = height - 90;
+
+      for (let i = 0; i < count; i++) {
+        let x, y, vx, vy;
+        if (phase === "SOLID" || phase === "MELTING") {
+          // grid coordinates
+          const cols = 12;
+          const col = i % cols;
+          const row = Math.floor(i / cols);
+          const cellW = beakerW / (cols + 1);
+          const cellH = (beakerH - 40) / 10;
+          x = beakerX + cellW * (col + 1) + (Math.random() - 0.5) * 2;
+          y = height - 55 - cellH * row;
+          vx = (Math.random() - 0.5) * 0.15;
+          vy = (Math.random() - 0.5) * 0.15;
+        } else {
+          // random coordinates
+          x = beakerX + 15 + Math.random() * (beakerW - 30);
+          y = height - 50 - Math.random() * (beakerH * 0.4);
+          vx = (Math.random() - 0.5) * 1.5;
+          vy = (Math.random() - 0.5) * 1.5;
+        }
+        particles.push({ x, y, vx, vy, ox: x, oy: y });
+      }
+    }
+
+    // Physics Update Step (covers 30s virtual per 1s real)
+    function updatePhysics(dt) {
+      const sub = SUBSTANCES[activeKey];
+      const virtualSeconds = dt * 30;
+      const heatFlow = (isHeating ? heaterPower : -heaterPower) * virtualSeconds;
+
+      let nextHeat = cumulativeHeat + heatFlow;
+      if (nextHeat < 0) nextHeat = 0;
+
+      let temp = currentTemp;
+      let phase = currentPhase;
+      let progress = phaseProgress;
+
+      const cSolid = sub.cSolid;
+      const cLiquid = sub.cLiquid;
+      const cGas = sub.cGas;
+      const Lf = sub.lf;
+      const Lv = sub.lv;
+      const m = mass;
+
+      let heatToProcess = Math.abs(heatFlow);
+      const direction = isHeating ? 1 : -1;
+      let securityCtr = 0;
+
+      while (heatToProcess > 0 && securityCtr < 10) {
+        securityCtr++;
+        
+        if (phase === "SOLID") {
+          if (direction === 1) {
+            const req = m * cSolid * (sub.mp - temp);
+            if (heatToProcess >= req) {
+              heatToProcess -= req;
+              temp = sub.mp;
+              phase = "MELTING";
+              progress = 0;
+            } else {
+              temp += (heatToProcess * direction) / (m * cSolid);
+              heatToProcess = 0;
+            }
+          } else {
+            temp += (heatToProcess * direction) / (m * cSolid);
+            if (temp < -273.15) temp = -273.15;
+            heatToProcess = 0;
+          }
+        } 
+        
+        else if (phase === "MELTING") {
+          const totalMeltHeat = m * Lf;
+          if (direction === 1) {
+            const rem = totalMeltHeat * (1 - progress);
+            if (heatToProcess >= rem) {
+              heatToProcess -= rem;
+              progress = 1.0;
+              phase = "LIQUID";
+              temp = sub.mp + 0.001;
+            } else {
+              progress += heatToProcess / totalMeltHeat;
+              heatToProcess = 0;
+            }
+          } else {
+            const freezeHeat = totalMeltHeat * progress;
+            if (heatToProcess >= freezeHeat) {
+              heatToProcess -= freezeHeat;
+              progress = 0;
+              phase = "SOLID";
+              temp = sub.mp - 0.001;
+            } else {
+              progress -= heatToProcess / totalMeltHeat;
+              heatToProcess = 0;
+            }
+          }
+        } 
+        
+        else if (phase === "LIQUID") {
+          if (direction === 1) {
+            const req = m * cLiquid * (sub.bp - temp);
+            if (heatToProcess >= req) {
+              heatToProcess -= req;
+              temp = sub.bp;
+              phase = "BOILING";
+              progress = 0;
+            } else {
+              temp += (heatToProcess * direction) / (m * cLiquid);
+              heatToProcess = 0;
+            }
+          } else {
+            const req = m * cLiquid * (temp - sub.mp);
+            if (heatToProcess >= req) {
+              heatToProcess -= req;
+              temp = sub.mp;
+              phase = "MELTING";
+              progress = 1.0;
+            } else {
+              temp += (heatToProcess * direction) / (m * cLiquid);
+              heatToProcess = 0;
+            }
+          }
+        } 
+        
+        else if (phase === "BOILING") {
+          const totalBoilHeat = m * Lv;
+          if (direction === 1) {
+            const rem = totalBoilHeat * (1 - progress);
+            if (heatToProcess >= rem) {
+              heatToProcess -= rem;
+              progress = 1.0;
+              phase = "GAS";
+              temp = sub.bp + 0.001;
+            } else {
+              progress += heatToProcess / totalBoilHeat;
+              heatToProcess = 0;
+            }
+          } else {
+            const condenseHeat = totalBoilHeat * progress;
+            if (heatToProcess >= condenseHeat) {
+              heatToProcess -= condenseHeat;
+              progress = 0;
+              phase = "LIQUID";
+              temp = sub.bp - 0.001;
+            } else {
+              progress -= heatToProcess / totalBoilHeat;
+              heatToProcess = 0;
+            }
+          }
+        } 
+        
+        else if (phase === "GAS") {
+          if (direction === 1) {
+            temp += (heatToProcess * direction) / (m * cGas);
+            heatToProcess = 0;
+          } else {
+            const req = m * cGas * (temp - sub.bp);
+            if (heatToProcess >= req) {
+              heatToProcess -= req;
+              temp = sub.bp;
+              phase = "BOILING";
+              progress = 1.0;
+            } else {
+              temp += (heatToProcess * direction) / (m * cGas);
+              heatToProcess = 0;
+            }
+          }
+        }
+      }
+
+      currentTemp = temp;
+      currentPhase = phase;
+      phaseProgress = progress;
+
+      const consumed = Math.abs(heatFlow) - heatToProcess;
+      cumulativeHeat = isHeating ? (cumulativeHeat + consumed) : Math.max(0, cumulativeHeat - consumed);
+
+      // Cache historical steps for graphing
+      const lastHist = history[history.length - 1];
+      if (!lastHist || Math.abs(lastHist.heat - cumulativeHeat) > 600 || Math.abs(lastHist.temp - currentTemp) > 1.2 || lastHist.phase !== currentPhase) {
+        history.push({ heat: cumulativeHeat, temp: currentTemp, phase: currentPhase });
+        if (history.length > 500) history.shift();
+      }
+    }
+
+    // Draw Beaker Simulation
+    function drawSimulation() {
+      const width = canvas.width;
+      const height = canvas.height;
+      const sub = SUBSTANCES[activeKey];
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Back Wall
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, width, height);
+
+      const beakerX = 50;
+      const beakerY = 40;
+      const beakerW = width - 100;
+      const beakerH = height - 90;
+
+      // Fill Factor base on substance Mass
+      const fillFactor = Math.min(1.2, Math.max(0.4, mass / 0.5));
+      const liqHeight = beakerH * 0.55 * fillFactor;
+      const fillY = beakerY + beakerH - liqHeight;
+
+      // Draw Burner Plate
+      const burnerY = beakerY + beakerH + 5;
+      ctx.fillStyle = isHeating && isPlaying ? '#ef4444' : '#475569';
+      ctx.fillRect(beakerX + 15, burnerY, beakerW - 30, 15);
+
+      // Draw heating flame bubbles
+      if (isPlaying) {
+        ctx.fillStyle = isHeating ? 'rgba(239, 68, 68, 0.65)' : 'rgba(59, 130, 246, 0.65)';
+        for (let i = 0; i < 6; i++) {
+          const offset = Math.sin(Date.now() * 0.01 + i) * 4;
+          const waveX = beakerX + 25 + i * (beakerW - 50) / 5;
+          ctx.beginPath();
+          ctx.arc(waveX, burnerY + (isHeating ? -4 : 6) + offset, 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Draw Beaker Frame
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(beakerX, beakerY);
+      ctx.lineTo(beakerX, beakerY + beakerH);
+      ctx.lineTo(beakerX + beakerW, beakerY + beakerH);
+      ctx.lineTo(beakerX + beakerW, beakerY);
+      ctx.stroke();
+
+      // Liquid, Solid or Gas backdrop shader
+      if (currentPhase === "SOLID" || currentPhase === "MELTING") {
+        const solidH = liqHeight * (currentPhase === "MELTING" ? (1 - phaseProgress) : 1);
+        ctx.fillStyle = sub.solidColor;
+        ctx.fillRect(beakerX + 4, beakerY + beakerH - solidH, beakerW - 8, solidH);
+
+        if (currentPhase === "MELTING") {
+          ctx.fillStyle = sub.color;
+          ctx.globalAlpha = phaseProgress;
+          ctx.fillRect(beakerX + 4, beakerY + beakerH - liqHeight, beakerW - 8, liqHeight * phaseProgress);
+          ctx.globalAlpha = 1.0;
+        }
+      } else if (currentPhase === "LIQUID" || currentPhase === "BOILING") {
+        ctx.fillStyle = sub.color;
+        ctx.globalAlpha = 0.85;
+        ctx.fillRect(beakerX + 4, fillY, beakerW - 8, liqHeight);
+        ctx.globalAlpha = 1.0;
+      } else if (currentPhase === "GAS") {
+        ctx.fillStyle = sub.gasColor;
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(beakerX + 4, beakerY + 5, beakerW - 8, beakerH - 5);
+        ctx.globalAlpha = 1.0;
+      }
+
+      // Draw particles (Molecular atomic kinetics)
+      const kelvin = currentTemp + 273.15;
+      const speedScale = Math.sqrt(kelvin) * 0.07;
+
+      ctx.fillStyle = '#ffffff';
+      particles.forEach((p, idx) => {
+        if (currentPhase === "SOLID") {
+          // Rigid vibrations
+          const ampl = speedScale * 0.22;
+          p.x = p.ox + (Math.random() - 0.5) * ampl;
+          p.y = p.oy + (Math.random() - 0.5) * ampl;
+
+          // Draw connections lines (lattice rigidity)
+          ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+          ctx.lineWidth = 1;
+          if (idx % 12 !== 11 && idx + 1 < particles.length) {
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(particles[idx+1].x, particles[idx+1].y); ctx.stroke();
+          }
+          if (idx + 12 < particles.length) {
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(particles[idx+12].x, particles[idx+12].y); ctx.stroke();
+          }
+        } 
+        
+        else if (currentPhase === "MELTING") {
+          const inLattice = idx / particles.length > phaseProgress;
+          if (inLattice) {
+            const ampl = speedScale * 0.25;
+            p.x = p.ox + (Math.random() - 0.5) * ampl;
+            p.y = p.oy + (Math.random() - 0.5) * ampl;
+          } else {
+            p.vx += (Math.random() - 0.5) * 0.45;
+            p.vy += (Math.random() - 0.5) * 0.45;
+            p.x += p.vx * speedScale * 0.35;
+            p.y += p.vy * speedScale * 0.35;
+
+            // Fluid bounds
+            if (p.x < beakerX + 12 || p.x > beakerX + beakerW - 12) p.vx *= -1;
+            if (p.y < beakerY + beakerH - liqHeight || p.y > beakerY + beakerH - 12) p.vy *= -1;
+          }
+        } 
+        
+        else if (currentPhase === "LIQUID" || currentPhase === "BOILING") {
+          p.vx += (Math.random() - 0.5) * 0.4;
+          p.vy += (Math.random() - 0.5) * 0.4;
+          p.x += p.vx * speedScale * 0.45;
+          p.y += p.vy * speedScale * 0.45;
+
+          // Liquid Boundaries
+          const topBound = fillY;
+          if (p.x < beakerX + 10 || p.x > beakerX + beakerW - 10) p.vx *= -1;
+          if (p.y < topBound || p.y > beakerY + beakerH - 10) p.vy *= -1;
+
+          // Boiling Bubbles Escaping
+          if (currentPhase === "BOILING" && idx % 5 === 0) {
+            p.y -= speedScale * 0.45;
+            if (p.y < topBound) {
+              p.y = beakerY + beakerH - 10;
+            }
+          }
+
+          // Safety clamp
+          p.x = Math.max(beakerX + 10, Math.min(p.x, beakerX + beakerW - 10));
+          p.y = Math.max(topBound + 5, Math.min(p.y, beakerY + beakerH - 10));
+        } 
+        
+        else if (currentPhase === "GAS") {
+          p.x += p.vx * speedScale * 0.75;
+          p.y += p.vy * speedScale * 0.75;
+
+          // Chamber Collision Bouncing
+          if (p.x < beakerX + 10 || p.x > beakerX + beakerW - 10) p.vx *= -1;
+          if (p.y < beakerY + 10 || p.y > beakerY + beakerH - 10) p.vy *= -1;
+
+          p.x = Math.max(beakerX + 10, Math.min(p.x, beakerX + beakerW - 10));
+          p.y = Math.max(beakerY + 10, Math.min(p.y, beakerY + beakerH - 10));
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, currentPhase === "GAS" ? 2.5 : 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Digital Beaker Temp readout box
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1;
+      ctx.fillRect(beakerX + beakerW / 2 - 40, beakerY + 12, 80, 24);
+      ctx.strokeRect(beakerX + beakerW / 2 - 40, beakerY + 12, 80, 24);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${currentTemp.toFixed(1)}°C`, beakerX + beakerW / 2, beakerY + 28);
+    }
+
+    // Draw SVG Heating Curve Graph
+    function drawGraph() {
+      const sub = SUBSTANCES[activeKey];
+      const maxHeat = Math.max(...history.map(h => h.heat), 60000);
+      const minT = sub.mp - 40;
+      const maxT = sub.bp + 40;
+      const tRange = maxT - minT;
+
+      const svg = document.getElementById("svg-graph");
+      const graphWidth = 500;
+      const graphHeight = 200;
+
+      // Set MP & BP labels on Y margin
+      const mpY = 180 - ((sub.mp - minT) / tRange) * 160;
+      const bpY = 180 - ((sub.bp - minT) / tRange) * 160;
+
+      const labelMp = document.getElementById("graph-label-mp");
+      const labelBp = document.getElementById("graph-label-bp");
+
+      labelMp.setAttribute("y", mpY + 3);
+      labelMp.textContent = `${sub.mp}°C`;
+
+      labelBp.setAttribute("y", bpY + 3);
+      labelBp.textContent = `${sub.bp}°C`;
+
+      // Build SVG Path
+      if (history.length < 2) {
+        document.getElementById("graph-curve-line").setAttribute("d", "");
+        return;
+      }
+
+      let pathData = "";
+      history.forEach((h, idx) => {
+        // Map X: 45 to 490
+        const x = 45 + (h.heat / maxHeat) * 445;
+        // Map Y: 180 to 20 (inverted)
+        const y = 180 - ((h.temp - minT) / tRange) * 160;
+
+        if (idx === 0) pathData = `M ${x} ${y}`;
+        else pathData += ` L ${x} ${y}`;
+      });
+
+      const curveLine = document.getElementById("graph-curve-line");
+      curveLine.setAttribute("d", pathData);
+
+      // Set tracker coordinate dot position
+      const lastNode = history[history.length - 1];
+      const dotX = 45 + (lastNode.heat / maxHeat) * 445;
+      const dotY = 180 - ((lastNode.temp - minT) / tRange) * 160;
+
+      const trackerDot = document.getElementById("graph-tracker-dot");
+      trackerDot.setAttribute("cx", dotX);
+      trackerDot.setAttribute("cy", dotY);
+    }
+
+    // --- Tab 1: Phase Solver Rig ---
+    function changeBasicSolveTarget(target) {
+      basicSolverTarget = target;
+      
+      const buttons = {
+        q: btnTargetQ,
+        m: btnTargetM,
+        l: btnTargetL
+      };
+
+      Object.keys(buttons).forEach(key => {
+        if (key === target) {
+          buttons[key].className = "px-2.5 py-1 rounded-lg font-bold bg-sky-600 text-white transition";
+        } else {
+          buttons[key].className = "px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-slate-200 transition";
+        }
+      });
+
+      // Enable/Disable form targets
+      basicSolveM.disabled = (target === "m");
+      basicSolveL.disabled = (target === "l");
+      basicSolveQ.disabled = (target === "q");
+
+      const grayStyle = "w-full bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-500 font-mono cursor-not-allowed";
+      const normalStyle = "w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 font-mono focus:outline-none focus:border-sky-500";
+
+      basicSolveM.className = (target === "m") ? grayStyle : normalStyle;
+      basicSolveL.className = (target === "l") ? grayStyle : normalStyle;
+      basicSolveQ.className = (target === "q") ? grayStyle : normalStyle;
+
+      runBasicSolver();
+    }
+
+    function runBasicSolver() {
+      const m = parseFloat(basicSolveM.value) || 0;
+      const l = parseFloat(basicSolveL.value) || 0;
+      const q = parseFloat(basicSolveQ.value) || 0;
+
+      let explanationText = "";
+
+      if (basicSolverTarget === "q") {
+        const resultQ = m * l;
+        basicSolveQ.value = resultQ.toFixed(0);
+        explanationText = `
+          <p>1. General Equation: <strong>Q = m · L</strong></p>
+          <p>2. Values: m = ${m.toFixed(4)} kg, L = ${l.toExponential(2)} J/kg</p>
+          <p class="text-sky-400 font-mono mt-1">Q = (${m.toFixed(4)} kg) × (${l.toExponential(2)} J/kg)</p>
+          <p class="border-t border-slate-800/80 pt-1.5 mt-1 text-slate-100 font-sans font-bold">
+            Heat Absorbed/Released: <span class="text-emerald-400">${resultQ.toExponential(4)} Joules</span> (${(resultQ / 1000).toFixed(2)} kJ)
+          </p>
+        `;
+      } else if (basicSolverTarget === "m") {
+        const resultM = l > 0 ? q / l : 0;
+        basicSolveM.value = resultM.toFixed(4);
+        explanationText = `
+          <p>1. Transformed Equation: <strong>m = Q / L</strong></p>
+          <p>2. Values: Q = ${q.toExponential(2)} J, L = ${l.toExponential(2)} J/kg</p>
+          <p class="text-sky-400 font-mono mt-1">m = ${q.toExponential(2)} J / ${l.toExponential(2)} J/kg</p>
+          <p class="border-t border-slate-800/80 pt-1.5 mt-1 text-slate-100 font-sans font-bold">
+            Substance Mass: <span class="text-emerald-400">${resultM.toFixed(4)} kg</span> (${(resultM * 1000).toFixed(1)} g)
+          </p>
+        `;
+      } else if (basicSolverTarget === "l") {
+        const resultL = m > 0 ? q / m : 0;
+        basicSolveL.value = resultL.toFixed(0);
+        explanationText = `
+          <p>1. Transformed Equation: <strong>L = Q / m</strong></p>
+          <p>2. Values: Q = ${q.toExponential(2)} J, m = ${m.toFixed(4)} kg</p>
+          <p class="text-sky-400 font-mono mt-1">L = ${q.toExponential(2)} J / ${m.toFixed(4)} kg</p>
+          <p class="border-t border-slate-800/80 pt-1.5 mt-1 text-slate-100 font-sans font-bold">
+            Latent Heat Constant: <span class="text-emerald-400">${resultL.toExponential(4)} J/kg</span>
+          </p>
+        `;
+      }
+
+      basicSolverExplanation.innerHTML = explanationText;
+    }
+
+    // --- Tab 2: Mixer Calorimeter Solver (Example 7.16) ---
+    function runMixerSolver() {
+      const mIce = parseFloat(document.getElementById("mixer-m-ice").value) || 0;
+      const mWater = parseFloat(document.getElementById("mixer-m-water").value) || 0;
+      const tWater = parseFloat(document.getElementById("mixer-t-water").value) || 0;
+      const tFinal = parseFloat(document.getElementById("mixer-t-final").value) || 0;
+      const sWater = parseFloat(document.getElementById("mixer-s-water").value) || 0;
+
+      // Calculations
+      const qLost = mWater * sWater * (tFinal - tWater);
+      const qWarm = mIce * sWater * (tFinal - 0); // ice starts at 0°C
+      const absoluteQLost = Math.abs(qLost);
+      const calculatedLf = mIce > 0 ? (absoluteQLost - qWarm) / mIce : 0;
+
+      // Update Trace labels inside standard html elements safely
+      document.getElementById("trace-m-water").innerText = mWater.toFixed(3);
+      document.getElementById("trace-s-water").innerText = sWater;
+      document.getElementById("trace-tf").innerText = tFinal.toFixed(1);
+      document.getElementById("trace-tw").innerText = tWater.toFixed(1);
+      document.getElementById("trace-qlost").innerText = `${qLost.toFixed(1)} J`;
+
+      document.getElementById("trace-m-ice").innerText = mIce.toFixed(3);
+      document.getElementById("trace-s-water-2").innerText = sWater;
+      document.getElementById("trace-tf-2").innerText = tFinal.toFixed(1);
+      document.getElementById("trace-qwarm").innerText = `${qWarm.toFixed(1)} J`;
+
+      document.getElementById("trace-abs-qlost").innerText = absoluteQLost.toFixed(1);
+      document.getElementById("trace-qwarm-val").innerText = qWarm.toFixed(1);
+      document.getElementById("trace-m-ice-val").innerText = mIce.toFixed(3);
+
+      document.getElementById("trace-lf-result").innerHTML = `${calculatedLf.toExponential(4)} J/kg <span class="text-slate-400 text-xs">(${(calculatedLf / 1e5).toFixed(3)} × 10<sup>5</sup> J/kg)</span>`;
+    }
+
+    // --- Core Frame tick ---
+    let lastTick = performance.now();
+    function simLoop(time) {
+      if (isPlaying) {
+        const dt = Math.min((time - lastTick) / 1000, 0.1);
+        updatePhysics(dt);
+        updateHUD();
+        drawGraph();
+      }
+      lastTick = time;
+      drawSimulation();
+      requestAnimationFrame(simLoop);
+    }
+
+    // On Load Initiation
+    window.onload = function() {
+      initUI();
+      requestAnimationFrame(simLoop);
+    };
+  </script>
+</body>
+</html>
