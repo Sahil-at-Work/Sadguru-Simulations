@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Lab: Thermal Dynamics & Heat Transfer Simulations</title>
+    <!-- Tailwind CSS for high-fidelity UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX for beautiful LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
+    
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --panel-dark: #111827;
+            --accent-blue: #0ea5e9;
+            --accent-orange: #f97316;
+            --accent-red: #ef4444;
+            --text-light: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: #374151;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Custom scrollbar styling for a premium feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Wave pulse effects */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+        .pulse-element {
+            animation: pulse-slow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col lg:flex-row h-screen w-screen overflow-hidden">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <nav class="w-full lg:w-80 bg-gray-900 border-b lg:border-b-0 lg:border-r border-gray-800 flex flex-col p-5 shrink-0 z-10">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="p-2.5 bg-sky-500/10 rounded-xl text-sky-400 border border-sky-500/20">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white">Thermal Lab Suite</h1>
+                <p class="text-xs text-sky-400 font-mono">HEAT TRANSFER v2.5</p>
+            </div>
+        </div>
+
+        <!-- LAB MODULE SELECTORS -->
+        <div class="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-3 lg:pb-0 mb-4 border-b border-gray-800 lg:border-none">
+            <button onclick="switchTab('conduction')" id="btn-conduction" class="nav-btn active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 w-full text-left bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/10">
+                <span class="w-2 h-2 rounded-full bg-slate-950"></span>
+                7.9.1 Conduction Lab
+            </button>
+            <button onclick="switchTab('convection')" id="btn-convection" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 w-full text-left text-gray-400 hover:bg-gray-800/50 hover:text-white">
+                <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                7.9.2 Convection Lab
+            </button>
+            <button onclick="switchTab('radiation')" id="btn-radiation" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 w-full text-left text-gray-400 hover:bg-gray-800/50 hover:text-white">
+                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                7.9.3 Radiation Lab
+            </button>
+        </div>
+
+        <!-- QUICK THEORY CORNER -->
+        <div class="hidden lg:flex flex-col gap-3 mt-auto p-4 bg-gray-950/40 rounded-xl border border-gray-800/60">
+            <span class="text-xs font-mono text-sky-400 uppercase tracking-widest">Lab Guide</span>
+            <p id="theory-corner-text" class="text-xs text-gray-400 leading-relaxed">
+                Choose a conduction material to observe how the coefficient of thermal conductivity ($k$) dictates the rate of heat flow ($P_{cond}$) and node vibrations down the lattice.
+            </p>
+        </div>
+    </nav>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-grow flex flex-col overflow-hidden relative">
+        
+        <!-- HEADER STATUS BAR -->
+        <header class="h-16 border-b border-gray-800/80 px-6 flex items-center justify-between bg-gray-950/20 shrink-0">
+            <div class="flex items-center gap-3">
+                <span id="tab-indicator" class="h-2.5 w-2.5 rounded-full bg-sky-500 animate-pulse"></span>
+                <span id="tab-title" class="text-sm font-semibold text-white tracking-wide">Conduction Lab Workspace</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="resetCurrentSimulation()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-lg transition border border-gray-700 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.228 11H18.5"></path></svg>
+                    Reset Sim
+                </button>
+                <div class="text-xs font-mono text-gray-500 hidden md:block">Status: <span class="text-green-400">Simulation Active</span></div>
+            </div>
+        </header>
+
+        <!-- LAB PORTS & INTERACTIVE SYSTEMS -->
+        <div class="flex-grow overflow-y-auto p-4 lg:p-6 space-y-6">
+
+            <!-- ================= CONDUCTION TAB ================= -->
+            <div id="conduction-tab" class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Simulation Port -->
+                <div class="xl:col-span-2 flex flex-col gap-4">
+                    <div class="viewport-panel glass-panel rounded-2xl overflow-hidden shadow-2xl">
+                        <div class="viewport-header bg-gray-950/40 px-5 py-3 border-b border-gray-800/80 flex items-center justify-between">
+                            <span class="text-xs font-bold text-sky-400 tracking-wider uppercase font-mono">Molecular Thermal Kinetic Grid</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">Conduction: Slow Process</span>
+                        </div>
+                        <div class="relative">
+                            <canvas id="conductionCanvas" class="w-full h-80 bg-slate-950"></canvas>
+                            <!-- Linear Temperature Plot overlay -->
+                            <div class="absolute bottom-2 left-4 text-[10px] font-mono text-gray-500 pointer-events-none">
+                                Left End: $T_1$ (Hot) | Right End: $T_2$ (Cold)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Temperature Gradient Realtime Analysis Plot -->
+                    <div class="glass-panel p-5 rounded-2xl">
+                        <h4 class="text-xs font-bold text-gray-400 tracking-widest uppercase mb-4 font-mono">Steady State Temperature Profile $\left(\frac{dT}{dx}\right)$</h4>
+                        <div class="h-32 w-full relative">
+                            <canvas id="tempGradientChart" class="w-full h-full bg-gray-950/30 rounded-xl"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Config & Calculations -->
+                <div class="flex flex-col gap-6">
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+                        <h3 class="text-sm font-bold text-white border-b border-gray-800 pb-2">Thermal System Controls</h3>
+                        
+                        <div class="control-group">
+                            <label class="block text-xs font-semibold text-gray-400 mb-2">Metallic Solid Core ($k$):</label>
+                            <select id="materialSelect" onchange="updateConductionMaterial()" class="w-full bg-gray-900 border border-gray-700 text-white p-2 rounded-lg text-sm focus:outline-none focus:border-sky-500 transition">
+                                <option value="406">Silver (k = 406 W/m·K)</option>
+                                <option value="385" selected>Copper (k = 385 W/m·K)</option>
+                                <option value="205">Aluminium (k = 205 W/m·K)</option>
+                                <option value="50.2">Steel (k = 50.2 W/m·K)</option>
+                                <option value="0.8">Glass (k = 0.8 W/m·K)</option>
+                                <option value="0.08">Wood (k = 0.08 W/m·K)</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="flex justify-between text-xs font-semibold text-gray-400 mb-2">
+                                <span>Source Temp ($T_1$)</span>
+                                <span class="text-sky-400 font-mono" id="t1-val">100°C</span>
+                            </label>
+                            <input type="range" id="t1-slider" min="30" max="350" value="100" oninput="updateConductionTemps()" class="w-full accent-sky-500">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="flex justify-between text-xs font-semibold text-gray-400 mb-2">
+                                <span>Sink Temp ($T_2$)</span>
+                                <span class="text-sky-400 font-mono" id="t2-val">20°C</span>
+                            </label>
+                            <input type="range" id="t2-slider" min="-50" max="150" value="20" oninput="updateConductionTemps()" class="w-full accent-sky-500">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="flex justify-between text-xs font-semibold text-gray-400 mb-2">
+                                <span>Rod Length ($x$)</span>
+                                <span class="text-sky-400 font-mono" id="length-val">0.50 m</span>
+                            </label>
+                            <input type="range" id="length-slider" min="10" max="100" value="50" oninput="updateConductionParameters()" class="w-full accent-sky-500">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Real-Time Calculations -->
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4 bg-gray-950/20">
+                        <h3 class="text-sm font-bold text-white border-b border-gray-800 pb-2 font-mono">Calculations Sandbox</h3>
+                        
+                        <!-- Equation Card -->
+                        <div class="p-3 bg-gray-950/60 rounded-xl border border-gray-800 text-center">
+                            <div class="text-sky-400 text-sm overflow-x-auto py-1">
+                                $$P_{cond} = \frac{Q}{t} = \frac{k A (T_1 - T_2)}{x}$$
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between border-b border-gray-800/40 pb-2">
+                                <span class="text-gray-400">Area ($A$):</span>
+                                <span class="font-mono text-white">0.01 m²</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800/40 pb-2">
+                                <span class="text-gray-400">Temp Gradient ($\frac{dT}{dx}$):</span>
+                                <span class="font-mono text-orange-400 font-bold" id="grad-stat">-160 °C/m</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800/40 pb-2">
+                                <span class="text-gray-400">Thermal Resistance ($R_T = \frac{x}{kA}$):</span>
+                                <span class="font-mono text-cyan-400" id="rt-stat">0.13 K/W</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Heat Transfer Rate ($P_{cond}$):</span>
+                                <span class="font-mono text-green-400 font-bold" id="pcond-stat">616.0 W</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= CONVECTIVE TAB ================= -->
+            <div id="convection-tab" class="grid grid-cols-1 xl:grid-cols-3 gap-6 hidden">
+                <!-- Simulation Port -->
+                <div class="xl:col-span-2">
+                    <div class="viewport-panel glass-panel rounded-2xl overflow-hidden shadow-2xl">
+                        <div class="viewport-header bg-gray-950/40 px-5 py-3 border-b border-gray-800/80 flex items-center justify-between">
+                            <span class="text-xs font-bold text-orange-400 tracking-wider uppercase font-mono">Liquid Thermal Convection Currents</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20">Convection: Rapid Process</span>
+                        </div>
+                        <canvas id="convectionCanvas" class="w-full h-[450px] bg-slate-950"></canvas>
+                    </div>
+                </div>
+
+                <!-- Simulation Config -->
+                <div class="flex flex-col gap-6">
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+                        <h3 class="text-sm font-bold text-white border-b border-gray-800 pb-2">Fluid Dynamics Controls</h3>
+                        
+                        <div class="control-group">
+                            <label class="block text-xs font-semibold text-gray-400 mb-2">Convection Regime:</label>
+                            <select id="convType" onchange="toggleForcedConvection()" class="w-full bg-gray-900 border border-gray-700 text-white p-2 rounded-lg text-sm focus:outline-none focus:border-orange-500 transition">
+                                <option value="free">Free / Natural Convection (Density-driven)</option>
+                                <option value="forced">Forced Convection (Stirred Fan System)</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="flex justify-between text-xs font-semibold text-gray-400 mb-2">
+                                <span>Heater Thermal Intensity</span>
+                                <span class="text-orange-400 font-mono" id="heat-val-display">Medium</span>
+                            </label>
+                            <input type="range" id="heat-slider" min="0" max="4" value="2" oninput="updateHeaterLevel()" class="w-full accent-orange-500">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="block text-xs font-semibold text-gray-400 mb-2">Fluid Viscosity Factor:</label>
+                            <select id="viscositySelect" class="w-full bg-gray-900 border border-gray-700 text-white p-2 rounded-lg text-sm focus:outline-none focus:border-orange-500 transition">
+                                <option value="1">Low Viscosity (Water-like)</option>
+                                <option value="2">Medium Viscosity (Oil-like)</option>
+                                <option value="0.5">Ultralow (Gas-like / High speed)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Technical Info Card -->
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4 bg-gray-950/20">
+                        <h3 class="text-sm font-bold text-white border-b border-gray-800 pb-2 font-mono">Convection Dynamics</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Under <strong>Natural Convection</strong>, water molecules adjacent to the heating boundary expand, density decreases ($\rho \downarrow$), and buoyancy forces push them upward. Cool, dense molecules descend along the beaker perimeter, setting up circular <strong>Convection Currents</strong>.
+                        </p>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Under <strong>Forced Convection</strong>, a mechanical propeller forces fluid circulation, augmenting convective heat transfer rates beyond simple gravity-driven limits.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= RADIATION TAB ================= -->
+            <div id="radiation-tab" class="grid grid-cols-1 xl:grid-cols-3 gap-6 hidden">
+                <!-- Simulation Port -->
+                <div class="xl:col-span-2">
+                    <div class="viewport-panel glass-panel rounded-2xl overflow-hidden shadow-2xl">
+                        <div class="viewport-header bg-gray-950/40 px-5 py-3 border-b border-gray-800/80 flex items-center justify-between">
+                            <span class="text-xs font-bold text-red-400 tracking-wider uppercase font-mono">EM Wave Blackbody Emission Space Vacuum</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">Radiation: Fastest Process (Speed of Light)</span>
+                        </div>
+                        <canvas id="radiationCanvas" class="w-full h-[450px] bg-slate-950"></canvas>
+                    </div>
+                </div>
+
+                <!-- Simulation Config & Equations -->
+                <div class="flex flex-col gap-6">
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+                        <h3 class="text-sm font-bold text-white border-b border-gray-800 pb-2">Thermal Emitter Parameters</h3>
+                        
+                        <div class="control-group">
+                            <label class="flex justify-between text-xs font-semibold text-gray-400 mb-2">
+                                <span>Emitter Temperature ($T$)</span>
+                                <span class="text-red-400 font-mono font-bold" id="rad-temp-val">1200 K</span>
+                            </label>
+                            <input type="range" id="rad-temp-slider" min="400" max="3000" value="1200" oninput="updateRadiationEmitter()" class="w-full accent-red-500">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="block text-xs font-semibold text-gray-400 mb-2">Intervening Propagating Medium:</label>
+                            <div class="p-3 bg-gray-950/40 rounded-xl border border-gray-800 text-xs text-green-400 font-mono flex justify-between items-center">
+                                <span>Vacuum (No Medium)</span>
+                                <span class="h-2 w-2 rounded-full bg-green-500"></span>
+                            </div>
+                            <span class="text-[10px] text-gray-500 mt-1 block">Conduction & Convection cease to work in vacuum, but radiation requires no medium.</span>
+                        </div>
+                    </div>
+
+                    <!-- Thermal Emission Formulas -->
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4 bg-gray-950/20">
+                        <h3 class="text-sm font-bold text-white border-b border-gray-800 pb-2 font-mono">Radiation Laws</h3>
+                        
+                        <!-- Stefan Boltzmann -->
+                        <div class="p-3 bg-gray-950/60 rounded-xl border border-gray-800">
+                            <span class="text-[10px] font-bold text-sky-400 block mb-1">Stefan-Boltzmann Law</span>
+                            <div class="text-red-400 text-xs py-1">
+                                $$P = e \sigma A T^4$$
+                            </div>
+                        </div>
+
+                        <!-- Wien's Law -->
+                        <div class="p-3 bg-gray-950/60 rounded-xl border border-gray-800">
+                            <span class="text-[10px] font-bold text-sky-400 block mb-1">Wien's Displacement Law</span>
+                            <div class="text-red-400 text-xs py-1">
+                                $$\lambda_{max} = \frac{b}{T}$$
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between border-b border-gray-800/40 pb-2">
+                                <span class="text-gray-400">Relative Wave Speed:</span>
+                                <span class="font-mono text-white">$c = 3\times10^8 \text{ m/s}$</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800/40 pb-2">
+                                <span class="text-gray-400">Peak Wavelength ($\lambda_{max}$):</span>
+                                <span class="font-mono text-yellow-400" id="wien-val">2.41 µm (IR)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Net Relative Power ($P \propto T^4$):</span>
+                                <span class="font-mono text-red-400 font-bold" id="stefan-power-val">1.00x Base</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- INITIALIZATION & PHYSICS ALGORITHMS -->
+    <script>
+        // Active Laboratory Tab Management
+        let activeTab = 'conduction';
+        
+        const tabs = {
+            conduction: {
+                canvas: document.getElementById('conductionCanvas'),
+                ctx: document.getElementById('conductionCanvas').getContext('2d'),
+                indicatorColor: 'bg-sky-500',
+                title: 'Conduction Simulation Workspace'
+            },
+            convection: {
+                canvas: document.getElementById('convectionCanvas'),
+                ctx: document.getElementById('convectionCanvas').getContext('2d'),
+                indicatorColor: 'bg-orange-500',
+                title: 'Convection Currents Laboratory'
+            },
+            radiation: {
+                canvas: document.getElementById('radiationCanvas'),
+                ctx: document.getElementById('radiationCanvas').getContext('2d'),
+                indicatorColor: 'bg-red-500',
+                title: 'Space Electromagnetic Radiation Lab'
+            }
+        };
+
+        // Tab Switching Mechanism
+        function switchTab(tabId) {
+            activeTab = tabId;
+            
+            // UI Button resets
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 w-full text-left text-gray-400 hover:bg-gray-800/50 hover:text-white";
+            });
+
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                if(tabId === 'conduction') {
+                    activeBtn.className = "nav-btn active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 w-full text-left bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/10";
+                } else if(tabId === 'convection') {
+                    activeBtn.className = "nav-btn active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 w-full text-left bg-orange-500 text-slate-950 shadow-lg shadow-orange-500/10";
+                } else if(tabId === 'radiation') {
+                    activeBtn.className = "nav-btn active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 w-full text-left bg-red-500 text-slate-950 shadow-lg shadow-red-500/10";
+                }
+            }
+
+            // Canvas Visibility switches
+            document.getElementById('conduction-tab').classList.add('hidden');
+            document.getElementById('convection-tab').classList.add('hidden');
+            document.getElementById('radiation-tab').classList.add('hidden');
+            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+
+            // Header labels
+            const indicator = document.getElementById('tab-indicator');
+            indicator.className = `h-2.5 w-2.5 rounded-full animate-pulse ${tabs[tabId].indicatorColor}`;
+            document.getElementById('tab-title').innerText = tabs[tabId].title;
+
+            // Theoretical description
+            const theoryCorner = document.getElementById('theory-corner-text');
+            if (tabId === 'conduction') {
+                theoryCorner.innerHTML = "Choose a conduction material to observe how the coefficient of thermal conductivity ($k$) dictates the rate of heat flow ($P_{cond}$) and node vibrations down the lattice.";
+            } else if (tabId === 'convection') {
+                theoryCorner.innerHTML = "Increase heater thermal intensity to watch hot, low-density fluid plumes rise upwards. Toggle natural vs forced convection to speed up convective mixing.";
+            } else if (tabId === 'radiation') {
+                theoryCorner.innerHTML = "Heat up the radiation source. Observe the spectrum change based on Wien's Law ($\\lambda_{max} = b/T$), translating peak energy transfer directly down electromagnetic vectors.";
+            }
+
+            // Recalculate dimensions & compile LaTeX math on view shift
+            resizeCanvases();
+            initializeSimulations();
+            renderMath();
+        }
+
+        // Render Math equations via KaTeX safely
+        function renderMath() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // Resize Hook
+        function resizeCanvases() {
+            Object.keys(tabs).forEach(key => {
+                const canvas = tabs[key].canvas;
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width;
+                // Preserve canvas ratio heights
+                if (key === 'conduction') {
+                    canvas.height = 320;
+                } else {
+                    canvas.height = 450;
+                }
+            });
+        }
+        window.addEventListener('resize', () => { resizeCanvases(); initializeSimulations(); });
+
+        // Reset Utility
+        function resetCurrentSimulation() {
+            initializeSimulations();
+        }
+
+
+        // =====================================================================
+        // MODULE 1: CONDUCTION LABORATORY ALGORITHMS
+        // =====================================================================
+        let condNodes = [];
+        let condK = 385; // Copper base
+        let t1Temp = 100;
+        let t2Temp = 20;
+        let rodLength = 0.50; // m
+        let transientState = []; // Holds dynamic temperatures over time to simulate steady-state convergence
+        const nodeCols = 24;
+        const nodeRows = 6;
+
+        function initConduction() {
+            condNodes = [];
+            const canvas = tabs.conduction.canvas;
+            const paddingX = 60;
+            const paddingY = 40;
+            const w = canvas.width - paddingX * 2;
+            const h = canvas.height - paddingY * 2;
+
+            // Generate lattice positions for molecules
+            for (let r = 0; r < nodeRows; r++) {
+                for (let c = 0; c < nodeCols; c++) {
+                    const pct = c / (nodeCols - 1);
+                    condNodes.push({
+                        x: paddingX + pct * w,
+                        y: paddingY + (r / (nodeRows - 1)) * h,
+                        baseX: paddingX + pct * w,
+                        baseY: paddingY + (r / (nodeRows - 1)) * h,
+                        pct: pct,
+                        angle: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+
+            // Initialize transient states (variable temperature profile starting from base cold temp)
+            transientState = Array(nodeCols).fill(t2Temp);
+        }
+
+        function updateConductionMaterial() {
+            condK = parseFloat(document.getElementById('materialSelect').value);
+            updateConductionParameters();
+        }
+
+        function updateConductionTemps() {
+            t1Temp = parseInt(document.getElementById('t1-slider').value);
+            t2Temp = parseInt(document.getElementById('t2-slider').value);
+            document.getElementById('t1-val').innerText = `${t1Temp}°C`;
+            document.getElementById('t2-val').innerText = `${t2Temp}°C`;
+            updateConductionParameters();
+        }
+
+        function updateConductionParameters() {
+            const lengthSliderVal = parseInt(document.getElementById('length-slider').value);
+            rodLength = lengthSliderVal / 100; // range 0.10m to 1.00m
+            document.getElementById('length-val').innerText = `${rodLength.toFixed(2)} m`;
+            renderMath();
+        }
+
+        function drawConduction(timestamp) {
+            const ctx = tabs.conduction.ctx;
+            const canvas = tabs.conduction.canvas;
+            const cw = canvas.width;
+            const ch = canvas.height;
+
+            ctx.clearRect(0, 0, cw, ch);
+
+            // Compute actual Fourier calculations
+            const A = 0.01; // cross sectional area m²
+            const tempGradient = (t2Temp - t1Temp) / rodLength; // °C/m
+            const pCond = Math.abs(condK * A * tempGradient); // Watts
+            const rt = rodLength / (condK * A); // Thermal Resistance K/W
+
+            document.getElementById('grad-stat').innerText = `${tempGradient.toFixed(1)} °C/m`;
+            document.getElementById('pcond-stat').innerText = `${pCond.toFixed(1)} W`;
+            document.getElementById('rt-stat').innerText = `${rt.toFixed(4)} K/W`;
+
+            // Draw Metallic Rod Backdrop Structure
+            const paddingX = 60;
+            const paddingY = 40;
+            const rw = cw - paddingX * 2;
+            const rh = ch - paddingY * 2;
+
+            // Simple Fourier transient simulation steps
+            const timeStepSpeed = (condK / 400) * 0.08; // Silver/Copper warm up much faster
+            transientState[0] = t1Temp;
+            transientState[nodeCols - 1] = t2Temp;
+            for (let i = 1; i < nodeCols - 1; i++) {
+                // Thermal diffusion equation: dT/dt = alpha * d^2T/dx^2
+                const diffusion = (transientState[i-1] - 2 * transientState[i] + transientState[i+1]) * timeStepSpeed;
+                transientState[i] += diffusion;
+            }
+
+            // Gradient Render for rod core
+            const rodGradient = ctx.createLinearGradient(paddingX, 0, paddingX + rw, 0);
+            for (let i = 0; i < nodeCols; i++) {
+                const stepTemp = transientState[i];
+                const normalizedTemp = Math.max(0, Math.min(1, (stepTemp - (-50)) / 400)); // normalized between -50°C to 350°C
+                
+                // Color interpolation: Red for hot, Slate-Blue for cold
+                const red = Math.floor(normalizedTemp * 255);
+                const blue = Math.floor((1 - normalizedTemp) * 200 + 55);
+                const green = Math.floor(normalizedTemp * 80);
+                rodGradient.addColorStop(i / (nodeCols - 1), `rgba(${red}, ${green}, ${blue}, 0.25)`);
+            }
+            ctx.fillStyle = rodGradient;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.fillRect(paddingX, paddingY, rw, rh);
+            ctx.strokeRect(paddingX, paddingY, rw, rh);
+
+            // Render Bunsen Burner flame graphic on left side
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
+            ctx.fillStyle = `rgba(239, 68, 68, ${0.45 + Math.sin(timestamp / 120) * 0.1})`;
+            ctx.beginPath();
+            ctx.moveTo(paddingX - 45, ch/2 + 40);
+            ctx.quadraticCurveTo(paddingX - 5, ch/2, paddingX - 10, ch/2 - 40);
+            ctx.quadraticCurveTo(paddingX - 15, ch/2, paddingX - 55, ch/2 + 40);
+            ctx.fill();
+            
+            // Core blue hotter flame
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.8)';
+            ctx.beginPath();
+            ctx.moveTo(paddingX - 40, ch/2 + 35);
+            ctx.quadraticCurveTo(paddingX - 15, ch/2 + 10, paddingX - 18, ch/2 - 10);
+            ctx.quadraticCurveTo(paddingX - 22, ch/2 + 10, paddingX - 48, ch/2 + 35);
+            ctx.fill();
+            ctx.restore();
+
+            // Render Atomic Lattice Vibrations
+            condNodes.forEach(node => {
+                const localColIndex = Math.floor(node.pct * (nodeCols - 1));
+                const localTemp = transientState[localColIndex];
+                
+                // Vibrational amplitude maps directly to actual physical thermal energy (Temperature)
+                const vibrationAmplitude = ((localTemp + 50) / 400) * 12 + 1; 
+                node.angle += ((localTemp + 100) / 400) * 0.4 + 0.05; // speed of molecular oscillation
+
+                const vibeX = Math.sin(node.angle) * vibrationAmplitude;
+                const vibeY = Math.cos(node.angle) * vibrationAmplitude;
+
+                // Heat gradient coloring for individual atoms
+                const normalizedTemp = Math.max(0, Math.min(1, (localTemp - (-50)) / 400));
+                const atomRed = Math.floor(normalizedTemp * 255);
+                const atomBlue = Math.floor((1 - normalizedTemp) * 200 + 55);
+                const atomGreen = Math.floor(normalizedTemp * 100);
+
+                ctx.fillStyle = `rgb(${atomRed}, ${atomGreen}, ${atomBlue})`;
+                ctx.beginPath();
+                ctx.arc(node.baseX + vibeX, node.baseY + vibeY, 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Small core highlights
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.beginPath();
+                ctx.arc(node.baseX + vibeX - 2, node.baseY + vibeY - 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Drawing temperature gradient line graph at the bottom panel
+            drawTemperatureChart();
+        }
+
+        function drawTemperatureChart() {
+            const chartCanvas = document.getElementById('tempGradientChart');
+            const cctx = chartCanvas.getContext('2d');
+            const cw = chartCanvas.width = chartCanvas.parentElement.clientWidth;
+            const ch = chartCanvas.height = chartCanvas.parentElement.clientHeight;
+
+            cctx.clearRect(0,0,cw,ch);
+
+            // Draw gridlines
+            cctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            cctx.lineWidth = 1;
+            for(let i=1; i<4; i++) {
+                const yPos = (ch / 4) * i;
+                cctx.beginPath();
+                cctx.moveTo(0, yPos);
+                cctx.lineTo(cw, yPos);
+                cctx.stroke();
+            }
+
+            // Draw linear gradient line
+            cctx.strokeStyle = '#38bdf8';
+            cctx.lineWidth = 3;
+            cctx.shadowBlur = 10;
+            cctx.shadowColor = '#0ea5e9';
+            cctx.beginPath();
+
+            const chartPadding = 20;
+            for(let i=0; i<nodeCols; i++) {
+                const temp = transientState[i];
+                const x = chartPadding + (i / (nodeCols - 1)) * (cw - chartPadding * 2);
+                const y = ch - chartPadding - ((temp - (-50)) / 400) * (ch - chartPadding * 2);
+                if(i === 0) cctx.moveTo(x, y); else cctx.lineTo(x, y);
+            }
+            cctx.stroke();
+            cctx.shadowBlur = 0; // reset
+
+            // Label endpoint temperatures
+            cctx.fillStyle = '#9ca3af';
+            cctx.font = '10px monospace';
+            cctx.fillText(`${t1Temp}°C (T1)`, 10, 15);
+            cctx.fillText(`${t2Temp}°C (T2)`, cw - 80, ch - 5);
+        }
+
+
+        // =====================================================================
+        // MODULE 2: CONVECTION CURRENT ALGORITHMS
+        // =====================================================================
+        let convParticles = [];
+        let naturalConvectionSpeedFactor = 1.0;
+        let convectionFlameLevel = 2; // base medium intensity
+
+        function initConvection() {
+            convParticles = [];
+            const canvas = tabs.convection.canvas;
+            
+            // Spawn 150 thermal particles with density attributes
+            for (let i = 0; i < 180; i++) {
+                convParticles.push({
+                    x: Math.random() * (canvas.width - 240) + 120,
+                    y: Math.random() * (canvas.height - 180) + 80,
+                    temp: 20 + Math.random() * 20, // Start cold
+                    vy: 0,
+                    vx: 0,
+                    radius: 5,
+                    density: 1.0
+                });
+            }
+        }
+
+        function updateHeaterLevel() {
+            convectionFlameLevel = parseInt(document.getElementById('heat-slider').value);
+            const levelLabel = ["Off", "Low", "Medium", "High", "Maximum"][convectionFlameLevel];
+            document.getElementById('heat-val-display').innerText = levelLabel;
+        }
+
+        function toggleForcedConvection() {
+            const mode = document.getElementById('convType').value;
+            naturalConvectionSpeedFactor = (mode === 'forced') ? 2.5 : 1.0;
+        }
+
+        function drawConvection() {
+            const ctx = tabs.convection.ctx;
+            const canvas = tabs.convection.canvas;
+            const cw = canvas.width;
+            const ch = canvas.height;
+
+            // Wipe background with semi-clear state to enable fluid motion blur trails
+            ctx.fillStyle = 'rgba(9, 13, 22, 0.25)';
+            ctx.fillRect(0, 0, cw, ch);
+
+            // Container Beaker boundary setup
+            const beakerLeft = 100;
+            const beakerRight = cw - 100;
+            const beakerTop = 60;
+            const beakerBottom = ch - 80;
+            const beakerWidth = beakerRight - beakerLeft;
+
+            // Draw Beaker Frame UI
+            ctx.strokeStyle = '#4b5563';
+            ctx.lineWidth = 6;
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(beakerLeft, beakerTop);
+            ctx.lineTo(beakerLeft, beakerBottom);
+            ctx.lineTo(beakerRight, beakerBottom);
+            ctx.lineTo(beakerRight, beakerTop);
+            ctx.stroke();
+
+            // Heating burner boundary
+            const burnerHeight = 15;
+            if (convectionFlameLevel > 0) {
+                // Glow effect under burner
+                const burnerGlow = ctx.createRadialGradient(cw/2, beakerBottom + burnerHeight, 10, cw/2, beakerBottom, 60);
+                burnerGlow.addColorStop(0, `rgba(249, 115, 22, ${0.15 * convectionFlameLevel})`);
+                burnerGlow.addColorStop(1, 'rgba(249, 115, 22, 0)');
+                ctx.fillStyle = burnerGlow;
+                ctx.fillRect(beakerLeft + 20, beakerBottom, beakerWidth - 40, 60);
+
+                // Flickering burner flame under beaker center
+                ctx.fillStyle = `rgba(249, 115, 22, ${0.4 + Math.random() * 0.3})`;
+                ctx.beginPath();
+                ctx.arc(cw/2, beakerBottom + 5, 25 * convectionFlameLevel/2, 0, Math.PI, true);
+                ctx.fill();
+            }
+
+            // Viscosity parameter reading
+            const viscosityFactor = parseFloat(document.getElementById('viscositySelect').value);
+
+            // Fluid Particle Engine Simulation Step
+            convParticles.forEach(p => {
+                
+                // Conduction update: Hot bottom plate transfer heat to fluid
+                const distToBottom = beakerBottom - p.y;
+                const distToHeatCenter = Math.abs(p.x - cw / 2);
+
+                if (distToBottom < 15 && convectionFlameLevel > 0) {
+                    // Hot plate zone cooks particle relative to flame proximity
+                    const heatInfluence = Math.max(0, 1 - (distToHeatCenter / (beakerWidth / 2)));
+                    p.temp += (heatInfluence * 0.8 * convectionFlameLevel) / viscosityFactor;
+                } else {
+                    // Heat loss over time at the upper cold boundary zone
+                    const coolingRate = (p.y < beakerTop + 50) ? 0.35 : 0.05;
+                    p.temp -= coolingRate * viscosityFactor;
+                }
+
+                // Bound temperatures safely (20C - 100C)
+                p.temp = Math.max(20, Math.min(100, p.temp));
+
+                // Thermal Expansion physics: High temp = lower density
+                p.density = 1.0 - ((p.temp - 20) / 100) * 0.25;
+
+                // Buoyancy calculation (Upward upward push vector based on low density status)
+                const targetBuoyancy = (1.0 - p.density) * 0.45 * (convectionFlameLevel > 0 ? 1 : 0.2);
+                
+                // Dynamic flow fields (Plumes rise in the middle, cool fluids sink down sides)
+                const midPlumeRange = beakerWidth * 0.28;
+                
+                if (Math.abs(p.x - cw/2) < midPlumeRange) {
+                    // Central rising plume acceleration
+                    p.vy -= (0.05 + targetBuoyancy) / viscosityFactor;
+                    // Disperse slightly outwards as they ascend
+                    p.vx += (p.x > cw/2 ? 0.02 : -0.02) * (p.temp/20);
+                } else {
+                    // Heavy cold sinking current along the sides of the beaker
+                    p.vy += (0.08 * viscosityFactor);
+                    // Cycle back inward toward the heat source center at the bottom
+                    if (p.y > beakerBottom - 30) {
+                        p.vx += (p.x < cw/2 ? 0.08 : -0.08);
+                    }
+                }
+
+                // Apply Forced convection Stir Fan interference vectors
+                const isForcedActive = (naturalConvectionSpeedFactor > 1.0);
+                if (isForcedActive) {
+                    // Introduce circular forced turbine velocity vortex fields
+                    const dx = p.x - cw / 2;
+                    const dy = p.y - (beakerTop + beakerBottom) / 2;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 5) {
+                        // Perpendicular force vectors simulating turbine stir
+                        p.vx += (-dy / dist) * 0.4;
+                        p.vy += (dx / dist) * 0.4;
+                    }
+                }
+
+                // Air resistance / Viscous friction damping
+                p.vx *= (0.95 / viscosityFactor);
+                p.vy *= (0.95 / viscosityFactor);
+
+                // Inject velocities
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Wall boundaries collision logic
+                const particleClearance = 10;
+                if (p.x < beakerLeft + particleClearance) {
+                    p.x = beakerLeft + particleClearance;
+                    p.vx *= -0.5;
+                }
+                if (p.x > beakerRight - particleClearance) {
+                    p.x = beakerRight - particleClearance;
+                    p.vx *= -0.5;
+                }
+                if (p.y < beakerTop + particleClearance) {
+                    p.y = beakerTop + particleClearance;
+                    p.vy *= -0.5;
+                    p.vx += (p.x > cw/2 ? 0.1 : -0.1); // push outward sideways at top
+                }
+                if (p.y > beakerBottom - particleClearance) {
+                    p.y = beakerBottom - particleClearance;
+                    p.vy *= -0.5;
+                }
+
+                // Render dynamic fluid colored particles
+                const thermalIntensityPercent = (p.temp - 20) / 80;
+                const rColor = Math.floor(thermalIntensityPercent * 255);
+                const bColor = Math.floor((1 - thermalIntensityPercent) * 255);
+                
+                ctx.fillStyle = `rgba(${rColor}, 140, ${bColor}, 0.85)`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Forced Convection Stirrer icon inside fluid if mode is active
+            if (naturalConvectionSpeedFactor > 1.0) {
+                const rotationAngle = (Date.now() * 0.01) % (Math.PI * 2);
+                ctx.save();
+                ctx.translate(cw/2, (beakerTop + beakerBottom)/2);
+                ctx.rotate(rotationAngle);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 3;
+                
+                // Draw 3 blades
+                for (let b = 0; b < 3; b++) {
+                    ctx.rotate((Math.PI * 2) / 3);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(15, -15, 0, -40);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+
+        // =====================================================================
+        // MODULE 3: SPACE VACUUM RADIATION CURRENT ALGORITHMS
+        // =====================================================================
+        let radEmitterTemp = 1200; // Kelvin scale
+        let radiationParticles = [];
+
+        function updateRadiationEmitter() {
+            radEmitterTemp = parseInt(document.getElementById('rad-temp-slider').value);
+            document.getElementById('rad-temp-val').innerText = `${radEmitterTemp} K`;
+            
+            // Wien's Displacement peak wavelength calculation (b = 2898 µm·K)
+            const b = 2897.77; 
+            const peakWavelength = b / radEmitterTemp; // µm
+            
+            let bandLabel = "IR (Infrared)";
+            if(peakWavelength < 0.38) bandLabel = "UV (Ultraviolet)";
+            else if(peakWavelength >= 0.38 && peakWavelength <= 0.75) bandLabel = "Visible Spectrum";
+
+            document.getElementById('wien-val').innerText = `${peakWavelength.toFixed(2)} µm (${bandLabel})`;
+
+            // Relative Stefan Boltzmann Power (Relative scale P ~ T^4)
+            // Normalized base (1200K = 1.00x)
+            const pBase = Math.pow(1200, 4);
+            const pCurrent = Math.pow(radEmitterTemp, 4);
+            const pRatio = pCurrent / pBase;
+            document.getElementById('stefan-power-val').innerText = `${pRatio.toFixed(2)}x Base Power`;
+
+            renderMath();
+        }
+
+        function initRadiation() {
+            radiationParticles = [];
+        }
+
+        function drawRadiation(timestamp) {
+            const ctx = tabs.radiation.ctx;
+            const canvas = tabs.radiation.canvas;
+            const cw = canvas.width;
+            const ch = canvas.height;
+
+            ctx.clearRect(0,0,cw,ch);
+
+            // Draw Emitter Source Plate structure
+            const emitX = 120;
+            const receiverX = cw - 120;
+            const deviceY = ch / 2;
+
+            // Draw Vacuum Outer Frame Boundaries
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(50, 40, cw - 100, ch - 80);
+
+            // Draw vacuum space dots indicating empty space (no medium)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText("VACUUM SPACE CHANNELS - SPEED OF LIGHT VECTOR", cw/2 - 140, 65);
+
+            // Draw Heated Source Filament on left
+            const sourceColorNormalized = Math.max(0, Math.min(1, (radEmitterTemp - 400) / 2600));
+            // Transition color from deep dark red (cooler) to bright yellow-white (super hot)
+            const sourceR = 150 + Math.floor(sourceColorNormalized * 105);
+            const sourceG = Math.floor(sourceColorNormalized * 180);
+            const sourceB = Math.floor(sourceColorNormalized * 100);
+
+            ctx.save();
+            ctx.shadowBlur = 10 + sourceColorNormalized * 30;
+            ctx.shadowColor = `rgb(${sourceR}, ${sourceG}, ${sourceB})`;
+            ctx.fillStyle = `rgb(${sourceR}, ${sourceG}, ${sourceB})`;
+            ctx.beginPath();
+            ctx.arc(emitX, deviceY, 40 + sourceColorNormalized * 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText("Source EM", emitX - 32, deviceY - 5);
+            ctx.fillText(`${radEmitterTemp}K`, emitX - 20, deviceY + 15);
+
+            // Draw Target Absorption Plate on right
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(receiverX, deviceY, 35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Absorption plate registers temperature heating depending on EM absorption rate
+            const absorbedGlow = Math.sin(timestamp * 0.005) * 5 + (radEmitterTemp / 300) * 10;
+            ctx.fillStyle = `rgba(239, 68, 68, ${Math.min(0.8, (radEmitterTemp/3000) * 0.75)})`;
+            ctx.beginPath();
+            ctx.arc(receiverX, deviceY, 35, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.fillStyle = '#f3f4f6';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText("Absorber", receiverX - 26, deviceY - 5);
+            ctx.fillText("Receiver", receiverX - 24, deviceY + 10);
+
+            // Generate photon particles dynamically based on temperature power output
+            // More particles at higher heat rates (Stefan Boltzmann)
+            const targetSpawnRate = Math.floor(Math.pow(radEmitterTemp/1000, 2) * 2) + 1;
+            if(Math.random() < 0.25 * targetSpawnRate && radiationParticles.length < 120) {
+                radiationParticles.push({
+                    x: emitX + 45,
+                    y: deviceY + (Math.random() * 50 - 25),
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 6.5, // representation of c
+                    wavelengthColor: `rgb(${sourceR}, ${sourceG}, ${sourceB})`
+                });
+            }
+
+            // Run particles down the line representing speed of light EM Waves
+            radiationParticles.forEach((wave, idx) => {
+                wave.x += wave.speed;
+                wave.phase += 0.25;
+
+                // Draw sinusoidal wavefront particle packets
+                const amp = 15;
+                const waveY = wave.y + Math.sin(wave.x * 0.08 - wave.phase) * amp;
+
+                ctx.fillStyle = wave.wavelengthColor;
+                ctx.beginPath();
+                ctx.arc(wave.x, waveY, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Small glow surrounding wave packets
+                ctx.fillStyle = wave.wavelengthColor.replace('rgb', 'rgba').replace(')', ', 0.3)');
+                ctx.beginPath();
+                ctx.arc(wave.x, waveY, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Clean up elements that have made it to the collector
+                if (wave.x > receiverX - 35) {
+                    radiationParticles.splice(idx, 1);
+                }
+            });
+        }
+
+
+        // =====================================================================
+        // CORE WORKSPACE SCHEDULER
+        // =====================================================================
+        function initializeSimulations() {
+            initConduction();
+            initConvection();
+            initRadiation();
+        }
+
+        function runMainLoop(timestamp) {
+            if (activeTab === 'conduction') {
+                drawConduction(timestamp);
+            } else if (activeTab === 'convection') {
+                drawConvection();
+            } else if (activeTab === 'radiation') {
+                drawRadiation(timestamp);
+            }
+            requestAnimationFrame(runMainLoop);
+        }
+
+        // Window Initial Loading Sequence
+        window.onload = () => {
+            resizeCanvases();
+            initializeSimulations();
+            updateRadiationEmitter(); // Initial Wien computation values loaded
+            renderMath(); // Safely render equations after page structures load
+            requestAnimationFrame(runMainLoop);
+        };
+    </script>
+</body>
+</html>
