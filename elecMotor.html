@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoltSpin - Interactive Electric Motor Lab</title>
+    <!-- Tailwind CSS for modern layout & styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbar for control panels */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Glowing effects */
+        .glow-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+        .glow-red {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Header Section -->
+    <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-10 shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/30 animate-pulse">
+                <!-- Inline SVG Electric Motor Icon -->
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 bg-clip-text text-transparent">VoltSpin</h1>
+                <p class="text-xs text-slate-400 font-medium">Interactive Electric Motor Sandbox</p>
+            </div>
+        </div>
+        
+        <!-- Score/Achievements HUD -->
+        <div class="flex items-center gap-6">
+            <div class="hidden sm:flex items-center gap-2 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl">
+                <span class="text-xs font-semibold text-slate-400">MISSION PROGRESS:</span>
+                <div class="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="challengeProgress" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-0 transition-all duration-500"></div>
+                </div>
+                <span id="challengeCount" class="text-xs font-bold text-emerald-400 ml-1">0/3</span>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="btnToggleGuide" class="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-850 rounded-xl border border-slate-800 transition">
+                    Theory & Guide
+                </button>
+                <button id="btnResetSandbox" class="px-4 py-2 text-sm font-semibold text-red-400 hover:text-red-300 bg-red-950/30 hover:bg-red-950/50 rounded-xl border border-red-900/40 transition">
+                    Reset Lab
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout Container -->
+    <main class="flex-1 flex flex-col lg:flex-row h-[calc(100vh-73px)] overflow-hidden">
+        
+        <!-- Left Side: Interactive Simulation & Controls -->
+        <div class="w-full lg:w-3/5 p-4 lg:p-6 flex flex-col gap-6 overflow-y-auto h-full bg-slate-900">
+            
+            <!-- Canvas Simulation Container -->
+            <div class="relative bg-slate-950 rounded-2xl border border-slate-800 shadow-2xl flex-1 min-h-[380px] lg:min-h-[460px] flex flex-col overflow-hidden">
+                <!-- Status Bar -->
+                <div class="absolute top-4 left-4 right-4 z-10 flex justify-between items-center pointer-events-none">
+                    <div class="bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/50 flex items-center gap-2 text-xs font-bold">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span id="simStatusText" class="text-emerald-400">MOTOR ACTIVE</span>
+                    </div>
+                    <div class="bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/50 text-xs font-bold font-mono text-cyan-400 flex items-center gap-2">
+                        <span>ROTATION:</span>
+                        <span id="txtRPM">0 RPM</span>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <div class="flex-1 w-full h-full relative cursor-crosshair">
+                    <canvas id="simCanvas" class="absolute inset-0 w-full h-full"></canvas>
+                </div>
+
+                <!-- Live Diagnostics HUD overlay -->
+                <div class="p-3 bg-slate-950/80 border-t border-slate-850 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px] font-semibold text-slate-400">
+                    <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                        <div class="text-slate-500 uppercase tracking-wider text-[9px] mb-0.5">Electromotive Force</div>
+                        <div id="diagForce" class="text-indigo-400 font-mono text-sm">0.00 N</div>
+                    </div>
+                    <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                        <div class="text-slate-500 uppercase tracking-wider text-[9px] mb-0.5">Commutator Commutation</div>
+                        <div id="diagCommutator" class="text-blue-400 font-mono text-sm">Direct Normal</div>
+                    </div>
+                    <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                        <div class="text-slate-500 uppercase tracking-wider text-[9px] mb-0.5">Active Current</div>
+                        <div id="diagCurrent" class="text-amber-400 font-mono text-sm">0.00 A</div>
+                    </div>
+                    <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                        <div class="text-slate-500 uppercase tracking-wider text-[9px] mb-0.5">Brush Status</div>
+                        <div id="diagBrush" class="text-emerald-400 font-mono text-sm">Ideal Contact</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Controls -->
+            <div class="bg-slate-950 rounded-2xl border border-slate-800 p-5 shadow-xl">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded bg-blue-500"></span> Control Dashboard
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Side Control Panel -->
+                    <div class="space-y-4">
+                        <!-- Voltage / Battery Power -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    Battery Voltage (Electromotive Force)
+                                </label>
+                                <span id="valVoltage" class="text-xs font-bold text-amber-400 font-mono">6.0 V</span>
+                            </div>
+                            <input type="range" id="inputVoltage" min="0" max="12" step="0.5" value="6" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                <span>0V (Stopped)</span>
+                                <span>6V (Default)</span>
+                                <span>12V (Max Overdrive)</span>
+                            </div>
+                        </div>
+
+                        <!-- Current polarity -->
+                        <div class="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-300">Reversible DC Polarity</h4>
+                                <p class="text-[10px] text-slate-400">Inverts current flows dynamically</p>
+                            </div>
+                            <button id="btnTogglePolarity" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-xs font-bold rounded-lg transition shadow-lg shadow-blue-500/20 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                Swap Polarity
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Control Panel -->
+                    <div class="space-y-4">
+                        <!-- Magnetic Field Strength -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                    Stator Magnetic Field (Tesla)
+                                </label>
+                                <span id="valMagneticField" class="text-xs font-bold text-rose-400 font-mono">1.0 T</span>
+                            </div>
+                            <input type="range" id="inputMagnetic" min="-2.0" max="2.0" step="0.2" value="1.0" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                <span>Reverse Pole (-2T)</span>
+                                <span>None (0T)</span>
+                                <span>Normal Pole (+2T)</span>
+                            </div>
+                        </div>
+
+                        <!-- Coil Turn Configuration & Brush Material Selection -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Coil Loops ($N$)</label>
+                                <select id="selectLoops" class="w-full bg-slate-900 border border-slate-800 text-xs font-semibold rounded-lg p-2 text-slate-300 focus:outline-none focus:border-blue-500">
+                                    <option value="1">1 Loop (Low Torque)</option>
+                                    <option value="2" selected>2 Loops (Optimal)</option>
+                                    <option value="3">3 Loops (High Torque)</option>
+                                    <option value="4">4 Loops (Extra Torque)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Brush Material</label>
+                                <select id="selectBrushes" class="w-full bg-slate-900 border border-slate-800 text-xs font-semibold rounded-lg p-2 text-slate-300 focus:outline-none focus:border-blue-500">
+                                    <option value="carbon">Carbon (Standard)</option>
+                                    <option value="copper">Copper (Low R)</option>
+                                    <option value="gold">Gold (Supreme)</option>
+                                    <option value="worn">Worn Out (Sparky)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Controls (Play, Pause, Step) -->
+                <div class="mt-5 pt-4 border-t border-slate-900 flex justify-center items-center gap-3">
+                    <button id="btnPause" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-850 text-xs font-bold text-slate-200 rounded-xl border border-slate-800 transition flex items-center gap-1.5">
+                        <svg id="iconPause" class="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                        </svg>
+                        <span id="lblPause">Pause Sandbox</span>
+                    </button>
+                    <button id="btnStep" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-850 text-xs font-bold text-slate-400 rounded-xl border border-slate-800 transition flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                        Step Frame
+                    </button>
+                    <div class="h-6 w-[1px] bg-slate-800"></div>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chkShowFields" checked class="rounded bg-slate-900 border-slate-800 text-blue-500 focus:ring-0 focus:ring-offset-0">
+                        <span class="text-xs text-slate-400 font-medium select-none">Show Magnetic Field Lines</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Learning Progression, Missions & Fleming's Rule -->
+        <div id="learningPanel" class="w-full lg:w-2/5 border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950 p-4 lg:p-6 overflow-y-auto h-full flex flex-col gap-6">
+            
+            <!-- Section Tab Selector -->
+            <div class="flex bg-slate-900 p-1.5 rounded-xl border border-slate-850">
+                <button id="tabMissions" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-lg transition">
+                    Active Missions
+                </button>
+                <button id="tabFlemings" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition">
+                    Fleming's Rule
+                </button>
+                <button id="tabTheory" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition">
+                    Quick Theory
+                </button>
+            </div>
+
+            <!-- Tab Content 1: Missions -->
+            <div id="contentMissions" class="space-y-4 flex-1">
+                <div class="p-4 bg-indigo-950/20 border border-indigo-900/30 rounded-2xl">
+                    <h3 class="text-sm font-bold text-indigo-400 flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        Pedagogical Laboratory Goals
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Configure your physical components and variables using the controls on the left to accomplish the missions below.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <!-- Mission 1 -->
+                    <div id="missionCard1" class="p-4 bg-slate-900 border border-slate-850 rounded-2xl transition">
+                        <div class="flex items-start justify-between">
+                            <div class="space-y-1">
+                                <span class="text-[9px] font-bold px-2 py-0.5 bg-blue-900/50 text-blue-400 rounded-full border border-blue-800/40">MISSION 1</span>
+                                <h4 class="text-xs font-bold text-slate-200">The Retrograde Challenge</h4>
+                                <p class="text-xs text-slate-400">Change motor configurations to make the coil rotate in a clockwise direction instead of anticlockwise.</p>
+                            </div>
+                            <span id="missionStatus1" class="text-xs font-bold text-slate-500">Incomplete</span>
+                        </div>
+                    </div>
+
+                    <!-- Mission 2 -->
+                    <div id="missionCard2" class="p-4 bg-slate-900 border border-slate-850 rounded-2xl transition">
+                        <div class="flex items-start justify-between">
+                            <div class="space-y-1">
+                                <span class="text-[9px] font-bold px-2 py-0.5 bg-amber-900/50 text-amber-400 rounded-full border border-amber-800/40">MISSION 2</span>
+                                <h4 class="text-xs font-bold text-slate-200">High-Fidelity Tuning</h4>
+                                <p class="text-xs text-slate-400">Eliminate voltage drop losses. Select the brush material with the absolute highest electrical conductivity.</p>
+                            </div>
+                            <span id="missionStatus2" class="text-xs font-bold text-slate-500">Incomplete</span>
+                        </div>
+                    </div>
+
+                    <!-- Mission 3 -->
+                    <div id="missionCard3" class="p-4 bg-slate-900 border border-slate-850 rounded-2xl transition">
+                        <div class="flex items-start justify-between">
+                            <div class="space-y-1">
+                                <span class="text-[9px] font-bold px-2 py-0.5 bg-rose-900/50 text-rose-400 rounded-full border border-rose-800/40">MISSION 3</span>
+                                <h4 class="text-xs font-bold text-slate-200">Maximum Power Threshold</h4>
+                                <p class="text-xs text-slate-400">Maximize Torque! Set loop turns to maximum and push voltage & magnetic field values until you exceed 150 RPM.</p>
+                            </div>
+                            <span id="missionStatus3" class="text-xs font-bold text-slate-500">Incomplete</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Concept Assessment -->
+                <div class="p-5 bg-slate-900 border border-slate-850 rounded-2xl">
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Live Concept Assessment</h4>
+                    <p class="text-xs text-slate-400 mb-4" id="quizQuestion">Why does the electric current reverse every half-rotation?</p>
+                    <div class="space-y-2" id="quizAnswers">
+                        <button onclick="checkAnswer(1)" class="w-full text-left p-3 text-xs bg-slate-950 border border-slate-800 rounded-xl hover:border-blue-600 transition text-slate-300 hover:text-white">
+                            A) Because the battery turns upside down due to rotational torque.
+                        </button>
+                        <button onclick="checkAnswer(2)" class="w-full text-left p-3 text-xs bg-slate-950 border border-slate-800 rounded-xl hover:border-blue-600 transition text-slate-300 hover:text-white">
+                            B) The split-ring commutator swaps the brush contact relative to the loop.
+                        </button>
+                        <button onclick="checkAnswer(3)" class="w-full text-left p-3 text-xs bg-slate-950 border border-slate-800 rounded-xl hover:border-blue-600 transition text-slate-300 hover:text-white">
+                            C) Due to electromagnetism becoming saturated on the North Pole.
+                        </button>
+                    </div>
+                    <div id="quizFeedback" class="mt-3 text-xs hidden font-semibold"></div>
+                </div>
+            </div>
+
+            <!-- Tab Content 2: Fleming's Rule visualizer -->
+            <div id="contentFlemings" class="hidden space-y-4">
+                <div class="p-4 bg-emerald-950/20 border border-emerald-900/30 rounded-2xl">
+                    <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11V9a5 5 0 00-9.754-1.5m1.378-3.4l-.76-2.57m1.565 2.57l1.025 3.47m0 0a3 3 0 114.772 1.151l-.763 2.57m0 0l.063-.016a1.86 1.86 0 011.614 1.801v.07a3.37 3.37 0 01-.617 1.885l-.253.355M12 11c.532-1.855.95-3.834 1.214-5.88a14.125 14.125 0 011.025-3.47m1.565 2.57l-.76-2.57m-1.42 4.414c-.66 1.346-.967 2.87-1.01 4.42m0 0a3 3 0 114.772 1.151L18 7.33M12 11a14.148 14.148 0 001.378-3.4M12 11a13.944 13.944 0 002.753 9.571M19.5 21a3 3 0 11-6 0h6z"/></svg>
+                        Fleming's Left-Hand Rule Helper
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">This standard physics rule explains why the motor spins! Match the physical directions in the live simulation to see how forces are dynamically determined.</p>
+                </div>
+
+                <!-- 3D-like Interactive Hands Diagram -->
+                <div class="bg-slate-900 border border-slate-850 p-5 rounded-2xl space-y-4">
+                    <h4 class="text-xs font-bold text-slate-300">Interact and Align Fingers:</h4>
+                    
+                    <!-- Left Hand Diagram Render Box -->
+                    <div class="relative bg-slate-950 rounded-xl p-4 flex flex-col justify-center items-center h-52 border border-slate-800">
+                        <svg class="w-40 h-40" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Thumb: Force vector (F) -->
+                            <line x1="100" y1="100" x2="100" y2="40" stroke="#818cf8" stroke-width="4" stroke-linecap="round"/>
+                            <polygon points="100,28 95,43 105,43" fill="#818cf8" />
+                            <text x="110" y="45" fill="#818cf8" font-size="12" font-weight="bold">Force (F)</text>
+                            
+                            <!-- Index Finger: Field Vector (B) -->
+                            <line x1="100" y1="100" x2="160" y2="100" stroke="#f43f5e" stroke-width="4" stroke-linecap="round"/>
+                            <polygon points="172,100 157,95 157,105" fill="#f43f5e" />
+                            <text x="140" y="90" fill="#f43f5e" font-size="12" font-weight="bold">Field (B)</text>
+
+                            <!-- Middle Finger: Current Vector (I) -->
+                            <line x1="100" y1="100" x2="50" y2="150" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+                            <polygon points="42,158 56,148 48,142" fill="#f59e0b" />
+                            <text x="35" y="130" fill="#f59e0b" font-size="12" font-weight="bold">Current (I)</text>
+                            
+                            <!-- Center Node -->
+                            <circle cx="100" cy="100" r="8" fill="#38bdf8"/>
+                        </svg>
+                        <div class="absolute bottom-2 text-[10px] text-slate-500 font-mono text-center">Vectors align to the current left-side coil arm (AB)</div>
+                    </div>
+
+                    <!-- Vectors Dynamic State List -->
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl">
+                            <div class="text-[10px] text-indigo-400 font-semibold">Force (F)</div>
+                            <div id="vectorForce" class="font-bold text-slate-200 mt-1">Downwards</div>
+                        </div>
+                        <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl">
+                            <div class="text-[10px] text-rose-400 font-semibold">Field (B)</div>
+                            <div id="vectorField" class="font-bold text-slate-200 mt-1">N &rarr; S</div>
+                        </div>
+                        <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl">
+                            <div class="text-[10px] text-amber-400 font-semibold">Current (I)</div>
+                            <div id="vectorCurrent" class="font-bold text-slate-200 mt-1">A &rarr; B</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content 3: Theory & Explanations -->
+            <div id="contentTheory" class="hidden space-y-4">
+                <div class="p-4 bg-slate-900 border border-slate-850 rounded-2xl space-y-3">
+                    <h3 class="text-sm font-bold text-slate-200">How Does an Electric Motor Turn?</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        An electric motor consists of a rectangular loop of copper wire placed between the opposite poles of magnets. When electric current flows through the loop, the magnetic field exerts forces on the branches <strong>AB</strong> and <strong>CD</strong> of the coil.
+                    </p>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        According to <strong>Fleming's Left-Hand Rule</strong>, because the current flows in opposite directions in the two parallel branches, the magnetic forces act in opposite directions (one branch is pushed down, while the other is pushed up), initiating an anticlockwise or clockwise rotation.
+                    </p>
+                </div>
+
+                <div class="p-4 bg-slate-900 border border-slate-850 rounded-2xl space-y-2">
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">The Commutator Magic</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        If current flowed continuously in the same direction inside the loop, the forces would swap once the coil crossed the vertical axis, causing the motor to wobble and stop. 
+                    </p>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        The <strong>split-ring commutator</strong> reverses the direction of current inside the loop every half-rotation, ensuring the torque acts in a constant direction. This allows the motor to maintain continuous, fluid rotation!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer with informative links -->
+    <footer class="bg-slate-950 border-t border-slate-850 px-6 py-3.5 text-center text-xs text-slate-500 flex justify-between items-center gap-4">
+        <span>Designed for Physics & Electrical Engineering Curriculums</span>
+        <span>&copy; VoltSpin Sandbox Simulator</span>
+    </footer>
+
+    <!-- Interactive script controlling the Physics Simulation -->
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const inputVoltage = document.getElementById('inputVoltage');
+        const valVoltage = document.getElementById('valVoltage');
+        const inputMagnetic = document.getElementById('inputMagnetic');
+        const valMagneticField = document.getElementById('valMagneticField');
+        const selectLoops = document.getElementById('selectLoops');
+        const selectBrushes = document.getElementById('selectBrushes');
+        const btnTogglePolarity = document.getElementById('btnTogglePolarity');
+        const btnPause = document.getElementById('btnPause');
+        const lblPause = document.getElementById('lblPause');
+        const iconPause = document.getElementById('iconPause');
+        const btnStep = document.getElementById('btnStep');
+        const chkShowFields = document.getElementById('chkShowFields');
+        const btnResetSandbox = document.getElementById('btnResetSandbox');
+        const txtRPM = document.getElementById('txtRPM');
+        
+        // Diagnostic Displays
+        const diagForce = document.getElementById('diagForce');
+        const diagCommutator = document.getElementById('diagCommutator');
+        const diagCurrent = document.getElementById('diagCurrent');
+        const diagBrush = document.getElementById('diagBrush');
+        const simStatusText = document.getElementById('simStatusText');
+        
+        // Dynamic tabs
+        const tabMissions = document.getElementById('tabMissions');
+        const tabFlemings = document.getElementById('tabFlemings');
+        const tabTheory = document.getElementById('tabTheory');
+        const contentMissions = document.getElementById('contentMissions');
+        const contentFlemings = document.getElementById('contentFlemings');
+        const contentTheory = document.getElementById('contentTheory');
+        
+        // Vectors Indicators
+        const vectorForce = document.getElementById('vectorForce');
+        const vectorField = document.getElementById('vectorField');
+        const vectorCurrent = document.getElementById('vectorCurrent');
+
+        // State variables
+        let isPaused = false;
+        let angle = 0; // Current coil angle in radians
+        let angularVelocity = 0; // Current rotation speed
+        let scale = 1.0;
+        let polarity = 1; // 1 for normal, -1 for reversed
+        let sparkAlpha = 0; // For sparks on worn brushes
+        let sparkPoints = [];
+        let particles = []; // Floating current electron particles
+        
+        // Missions Check State
+        let missions = {
+            m1: false, // Reverse motor direction
+            m2: false, // Low R brush selected (Gold)
+            m3: false  // Reach >150 RPM with custom configurations
+        };
+
+        // Initialize Canvas Resize
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Interactive Tabs Logic
+        function switchTab(activeTab, activeContent, allTabs, allContents) {
+            allTabs.forEach(tab => {
+                tab.classList.remove('bg-blue-600', 'text-white');
+                tab.classList.add('text-slate-400');
+            });
+            activeTab.classList.add('bg-blue-600', 'text-white');
+            activeTab.classList.remove('text-slate-400');
+            
+            allContents.forEach(content => content.classList.add('hidden'));
+            activeContent.classList.remove('hidden');
+        }
+
+        tabMissions.addEventListener('click', () => switchTab(tabMissions, contentMissions, [tabMissions, tabFlemings, tabTheory], [contentMissions, contentFlemings, contentTheory]));
+        tabFlemings.addEventListener('click', () => switchTab(tabFlemings, contentFlemings, [tabMissions, tabFlemings, tabTheory], [contentMissions, contentFlemings, contentTheory]));
+        tabTheory.addEventListener('click', () => switchTab(tabTheory, contentTheory, [tabMissions, tabFlemings, tabTheory], [contentMissions, contentFlemings, contentTheory]));
+        document.getElementById('btnToggleGuide').addEventListener('click', () => switchTab(tabTheory, contentTheory, [tabMissions, tabFlemings, tabTheory], [contentMissions, contentFlemings, contentTheory]));
+
+        // Reset Sandbox
+        btnResetSandbox.addEventListener('click', () => {
+            inputVoltage.value = 6;
+            inputMagnetic.value = 1.0;
+            selectLoops.value = "2";
+            selectBrushes.value = "carbon";
+            polarity = 1;
+            angle = 0;
+            angularVelocity = 0;
+            isPaused = false;
+            updateControls();
+        });
+
+        // Toggle Polarity
+        btnTogglePolarity.addEventListener('click', () => {
+            polarity *= -1;
+            btnTogglePolarity.classList.toggle('bg-blue-600');
+            btnTogglePolarity.classList.toggle('bg-amber-600');
+        });
+
+        // Pause/Play controls
+        btnPause.addEventListener('click', () => {
+            isPaused = !isPaused;
+            if (isPaused) {
+                lblPause.textContent = "Resume Sandbox";
+                iconPause.innerHTML = `<path d="M8 5v14l11-7z"/>`; // Play Icon
+                simStatusText.textContent = "LAB PAUSED";
+                simStatusText.classList.remove('text-emerald-400');
+                simStatusText.classList.add('text-amber-400');
+            } else {
+                lblPause.textContent = "Pause Sandbox";
+                iconPause.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`; // Pause Icon
+                simStatusText.textContent = "MOTOR ACTIVE";
+                simStatusText.classList.remove('text-amber-400');
+                simStatusText.classList.add('text-emerald-400');
+            }
+        });
+
+        btnStep.addEventListener('click', () => {
+            if (isPaused) {
+                updatePhysics(0.05);
+                draw();
+            }
+        });
+
+        // Realtime parameters update
+        function updateControls() {
+            valVoltage.textContent = parseFloat(inputVoltage.value).toFixed(1) + ' V';
+            valMagneticField.textContent = parseFloat(inputMagnetic.value).toFixed(1) + ' T';
+        }
+
+        inputVoltage.addEventListener('input', updateControls);
+        inputMagnetic.addEventListener('input', updateControls);
+
+        // Core Physics Calculations
+        function updatePhysics(dt) {
+            const V = parseFloat(inputVoltage.value) * polarity;
+            const B = parseFloat(inputMagnetic.value);
+            const N = parseInt(selectLoops.value);
+            const brush = selectBrushes.value;
+
+            // Resistance and friction variables depending on Brushes Selected
+            let R = 1.5; // Ohms base resistance
+            let frictionCoefficient = 0.04;
+            let dirtyContact = 1.0; // Efficiency multiplier
+
+            switch(brush) {
+                case 'carbon':
+                    R = 1.5;
+                    frictionCoefficient = 0.04;
+                    break;
+                case 'copper':
+                    R = 0.8;
+                    frictionCoefficient = 0.09; // High wear friction
+                    break;
+                case 'gold':
+                    R = 0.4; // Extreme performance conductivity
+                    frictionCoefficient = 0.02;
+                    break;
+                case 'worn':
+                    R = 3.5; // Poor contact high resistance
+                    frictionCoefficient = 0.08;
+                    dirtyContact = 0.6; // High electrical loss
+                    if (Math.random() < 0.15) {
+                        sparkAlpha = 1.0;
+                    }
+                    break;
+            }
+
+            // Realtime Diagnostics Current Calculations
+            const I = (V / R) * dirtyContact;
+            diagCurrent.textContent = Math.abs(I).toFixed(2) + ' A';
+
+            // Torque formulation: Torque = N * B * I * A * cos(angle)
+            // A (Coil Area scale) = 1.0 relative
+            // The split commutator flips the direction of current inside the loop
+            // as the loop crosses the vertical plane (90deg and 270deg positions).
+            // Let's model split rings correctly:
+            let commutationFactor = Math.sin(angle) >= 0 ? 1 : -1;
+            diagCommutator.textContent = commutationFactor > 0 ? "Direct Normal" : "Reverse Flipped";
+
+            // Current inside loop relative to poles
+            const loopCurrent = I * commutationFactor;
+            const torque = N * B * loopCurrent * Math.cos(angle);
+            
+            // Apply simple angular acceleration and friction load
+            const loadTorque = frictionCoefficient * angularVelocity;
+            const netAcceleration = torque - loadTorque;
+            
+            angularVelocity += netAcceleration * dt;
+            angle += angularVelocity * dt;
+
+            // Keep angle in bounds
+            angle = angle % (Math.PI * 2);
+            if (angle < 0) angle += Math.PI * 2;
+
+            // Compute actual visual performance metrics
+            const currentRPM = Math.abs(Math.round((angularVelocity / (Math.PI * 2)) * 60));
+            txtRPM.textContent = currentRPM + ' RPM';
+            
+            // Force on AB Side vector calculation
+            // Force F = B * I * L (Scale vector visualization)
+            const calculatedForce = B * I * N * Math.cos(angle);
+            diagForce.textContent = Math.abs(calculatedForce * 0.1).toFixed(3) + ' N';
+
+            // Map brush status diagnosis
+            diagBrush.textContent = brush === 'worn' ? 'Poor / Sparking' : (brush === 'gold' ? 'Supreme' : 'Normal Contact');
+
+            // Generate particles tracking active current flow
+            if (Math.abs(I) > 0.1 && particles.length < 35 && !isPaused) {
+                particles.push({
+                    pos: 0, // 0 to 1 progress around rectangular coil
+                    speed: 0.01 * (I / 5)
+                });
+            }
+
+            // Update electric particles
+            particles.forEach((p, idx) => {
+                p.pos += p.speed;
+                if (p.pos > 1 || p.pos < 0) {
+                    particles.splice(idx, 1);
+                }
+            });
+
+            // Spark fadeout
+            if (sparkAlpha > 0) {
+                sparkAlpha -= dt * 4;
+            }
+
+            // --- PEDAGOGICAL MISSIONS RESOLUTIONS ---
+            // Mission 1: Verify clockwise rotation (negative angular velocity)
+            if (angularVelocity < -1.5) {
+                missions.m1 = true;
+                markMissionComplete(1);
+            }
+            
+            // Mission 2: Gold chosen
+            if (brush === 'gold') {
+                missions.m2 = true;
+                markMissionComplete(2);
+            }
+
+            // Mission 3: Exceed 150 RPM
+            if (currentRPM > 150) {
+                missions.m3 = true;
+                markMissionComplete(3);
+            }
+
+            // Fleming's Left hand visual values mappings
+            // Determine active directions relative to Armature Side AB (left-side relative)
+            if (B !== 0) {
+                vectorField.textContent = B > 0 ? "N ➔ S" : "S ➔ N";
+            } else {
+                vectorField.textContent = "None";
+            }
+
+            const currentFlowDirection = I * commutationFactor;
+            if (currentFlowDirection > 0) {
+                vectorCurrent.textContent = "A ➔ B (In)";
+            } else if (currentFlowDirection < 0) {
+                vectorCurrent.textContent = "B ➔ A (Out)";
+            } else {
+                vectorCurrent.textContent = "None (0V)";
+            }
+
+            const activeForceDirection = calculatedForce;
+            if (activeForceDirection > 0.05) {
+                vectorForce.textContent = "Upwards ⬆";
+            } else if (activeForceDirection < -0.05) {
+                vectorForce.textContent = "Downwards ⬇";
+            } else {
+                vectorForce.textContent = "Zero Position";
+            }
+        }
+
+        function markMissionComplete(id) {
+            const card = document.getElementById('missionCard' + id);
+            const statusText = document.getElementById('missionStatus' + id);
+            card.classList.remove('bg-slate-900', 'border-slate-850');
+            card.classList.add('bg-emerald-950/20', 'border-emerald-800/40');
+            statusText.textContent = "COMPLETED!";
+            statusText.classList.remove('text-slate-500');
+            statusText.classList.add('text-emerald-400');
+            
+            // Check overall status
+            let completeCount = 0;
+            if (missions.m1) completeCount++;
+            if (missions.m2) completeCount++;
+            if (missions.m3) completeCount++;
+
+            const progressPercentage = (completeCount / 3) * 100;
+            document.getElementById('challengeProgress').style.width = progressPercentage + '%';
+            document.getElementById('challengeCount').textContent = completeCount + '/3';
+        }
+
+        // Beautiful Custom HTML5 Canvas Renderer
+        function draw() {
+            const width = canvas.width / window.devicePixelRatio;
+            const height = canvas.height / window.devicePixelRatio;
+            ctx.clearRect(0, 0, width, height);
+
+            // Center of simulation
+            const cx = width / 2;
+            const cy = height / 2 - 20;
+
+            // 1. Draw Field Magnet Poles (N on Left, S on Right)
+            // Magnetic field strength determines visual opacity
+            const bVal = parseFloat(inputMagnetic.value);
+            const magnetWidth = 120;
+            const magnetHeight = 160;
+
+            ctx.save();
+            // North Pole (Red)
+            let redGlow = ctx.createLinearGradient(cx - 240, cy, cx - 120, cy);
+            redGlow.addColorStop(0, '#7f1d1d');
+            redGlow.addColorStop(1, '#ef4444');
+            ctx.fillStyle = redGlow;
+            ctx.shadowBlur = Math.abs(bVal) * 15;
+            ctx.shadowColor = bVal >= 0 ? '#ef4444' : '#3b82f6';
+            
+            // Flip colors based on sign of Magnetic strength
+            if (bVal < 0) {
+                ctx.fillStyle = '#3b82f6'; // Becomes South-colored
+            }
+            ctx.beginPath();
+            ctx.roundRect(cx - 260, cy - magnetHeight/2, magnetWidth, magnetHeight, [16, 0, 0, 16]);
+            ctx.fill();
+            
+            // Pole text label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px "Plus Jakarta Sans"';
+            ctx.fillText(bVal >= 0 ? "N" : "S", cx - 200, cy + 8);
+            ctx.restore();
+
+            // South Pole (Blue)
+            ctx.save();
+            let blueGlow = ctx.createLinearGradient(cx + 120, cy, cx + 240, cy);
+            blueGlow.addColorStop(0, '#3b82f6');
+            blueGlow.addColorStop(1, '#1e3a8a');
+            ctx.fillStyle = bVal >= 0 ? blueGlow : redGlow;
+            ctx.shadowBlur = Math.abs(bVal) * 15;
+            ctx.shadowColor = bVal >= 0 ? '#3b82f6' : '#ef4444';
+            ctx.beginPath();
+            ctx.roundRect(cx + 140, cy - magnetHeight/2, magnetWidth, magnetHeight, [0, 16, 16, 0]);
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px "Plus Jakarta Sans"';
+            ctx.fillText(bVal >= 0 ? "S" : "N", cx + 180, cy + 8);
+            ctx.restore();
+
+            // 2. Draw Magnetic Field lines
+            if (chkShowFields.checked && Math.abs(bVal) > 0.05) {
+                ctx.strokeStyle = 'rgba(147, 197, 253, 0.25)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([6, 12]);
+                const lineCount = 5;
+                for (let i = 0; i < lineCount; i++) {
+                    const yOffset = (i - (lineCount - 1) / 2) * 28;
+                    ctx.beginPath();
+                    // Direction arrows according to polarity
+                    if (bVal > 0) {
+                        ctx.moveTo(cx - 140, cy + yOffset);
+                        ctx.lineTo(cx + 140, cy + yOffset);
+                    } else {
+                        ctx.moveTo(cx + 140, cy + yOffset);
+                        ctx.lineTo(cx - 140, cy + yOffset);
+                    }
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+            }
+
+            // 3. Draw Stationary Carbon Brushes (E on Left, F on Right)
+            const brushSize = 16;
+            ctx.save();
+            ctx.fillStyle = selectBrushes.value === 'worn' ? '#475569' : '#1e293b';
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 2;
+            
+            // Left Brush E (Gold, Silver, or Copper depending on brushes selection)
+            if (selectBrushes.value === 'gold') ctx.fillStyle = '#fbbf24';
+            if (selectBrushes.value === 'copper') ctx.fillStyle = '#ea580c';
+            
+            // Left Brush Box
+            ctx.beginPath();
+            ctx.roundRect(cx - 45, cy - brushSize/2, brushSize, brushSize, 4);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText("E", cx - 40, cy + 3);
+
+            // Right Brush F
+            ctx.fillStyle = selectBrushes.value === 'worn' ? '#475569' : '#1e293b';
+            if (selectBrushes.value === 'gold') ctx.fillStyle = '#fbbf24';
+            if (selectBrushes.value === 'copper') ctx.fillStyle = '#ea580c';
+            ctx.beginPath();
+            ctx.roundRect(cx + 29, cy - brushSize/2, brushSize, brushSize, 4);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText("F", cx + 34, cy + 3);
+            ctx.restore();
+
+            // 4. Draw Circuit Wires leading from Brushes down to Battery System
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            // Left lead
+            ctx.moveTo(cx - 45, cy);
+            ctx.lineTo(cx - 100, cy);
+            ctx.lineTo(cx - 100, cy + 130);
+            ctx.lineTo(cx - 30, cy + 130);
+            ctx.stroke();
+
+            // Right lead
+            ctx.beginPath();
+            ctx.moveTo(cx + 45, cy);
+            ctx.lineTo(cx + 100, cy);
+            ctx.lineTo(cx + 100, cy + 130);
+            ctx.lineTo(cx + 30, cy + 130);
+            ctx.stroke();
+
+            // 5. Draw Battery Power Source Icon at the bottom
+            ctx.save();
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(cx - 35, cy + 115, 70, 30, 6);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Battery positive/negative terminals based on configuration polarity
+            ctx.fillStyle = polarity > 0 ? '#ef4444' : '#3b82f6';
+            ctx.font = 'bold 12px "Plus Jakarta Sans"';
+            ctx.fillText("+", cx - 24, cy + 134);
+            ctx.fillStyle = polarity > 0 ? '#3b82f6' : '#ef4444';
+            ctx.fillText("-", cx + 16, cy + 134);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 8px monospace';
+            ctx.fillText("DC BATTERY", cx - 22, cy + 125);
+            ctx.restore();
+
+            // 6. Draw Rotating Central Axle / Shaft
+            ctx.save();
+            ctx.fillStyle = '#64748b';
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // --- 7. DRAW ROTATING SPLIT COMMUTATORS (X & Y) ---
+            // Two halves of copper split ring tightly rotating on axle
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+            
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            
+            // Split-Ring Commutator X (Half 1)
+            ctx.strokeStyle = '#f97316'; // Copper Ring Look
+            ctx.beginPath();
+            ctx.arc(0, 0, 24, 0.1, Math.PI - 0.1);
+            ctx.stroke();
+            
+            // Split-Ring Commutator Y (Half 2)
+            ctx.strokeStyle = '#e2e8f0'; // Distinguishable split
+            ctx.beginPath();
+            ctx.arc(0, 0, 24, Math.PI + 0.1, Math.PI * 2 - 0.1);
+            ctx.stroke();
+
+            // Draw labeled text identifying commutators
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText("X", -3, 30);
+            ctx.fillText("Y", -3, -30);
+
+            // --- 8. DRAW THE ROTATING RECTANGULAR ARMATURE COIL ---
+            const loops = parseInt(selectLoops.value);
+            ctx.lineWidth = 1 + loops * 1.5; // Visual thickness relative to loop configuration turns
+            ctx.strokeStyle = '#10b981'; // Emerald color for copper coil
+            ctx.lineJoin = 'round';
+
+            ctx.beginPath();
+            // Start from commutator half X connection point
+            ctx.moveTo(0, 24);
+            ctx.lineTo(0, 80); // Arm segment extending out to A
+            ctx.lineTo(-120, 80); // Segment AB
+            ctx.lineTo(-120, -80); // Segment BC
+            ctx.lineTo(0, -80); // Segment CD
+            ctx.lineTo(0, -24); // To commutator half Y connection point
+            ctx.stroke();
+
+            // Labeled arm corners
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText("A", -110, 72);
+            ctx.fillText("B", -110, -68);
+            ctx.fillText("C", -15, -68);
+            ctx.fillText("D", -15, 72);
+
+            // Draw current flowing dots inside coil if active
+            const activeV = parseFloat(inputVoltage.value);
+            if (activeV > 0) {
+                ctx.fillStyle = '#fbbf24';
+                particles.forEach(p => {
+                    // Approximate path points around rectangle coordinates
+                    let ptX, ptY;
+                    const pathProg = p.pos;
+                    
+                    if (pathProg < 0.2) { // 0 connection point to A
+                        ptX = 0;
+                        ptY = 24 + (80 - 24) * (pathProg / 0.2);
+                    } else if (pathProg < 0.5) { // A to B
+                        ptX = 0 - 120 * ((pathProg - 0.2) / 0.3);
+                        ptY = 80;
+                    } else if (pathProg < 0.8) { // B to C
+                        ptX = -120;
+                        ptY = 80 - 160 * ((pathProg - 0.5) / 0.3);
+                    } else { // C to commutator Y
+                        ptX = -120 + 120 * ((pathProg - 0.8) / 0.2);
+                        ptY = -80;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(ptX, ptY, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            // Draw Force arrows acts on the armatures
+            // Force on Branch AB (left relative side)
+            const forceVal = bVal * (activeV / 1.5) * loops * Math.cos(angle);
+            if (Math.abs(forceVal) > 0.05) {
+                const arrowLength = Math.max(15, Math.min(60, Math.abs(forceVal) * 6));
+                const forceDir = forceVal > 0 ? -1 : 1; // Real directional mapping of vector
+                
+                ctx.save();
+                ctx.strokeStyle = '#6366f1'; // Force arrow in purple/blue
+                ctx.lineWidth = 4;
+                ctx.translate(-120, 0); // Position at AB branch center
+                
+                // Draw vector arrow
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, 30 * forceDir);
+                ctx.stroke();
+                
+                // Arrow head
+                ctx.fillStyle = '#6366f1';
+                ctx.beginPath();
+                ctx.moveTo(-6, 25 * forceDir);
+                ctx.lineTo(6, 25 * forceDir);
+                ctx.lineTo(0, 35 * forceDir);
+                ctx.fill();
+                
+                // Label Force "F"
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillText("Force", 10, 15 * forceDir);
+                ctx.restore();
+            }
+
+            // Force on Branch CD (right relative side)
+            if (Math.abs(forceVal) > 0.05) {
+                const arrowLength = Math.max(15, Math.min(60, Math.abs(forceVal) * 6));
+                const forceDir = forceVal > 0 ? 1 : -1; // Opposite of AB branch
+                
+                ctx.save();
+                ctx.strokeStyle = '#6366f1';
+                ctx.lineWidth = 4;
+                ctx.translate(0, 0); // Center relative
+                
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, 30 * forceDir);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#6366f1';
+                ctx.beginPath();
+                ctx.moveTo(-6, 25 * forceDir);
+                ctx.lineTo(6, 25 * forceDir);
+                ctx.lineTo(0, 35 * forceDir);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.restore(); // Restore global canvas rotation transforms
+
+            // 9. Draw worn-down sparks on the brushes
+            if (selectBrushes.value === 'worn' && sparkAlpha > 0) {
+                ctx.save();
+                ctx.strokeStyle = `rgba(251, 191, 36, ${sparkAlpha})`;
+                ctx.lineWidth = 2;
+                // Generate sparkling sparks around brush locations E or F
+                const sparkLocationX = Math.random() < 0.5 ? cx - 35 : cx + 29;
+                const sparkLocationY = cy + (Math.random() - 0.5) * 15;
+                
+                for (let s = 0; s < 5; s++) {
+                    ctx.beginPath();
+                    ctx.moveTo(sparkLocationX, sparkLocationY);
+                    ctx.lineTo(sparkLocationX + (Math.random() - 0.5) * 25, sparkLocationY + (Math.random() - 0.5) * 25);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        // Game loop
+        let lastTime = performance.now();
+        function loop(timestamp) {
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            if (!isPaused) {
+                // Keep DT capped to avoid massive jumps
+                updatePhysics(Math.min(dt, 0.1));
+            }
+            draw();
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+        // Concept assessment interactive feedback quiz
+        function checkAnswer(answerIndex) {
+            const feedback = document.getElementById('quizFeedback');
+            feedback.classList.remove('hidden');
+            
+            if (answerIndex === 2) {
+                feedback.innerHTML = `<span class="text-emerald-400">✓ Excellent!</span> The split-ring commutator ensures current direction reverses in each arm every half rotation so that rotation remains continuous!`;
+                feedback.classList.add('text-emerald-400');
+                feedback.classList.remove('text-red-400');
+            } else {
+                feedback.innerHTML = `<span class="text-red-400">✗ Incorrect.</span> Try analyzing the physical commutator connection brushes as they swap sides!`;
+                feedback.classList.add('text-red-400');
+                feedback.classList.remove('text-emerald-400');
+            }
+        }
+    </script>
+</body>
+</html>
