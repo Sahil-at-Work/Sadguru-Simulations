@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Newtonian Free Fall & Gravity Virtual Laboratory</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=JetBrains+Mono:wght=400;500&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX for beautiful math equations -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  
+  <style>
+    /* Premium custom track styling for sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      background: #e2e8f0;
+      height: 6px;
+      border-radius: 9999px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -5px;
+      background-color: #4f46e5;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      transition: all 0.15s ease-in-out;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background-color: #4338ca;
+      transform: scale(1.1);
+    }
+    
+    /* Smooth transition wrappers */
+    .tab-content {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .tab-content.active {
+      display: block;
+      opacity: 1;
+    }
+    
+    /* Educator spotlight visual callouts */
+    @keyframes subtle-pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1); }
+      50% { transform: scale(1.015); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.15); }
+    }
+    .educator-prompt {
+      animation: subtle-pulse 4s infinite ease-in-out;
+    }
+
+    /* Grid background effect for the vacuum chamber */
+    .physics-grid {
+      background-size: 20px 20px;
+      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-950">
+
+  <!-- Main Navigation Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-100">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3M3 12a9 9 0 0115-6.715M3 12l-3 3m3-3l3 3M15 19.5c0 1.232-.046 2.453-.138 3.662a4.006 4.006 0 01-3.7 3.7 48.656 48.656 0 01-7.324 0 4.006 4.006 0 01-3.7-3.7c-.017-.22-.032-.441-.046-.662M15 19.5l3 3m-3-3l-3 3M21 12a9 9 0 01-15 6.715"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-extrabold tracking-tight text-slate-900 leading-tight">Drop Lab</h1>
+          <p class="text-[10px] text-slate-500 font-bold tracking-wider uppercase">Gravity & Free Fall Sandbox</p>
+        </div>
+      </div>
+      
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex space-x-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+        <button onclick="switchTab('hook')" id="tab-btn-hook" class="nav-tab px-4 py-2 text-xs font-bold rounded-lg text-indigo-600 bg-white shadow-xs transition duration-150">1. Interactive Hook</button>
+        <button onclick="switchTab('sandbox')" id="tab-btn-sandbox" class="nav-tab px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition duration-150">2. Virtual Deck</button>
+        <button onclick="switchTab('theory')" id="tab-btn-theory" class="nav-tab px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition duration-150">3. Mechanics Equations</button>
+        <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="nav-tab px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition duration-150">4. Concept Check</button>
+      </nav>
+
+      <!-- Utility Audio System Switch -->
+      <div class="flex items-center space-x-2">
+        <button id="soundToggle" onclick="toggleMute()" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition" title="Toggle Lab Sound FX">
+          <svg id="soundOnIcon" class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"></path></svg>
+          <svg id="soundOffIcon" class="w-5.5 h-5.5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L2.03 13.53a.75.75 0 001.06 1.06l4.72-4.72h1.938a9.01 9.01 0 01.322 2.396c0 .83-.112-1.633-.322-2.396C9.506 15.244 8.682 15.75 7.8 15.75H6.75l-4.72 4.72a.75.75 0 01-1.28-.53V3.56a.75.75 0 011.28-.53L6.75 7.75"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Tab Indicator Bar -->
+  <div class="md:hidden bg-indigo-50/60 border-b border-indigo-100 p-2 flex overflow-x-auto space-x-2 scrollbar-none">
+    <button onclick="switchTab('hook')" id="mobile-tab-btn-hook" class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 text-white shrink-0 shadow-xs">1. Hook</button>
+    <button onclick="switchTab('sandbox')" id="mobile-tab-btn-sandbox" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-indigo-700 bg-indigo-100/60 hover:bg-indigo-100/90 shrink-0">2. Lab Simulator</button>
+    <button onclick="switchTab('theory')" id="mobile-tab-btn-theory" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-indigo-700 bg-indigo-100/60 hover:bg-indigo-100/90 shrink-0">3. Physics Theory</button>
+    <button onclick="switchTab('quiz')" id="mobile-tab-btn-quiz" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-indigo-700 bg-indigo-100/60 hover:bg-indigo-100/90 shrink-0">4. Quiz</button>
+  </div>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- TAB 1: THE INTERACTIVE HOOK -->
+    <section id="tab-hook" class="tab-content active space-y-6">
+      
+      <!-- Welcome Inductive Hero Banner -->
+      <div class="bg-gradient-to-r from-indigo-900 to-indigo-950 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div class="absolute right-0 bottom-0 opacity-10 translate-x-12 translate-y-12">
+          <svg class="w-80 h-80" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+        </div>
+        <div class="max-w-2xl relative z-10 space-y-3">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/30 text-indigo-200 border border-indigo-500/20">Step 1: Inductive Observation</span>
+          <h2 class="text-2xl sm:text-3.5xl font-black tracking-tight leading-tight">The Stone in Your Hand</h2>
+          <p class="text-indigo-200/90 text-sm sm:text-base leading-relaxed">
+            Close your eyes and imagine holding a small, heavy stone in your palm. Right now, as it sits completely motionless, what forces act on it? What happens when you suddenly release your fingers? Let's construct the vector diagram.
+          </p>
+        </div>
+      </div>
+
+      <!-- Real-world Interaction Sandbox -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Interactive Arena -->
+        <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 flex flex-col justify-between shadow-xs">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-slate-900 text-base">Experiment Station 1: The Release Mechanics</h3>
+              <span id="experimentState" class="text-xs font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 transition-colors">Stone is Balanced</span>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed mb-6">
+              Toggle the release sequence below to trace the normal support force of your hand. Observe how gravity stays constant while opposing vectors vanish.
+            </p>
+          </div>
+
+          <!-- Graphic Simulation Box -->
+          <div class="relative bg-slate-950 rounded-2xl h-72 overflow-hidden border border-slate-800 flex flex-col items-center justify-center">
+            <div class="absolute inset-0 bg-radial-gradient from-slate-900 to-slate-950 opacity-90"></div>
+            
+            <!-- Live Vector HUD overlays -->
+            <div class="absolute top-4 left-4 z-10 bg-slate-900/90 backdrop-blur-md px-3 py-2.5 rounded-xl text-[10px] font-mono text-slate-300 border border-slate-800 space-y-1.5 shadow-xl">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                <span>Gravity Vector (<span class="text-red-400 font-bold">\vec{F}_g</span>)</span>
+              </div>
+              <div id="vectorNormalRow" class="flex items-center space-x-2 transition-opacity duration-300">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 inline-block"></span>
+                <span>Normal Force (<span class="text-indigo-400 font-bold">\vec{F}_N</span>)</span>
+              </div>
+            </div>
+
+            <!-- Kinetic Elements Wrapper -->
+            <div id="handScene" class="relative w-full h-full flex items-center justify-center">
+              
+              <!-- Static Grid lines mapping height scale -->
+              <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] border-l border-dashed border-slate-800"></div>
+
+              <!-- UP FORCE VECTOR (FN) -->
+              <div id="arrowUp" class="absolute w-0.5 bg-indigo-400 transition-all duration-300 flex items-center justify-center" style="height: 64px; bottom: 50%; transform: translateY(-16px); z-index: 10;">
+                <div class="absolute top-0 border-l-[5px] border-r-[5px] border-b-[8px] border-transparent border-b-indigo-400 -mt-2"></div>
+                <span class="absolute -top-5 text-[9px] font-mono font-bold text-indigo-400 bg-slate-950/85 px-1 rounded border border-slate-800">Normal Force</span>
+              </div>
+              
+              <!-- DOWN FORCE VECTOR (Fg) -->
+              <div id="arrowDown" class="absolute w-0.5 bg-red-500 transition-all duration-300 flex items-center justify-center" style="height: 64px; top: 50%; transform: translateY(16px); z-index: 10;">
+                <div class="absolute bottom-0 border-l-[5px] border-r-[5px] border-t-[8px] border-transparent border-t-red-500 -mb-2"></div>
+                <span class="absolute -bottom-5 text-[9px] font-mono font-bold text-red-400 bg-slate-950/85 px-1 rounded border border-slate-800">Gravity Force</span>
+              </div>
+
+              <!-- Animated Hand Element -->
+              <div id="handGraphic" class="absolute transition-transform duration-500 ease-out z-20" style="transform: translateY(48px);">
+                <!-- Hand Icon - Hand Closed flat supporting -->
+                <span id="handIcon" class="text-5xl select-none filter drop-shadow-lg transition-all duration-300">✋</span>
+              </div>
+
+              <!-- Physics Object (Stone) -->
+              <div id="stoneGraphic" class="absolute w-12 h-12 bg-linear-to-br from-slate-400 to-slate-600 rounded-xl border-2 border-slate-300 shadow-2xl z-30 flex items-center justify-center transition-all duration-[600ms] cubic-bezier(0.25, 1, 0.5, 1)" style="transform: translateY(-8px);">
+                <!-- Craters to make it look like a real stone -->
+                <div class="absolute top-2 left-2 w-2.5 h-2.5 bg-slate-500/50 rounded-full"></div>
+                <div class="absolute bottom-2 right-3 w-3 h-2 bg-slate-700/30 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Control Board for Hook -->
+          <div class="mt-6 flex flex-col sm:flex-row gap-3">
+            <button id="dropButton" onclick="triggerHandDrop()" class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-150 active:scale-98 transition flex items-center justify-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"></path></svg>
+              <span>Release Hand (Drop)</span>
+            </button>
+            <button onclick="resetHandScene()" class="py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">
+              Reset Stone
+            </button>
+          </div>
+        </div>
+
+        <!-- Pedagogy & Thought Panel -->
+        <div class="lg:col-span-5 flex flex-col space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex-grow flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="flex items-center space-x-2 text-indigo-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"></path></svg>
+                <h4 class="font-bold text-slate-950 text-sm tracking-tight">Active Observation Notebook</h4>
+              </div>
+              
+              <div id="hookPrompt1" class="space-y-1.5 border-l-4 border-indigo-500 pl-4 py-0.5 transition-all duration-300">
+                <p class="text-xs font-bold text-indigo-950">1. Balanced State (Static Equilibrium)</p>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                  While the stone is in your palm, your muscles exert an upward Normal Force ($F_N$) that perfectly counteracts gravity ($F_g$). Since the net force is zero ($F_{net} = 0$), the velocity remains zero.
+                </p>
+              </div>
+
+              <div id="hookPrompt2" class="space-y-1.5 border-l-4 border-slate-200 pl-4 py-0.5 transition-all duration-300 opacity-40">
+                <p class="text-xs font-bold text-slate-800">2. Free Fall Initiation</p>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                  The instant you open your hand, the upward support ($F_N$) drops to exactly 0. Only the pull of Earth's gravity remains. The stone accelerates downwards under the net unbalanced force.
+                </p>
+              </div>
+
+              <div class="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100/50 space-y-1.5 educator-prompt">
+                <span class="text-[9px] uppercase font-bold tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md">Galileo's Conundrum</span>
+                <p class="text-[11px] text-indigo-950 leading-relaxed font-medium">
+                  What if you dropped a stone and a feather together? If gravity is the only force, why do they land at different times? Let's step onto the Virtual Laboratory Deck to run the tests in vacuum.
+                </p>
+              </div>
+            </div>
+
+            <button onclick="switchTab('sandbox')" class="mt-6 w-full py-3 bg-indigo-50 hover:bg-indigo-150 text-indigo-700 font-bold rounded-xl text-xs transition flex items-center justify-center space-x-2 border border-indigo-100">
+              <span>Go to Virtual Laboratory</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 2: VIRTUAL LABORATORY (EXPERIMENTAL CHAMBER) -->
+    <section id="tab-sandbox" class="tab-content space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Controls Console Panel -->
+        <div class="lg:col-span-4 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 class="font-extrabold text-slate-900 text-base">Control Desk</h3>
+              <button onclick="loadScenario('pisa')" class="text-[11px] text-indigo-600 font-bold hover:underline">Reset to Pisa</button>
+            </div>
+
+            <!-- Historical Presets Quick Selector -->
+            <div class="space-y-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Historical Benchmarks</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="loadScenario('pisa')" class="py-2.5 px-3 text-left border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/20 rounded-xl text-xs font-semibold transition flex flex-col justify-between">
+                  <span class="text-slate-950 font-bold">Tower of Pisa</span>
+                  <span class="text-[9px] text-slate-400">Galileo (Air Medium)</span>
+                </button>
+                <button onclick="loadScenario('moon')" class="py-2.5 px-3 text-left border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/20 rounded-xl text-xs font-semibold transition flex flex-col justify-between">
+                  <span class="text-slate-950 font-bold">Moon Mission</span>
+                  <span class="text-[9px] text-slate-400">Apollo 15 (Vacuum)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Choose Objects Dynamic Config -->
+            <div class="space-y-4 pt-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Payload Selection</label>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                  <label class="text-[10px] font-bold text-slate-500">Lane A (Blue)</label>
+                  <select id="objSelectA" onchange="updateChamberObjects()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="iron">Iron Sphere (10kg)</option>
+                    <option value="stone" selected>Stone Sphere (1kg)</option>
+                    <option value="feather">Feather (0.01kg)</option>
+                  </select>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[10px] font-bold text-slate-500">Lane B (Red)</label>
+                  <select id="objSelectB" onchange="updateChamberObjects()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="iron">Iron Sphere (10kg)</option>
+                    <option value="stone">Stone Sphere (1kg)</option>
+                    <option value="feather" selected>Feather (0.01kg)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parameters Sliders & Environment Mechanics -->
+            <div class="space-y-4 pt-3 border-t border-slate-100">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Physical Constants</label>
+              
+              <!-- Gravity Configuration -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-[11px] font-bold">
+                  <span class="text-slate-500">Gravity ($g$)</span>
+                  <span id="gravityDisplayVal" class="font-mono text-indigo-600 font-extrabold">9.81 m/s²</span>
+                </div>
+                <input type="range" id="sliderGravity" min="0.5" max="25" step="0.01" value="9.81" oninput="changeGravity(this.value)" class="w-full">
+                <div class="grid grid-cols-3 gap-1">
+                  <button onclick="setFastGravity(1.62)" class="py-1 bg-slate-100 hover:bg-indigo-50 text-[10px] font-semibold rounded text-slate-600">Moon</button>
+                  <button onclick="setFastGravity(9.81)" class="py-1 bg-slate-100 hover:bg-indigo-50 text-[10px] font-semibold rounded text-slate-600">Earth</button>
+                  <button onclick="setFastGravity(24.79)" class="py-1 bg-slate-100 hover:bg-indigo-50 text-[10px] font-semibold rounded text-slate-600">Jupiter</button>
+                </div>
+              </div>
+
+              <!-- Medium Vacuum vs Air Density Controls -->
+              <div class="space-y-2 pt-1">
+                <div class="flex justify-between items-center">
+                  <span class="text-[11px] font-bold text-slate-500">Chamber Atmosphere</span>
+                  <span id="chamberBadge" class="text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-sm bg-blue-50 text-blue-700">Atmospheric Air</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button id="toggleAirOn" onclick="setAirMedium(true)" class="py-2 text-xs font-bold border-2 border-indigo-600 bg-indigo-50/30 text-indigo-700 rounded-xl transition">Real Atmosphere</button>
+                  <button id="toggleVacuum" onclick="setAirMedium(false)" class="py-2 text-xs font-semibold border border-slate-200 text-slate-600 hover:border-slate-300 rounded-xl transition">Perfect Vacuum</button>
+                </div>
+              </div>
+
+              <!-- Height Setup Slider -->
+              <div class="space-y-2 pt-1">
+                <div class="flex justify-between items-center text-[11px] font-bold">
+                  <span class="text-slate-500">Drop Height ($h$)</span>
+                  <span id="heightDisplayVal" class="font-mono text-indigo-600">50 m</span>
+                </div>
+                <input type="range" id="sliderHeight" min="10" max="100" step="5" value="50" oninput="changeHeight(this.value)" class="w-full">
+              </div>
+            </div>
+
+            <!-- Run Control Board -->
+            <div class="space-y-2.5 pt-4 border-t border-slate-100">
+              <button id="btnLaunchSimulation" onclick="launchChamberDrop()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase rounded-xl transition active:scale-99 shadow-lg shadow-indigo-150">
+                Launch Drop Sequence
+              </button>
+              <button onclick="resetSimulationArena()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                Reset Chamber Deck
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animation Chamber Frame -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          <div class="bg-slate-950 rounded-2xl h-[450px] relative overflow-hidden border border-slate-800 shadow-inner flex physics-grid">
+            
+            <!-- Realtime HUD Telemetry Interface Overlay -->
+            <div class="absolute left-4 top-4 z-20 space-y-1 bg-slate-900/90 backdrop-blur-md border border-slate-800 p-3 rounded-xl font-mono text-[10px] text-slate-300 shadow-xl">
+              <div class="flex items-center space-x-2 border-b border-slate-800 pb-1.5 mb-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-bold uppercase tracking-wider text-[9px] text-slate-400">Chamber HUD</span>
+              </div>
+              <div>TIMESTEP : <span id="hudTime" class="text-yellow-400 font-bold">0.00</span> s</div>
+              <div>MEDIUM   : <span id="hudMedium" class="text-teal-400 font-bold">AIR (1.2 kg/m³)</span></div>
+              <div>GRAV     : <span id="hudGravity" class="text-indigo-400 font-bold">9.81 m/s²</span></div>
+            </div>
+
+            <!-- Left Lane - LANE A -->
+            <div class="flex-1 border-r border-slate-800/60 relative flex flex-col items-center">
+              <div class="absolute top-2.5 text-[9px] font-bold tracking-widest text-slate-500 uppercase bg-slate-900/40 px-2 py-0.5 rounded border border-slate-800/40">Lane A</div>
+              
+              <!-- Drop Object A -->
+              <div id="dropObjA" class="absolute w-12 h-12 rounded-xl bg-indigo-600/15 border-2 border-indigo-400 shadow-2xl flex items-center justify-center text-2xl z-10" style="top: 0px; transform: translateY(0px);">
+                🌑
+              </div>
+
+              <!-- Laser Trigger Detector Line -->
+              <div class="absolute bottom-4 inset-x-0 h-[2px] bg-indigo-500/20 border-b border-dashed border-indigo-500/40"></div>
+            </div>
+
+            <!-- Right Lane - LANE B -->
+            <div class="flex-1 relative flex flex-col items-center">
+              <div class="absolute top-2.5 text-[9px] font-bold tracking-widest text-slate-500 uppercase bg-slate-900/40 px-2 py-0.5 rounded border border-slate-800/40">Lane B</div>
+              
+              <!-- Drop Object B -->
+              <div id="dropObjB" class="absolute w-12 h-12 rounded-xl bg-red-600/15 border-2 border-red-400 shadow-2xl flex items-center justify-center text-2xl z-10" style="top: 0px; transform: translateY(0px);">
+                🪶
+              </div>
+
+              <!-- Laser Trigger Detector Line -->
+              <div class="absolute bottom-4 inset-x-0 h-[2px] bg-red-500/20 border-b border-dashed border-red-500/40"></div>
+            </div>
+
+            <!-- Soil Ground Anchor -->
+            <div class="absolute bottom-0 inset-x-0 h-4 bg-gradient-to-t from-slate-950 to-slate-900 border-t border-slate-800"></div>
+          </div>
+
+          <!-- Real-time Multi-Variable Telemetry Output Deck -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <div class="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs font-mono text-[11px] relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-8 -mt-8"></div>
+              <div class="font-sans font-extrabold text-xs text-indigo-700 mb-3 border-b border-slate-100 pb-2 flex items-center space-x-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                <span>LANE A TELEMETRY (BLUE)</span>
+              </div>
+              <div class="space-y-1.5">
+                <div class="flex justify-between"><span class="text-slate-400">Velocity (v) :</span><span id="telemetryVelA" class="font-bold text-slate-800">0.00 m/s</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Distance (y) :</span><span id="telemetryDistA" class="font-bold text-slate-800">0.00 m</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Sensor Status:</span><span id="telemetryStatusA" class="font-bold text-slate-400">STANDBY</span></div>
+              </div>
+            </div>
+
+            <div class="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs font-mono text-[11px] relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full -mr-8 -mt-8"></div>
+              <div class="font-sans font-extrabold text-xs text-red-700 mb-3 border-b border-slate-100 pb-2 flex items-center space-x-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                <span>LANE B TELEMETRY (RED)</span>
+              </div>
+              <div class="space-y-1.5">
+                <div class="flex justify-between"><span class="text-slate-400">Velocity (v) :</span><span id="telemetryVelB" class="font-bold text-slate-800">0.00 m/s</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Distance (y) :</span><span id="telemetryDistB" class="font-bold text-slate-800">0.00 m</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Sensor Status:</span><span id="telemetryStatusB" class="font-bold text-slate-400">STANDBY</span></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: EQUATIONS & THEORY -->
+    <section id="tab-theory" class="tab-content space-y-6">
+      <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm max-w-3xl mx-auto space-y-6">
+        <div>
+          <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider">Academic Reference</span>
+          <h3 class="text-xl sm:text-2xl font-black text-slate-900 mt-2.5 tracking-tight">Kinematics of Gravitational Free Fall</h3>
+        </div>
+        
+        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+          Free fall is defined as the motion of an object experiencing solely the acceleration due to gravity, with air resistance eliminated or balanced in a vacuum. Under standard conditions, initial velocity ($u$) is $0\text{ m/s}$, and linear acceleration ($a$) simplifies to gravitational acceleration ($g$).
+        </p>
+
+        <!-- Equation Cards Container -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 py-2">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/50 text-center shadow-xs">
+            <span class="text-[9px] uppercase font-bold tracking-wider text-slate-400 block mb-2">1. Velocity-Time Relation</span>
+            <div class="text-base font-bold text-indigo-600 py-1">
+              $$v = g \cdot t$$
+            </div>
+            <span class="text-[10px] text-slate-500 block mt-1.5">Velocity scales linearly with elapsed time.</span>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/50 text-center shadow-xs">
+            <span class="text-[9px] uppercase font-bold tracking-wider text-slate-400 block mb-2">2. Position-Time Relation</span>
+            <div class="text-base font-bold text-indigo-600 py-1">
+              $$s = \frac{1}{2}g \cdot t^2$$
+            </div>
+            <span class="text-[10px] text-slate-500 block mt-1.5">Falling distance grows quadratically with time.</span>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/50 text-center shadow-xs">
+            <span class="text-[9px] uppercase font-bold tracking-wider text-slate-400 block mb-2">3. Velocity-Position Relation</span>
+            <div class="text-base font-bold text-indigo-600 py-1">
+              $$v^2 = 2g \cdot s$$
+            </div>
+            <span class="text-[10px] text-slate-500 block mt-1.5">Relates terminal velocity directly to drop distance.</span>
+          </div>
+        </div>
+
+        <!-- Real World Drag Force Section -->
+        <div class="bg-amber-50/50 border border-amber-200/60 p-5 rounded-2xl space-y-3">
+          <h4 class="font-bold text-amber-800 text-xs uppercase tracking-wider flex items-center space-x-1.5">
+            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path></svg>
+            <span>The Reality of Atmospheric Drag & Friction</span>
+          </h4>
+          <p class="text-[11px] text-amber-900 leading-relaxed">
+            In our physical world, true undisturbed free fall is impossible outside of vacuum chambers. As an object drops, it collisionally interacts with atmospheric molecules. This friction produces a upward opposing force called **Drag Force ($F_d$)**, along with a constant buoyancy coefficient. Once the upward friction vector perfectly balances the downward weight of the falling payload ($F_d = F_g$), acceleration drops to zero, and the object travels at a constant speed known as its **Terminal Velocity**.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CONCEPT CHECK (ACTIVE QUIZ) -->
+    <section id="tab-quiz" class="tab-content space-y-6">
+      <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-6">
+        <div>
+          <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full uppercase tracking-wider">Interactive Assessment</span>
+          <h3 class="text-xl font-black text-slate-900 mt-2.5">Mission Controller Certification</h3>
+          <p class="text-xs text-slate-500 mt-1">Submit your experimental observations to verify conceptual lab mastery.</p>
+        </div>
+
+        <div class="space-y-6">
+          
+          <!-- Question 1 -->
+          <div class="space-y-3">
+            <p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Question 1</p>
+            <p class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Where can a perfect physical free-fall event be observed natively without engineering interference?</p>
+            <div class="grid grid-cols-1 gap-2.5">
+              <label class="flex items-center space-x-3 p-3.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer text-xs transition duration-150">
+                <input type="radio" name="labQ1" value="a" class="text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                <span>At the peak of Mount Everest, due to minimal atmospheric density.</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer text-xs transition duration-150">
+                <input type="radio" name="labQ1" value="b" class="text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                <span>Only within an isolated chamber from which all gas medium has been evacuated (Vacuum).</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer text-xs transition duration-150">
+                <input type="radio" name="labQ1" value="c" class="text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                <span>During an intense thunderstorm, when aerodynamic currents reach static equilibrium.</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="space-y-3 border-t border-slate-100 pt-5">
+            <p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Question 2</p>
+            <p class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">If a 10kg Iron Sphere and a 0.01kg Feather are simultaneously released inside a complete vacuum, which hits the floor first?</p>
+            <div class="grid grid-cols-1 gap-2.5">
+              <label class="flex items-center space-x-3 p-3.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer text-xs transition duration-150">
+                <input type="radio" name="labQ2" value="a" class="text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                <span>The Iron Sphere, because gravitational weight is directly proportional to mass.</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer text-xs transition duration-150">
+                <input type="radio" name="labQ2" value="b" class="text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                <span>The Feather, because the low inertia allows for faster momentum shifting.</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer text-xs transition duration-150">
+                <input type="radio" name="labQ2" value="c" class="text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                <span>Both land at the exact same instant, because $g$ is independent of mass in a vacuum.</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <button onclick="gradeModuleExam()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase rounded-xl transition duration-150">
+            Submit Assessment
+          </button>
+          
+          <div id="examFeedbackBox" class="hidden p-4 rounded-xl text-center text-xs font-bold border"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-white border-t border-slate-200 py-5 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+      Newtonian Gravity Virtual Lab Deck &bull; Developed for Active Scientific Engagement
+    </div>
+  </footer>
+
+  <!-- Virtual Laboratory Program Logic -->
+  <script>
+    // Tab Navigation Coordinator
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => {
+        el.classList.remove('text-indigo-600', 'bg-white', 'shadow-xs');
+        el.classList.add('text-slate-600', 'font-semibold');
+      });
+      
+      const targetContent = document.getElementById(`tab-${tabId}`);
+      if (targetContent) targetContent.classList.add('active');
+      
+      const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (targetBtn) {
+        targetBtn.classList.add('text-indigo-600', 'bg-white', 'shadow-xs');
+        targetBtn.classList.remove('text-slate-600', 'font-semibold');
+      }
+
+      // Mobile sync
+      document.querySelectorAll('[id^="mobile-tab-btn-"]').forEach(el => {
+        el.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg text-indigo-700 bg-indigo-100/60 hover:bg-indigo-100/90 shrink-0";
+      });
+      const activeMobileBtn = document.getElementById(`mobile-tab-btn-${tabId}`);
+      if (activeMobileBtn) {
+        activeMobileBtn.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 text-white shrink-0 shadow-xs";
+      }
+    }
+
+    // Sound FX Web Audio API Synthesizer
+    let soundMuted = false;
+    function toggleMute() {
+      soundMuted = !soundMuted;
+      document.getElementById('soundOnIcon').classList.toggle('hidden', soundMuted);
+      document.getElementById('soundOffIcon').classList.toggle('hidden', !soundMuted);
+    }
+    
+    function triggerAudioBeep(pitch, duration) {
+      if (soundMuted) return;
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.frequency.setValueAtTime(pitch, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        oscillator.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        oscillator.stop(audioCtx.currentTime + duration + 0.01);
+      } catch (err) {}
+    }
+
+    // Step 1: Hand-Drop Mechanical Elements
+    let handDroppedState = false;
+    function triggerHandDrop() {
+      if (handDroppedState) return;
+      handDroppedState = true;
+      triggerAudioBeep(659.25, 0.15); // E5 Pitch
+
+      document.getElementById('experimentState').textContent = "Free Fall State Active";
+      document.getElementById('experimentState').className = "text-xs font-bold px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200/60";
+      
+      document.getElementById('arrowUp').style.height = "0px";
+      document.getElementById('arrowUp').style.opacity = "0";
+      document.getElementById('vectorNormalRow').classList.add('opacity-10');
+      document.getElementById('hookPrompt1').classList.add('opacity-40');
+      document.getElementById('hookPrompt2').classList.remove('opacity-40');
+      
+      // Release animations
+      document.getElementById('handIcon').textContent = "🫱";
+      document.getElementById('handGraphic').style.transform = "translateY(110px)";
+      document.getElementById('stoneGraphic').style.transform = "translateY(96px)";
+    }
+
+    function resetHandScene() {
+      handDroppedState = false;
+      document.getElementById('experimentState').textContent = "Stone is Balanced";
+      document.getElementById('experimentState').className = "text-xs font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60";
+      
+      document.getElementById('arrowUp').style.height = "64px";
+      document.getElementById('arrowUp').style.opacity = "1";
+      document.getElementById('vectorNormalRow').classList.remove('opacity-10');
+      document.getElementById('hookPrompt1').classList.remove('opacity-40');
+      document.getElementById('hookPrompt2').classList.add('opacity-40');
+      
+      // Recovery animations
+      document.getElementById('handIcon').textContent = "✋";
+      document.getElementById('handGraphic').style.transform = "translateY(48px)";
+      document.getElementById('stoneGraphic').style.transform = "translateY(-8px)";
+    }
+
+    // Step 2: Complex Dual-Track Simulation System
+    let simActive = false;
+    let simTimer = 0;
+    let simulationLoop = null;
+
+    let simGravityVal = 9.81;
+    let simAirOn = true;
+    let simHeightVal = 50;
+
+    let particleA = { pos: 0, vel: 0, mass: 1, dragCoeff: 0.05, done: false, type: 'stone' };
+    let particleB = { pos: 0, vel: 0, mass: 0.01, dragCoeff: 0.95, done: false, type: 'feather' };
+
+    const materialLibrary = {
+      iron: { emoji: '⚽', drag: 0.02, mass: 10 },
+      stone: { emoji: '🌑', drag: 0.05, mass: 1 },
+      feather: { emoji: '🪶', drag: 0.95, mass: 0.01 }
+    };
+
+    function updateChamberObjects() {
+      const typeA = document.getElementById('objSelectA').value;
+      const typeB = document.getElementById('objSelectB').value;
+
+      particleA.type = typeA;
+      particleA.dragCoeff = materialLibrary[typeA].drag;
+      particleA.mass = materialLibrary[typeA].mass;
+      document.getElementById('dropObjA').textContent = materialLibrary[typeA].emoji;
+
+      particleB.type = typeB;
+      particleB.dragCoeff = materialLibrary[typeB].drag;
+      particleB.mass = materialLibrary[typeB].mass;
+      document.getElementById('dropObjB').textContent = materialLibrary[typeB].emoji;
+
+      resetSimulationArena();
+    }
+
+    function changeGravity(val) {
+      simGravityVal = parseFloat(val);
+      document.getElementById('gravityDisplayVal').textContent = `${simGravityVal.toFixed(2)} m/s²`;
+      document.getElementById('hudGravity').textContent = `${simGravityVal.toFixed(2)} m/s²`;
+      resetSimulationArena();
+    }
+
+    // Dynamic helper functions
+    function setFastGravity(val) {
+      document.getElementById('sliderGravity').value = val;
+      changeGravity(val);
+    }
+
+    function setAirMedium(hasAir) {
+      simAirOn = hasAir;
+      const badge = document.getElementById('chamberBadge');
+      const hudMedium = document.getElementById('hudMedium');
+      const btnAir = document.getElementById('toggleAirOn');
+      const btnVac = document.getElementById('toggleVacuum');
+
+      if (hasAir) {
+        badge.textContent = "Atmospheric Air";
+        badge.className = "text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-sm bg-blue-50 text-blue-700";
+        hudMedium.textContent = "AIR (1.2 kg/m³)";
+        btnAir.className = "py-2 text-xs font-bold border-2 border-indigo-600 bg-indigo-50/30 text-indigo-700 rounded-xl transition";
+        btnVac.className = "py-2 text-xs font-semibold border border-slate-200 text-slate-600 hover:border-slate-300 rounded-xl transition";
+      } else {
+        badge.textContent = "Vacuum Chamber";
+        badge.className = "text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-sm bg-emerald-50 text-emerald-700";
+        hudMedium.textContent = "VACUUM (0.0 kg/m³)";
+        btnVac.className = "py-2 text-xs font-bold border-2 border-indigo-600 bg-indigo-50/30 text-indigo-700 rounded-xl transition";
+        btnAir.className = "py-2 text-xs font-semibold border border-slate-200 text-slate-600 hover:border-slate-300 rounded-xl transition";
+      }
+      resetSimulationArena();
+    }
+
+    function changeHeight(val) {
+      simHeightVal = parseInt(val);
+      document.getElementById('heightDisplayVal').textContent = `${simHeightVal} m`;
+      resetSimulationArena();
+    }
+
+    function loadScenario(presetName) {
+      if (presetName === 'pisa') {
+        document.getElementById('objSelectA').value = 'stone';
+        document.getElementById('objSelectB').value = 'iron';
+        setAirMedium(true);
+        setFastGravity(9.81);
+      } else if (presetName === 'moon') {
+        document.getElementById('objSelectA').value = 'stone';
+        document.getElementById('objSelectB').value = 'feather';
+        setAirMedium(false);
+        setFastGravity(1.62);
+      }
+      updateChamberObjects();
+    }
+
+    function launchChamberDrop() {
+      if (simActive) {
+        clearInterval(simulationLoop);
+        simActive = false;
+        document.getElementById('btnLaunchSimulation').textContent = "Launch Drop Sequence";
+      } else {
+        if (particleA.done && particleB.done) resetSimulationArena();
+        simActive = true;
+        document.getElementById('btnLaunchSimulation').textContent = "Pause Chamber Engine";
+        
+        const dt = 0.015; // 15ms frame calculations
+        simulationLoop = setInterval(() => {
+          advancePhysicsTicks(dt);
+        }, 15);
+      }
+    }
+
+    function advancePhysicsTicks(dt) {
+      simTimer += dt;
+      document.getElementById('hudTime').textContent = simTimer.toFixed(2);
+
+      const usableChamberHeight = 390; // Pixels representing total height in chamber container
+
+      [particleA, particleB].forEach((obj, idx) => {
+        if (obj.done) return;
+
+        let effectiveAcceleration = simGravityVal;
+        
+        if (simAirOn) {
+          // Terminal velocity modeling
+          // Drag force equation simplification: Fd = k * v
+          const frictionForce = obj.dragCoeff * obj.vel;
+          const opposingAcc = frictionForce / obj.mass;
+          effectiveAcceleration = Math.max(0, simGravityVal - opposingAcc);
+        }
+
+        obj.vel += effectiveAcceleration * dt;
+        obj.pos += obj.vel * dt;
+
+        // Verify impact boundary
+        if (obj.pos >= simHeightVal) {
+          obj.pos = simHeightVal;
+          obj.done = true;
+          obj.vel = 0;
+          triggerAudioBeep(261.63 + (idx * 130.81), 0.12); // High musical chord impacts
+          
+          const statusSpan = document.getElementById(`telemetryStatus${idx === 0 ? 'A' : 'B'}`);
+          statusSpan.textContent = "LANDED (DETECTOR TRIGGERED)";
+          statusSpan.className = "font-extrabold text-emerald-600";
+        }
+
+        // Map positions to pixel layouts
+        const renderTop = (obj.pos / simHeightVal) * usableChamberHeight;
+        document.getElementById(`dropObj${idx === 0 ? 'A' : 'B'}`).style.transform = `translateY(${renderTop}px)`;
+
+        // Update telemetry boards
+        document.getElementById(`telemetryVel${idx === 0 ? 'A' : 'B'}`).textContent = `${obj.vel.toFixed(2)} m/s`;
+        document.getElementById(`telemetryDist${idx === 0 ? 'A' : 'B'}`).textContent = `${obj.pos.toFixed(2)} m`;
+      });
+
+      // Turn off engine once both payloads impact
+      if (particleA.done && particleB.done) {
+        clearInterval(simulationLoop);
+        simActive = false;
+        document.getElementById('btnLaunchSimulation').textContent = "Launch Drop Sequence";
+      }
+    }
+
+    function resetSimulationArena() {
+      clearInterval(simulationLoop);
+      simActive = false;
+      simTimer = 0;
+      
+      document.getElementById('btnLaunchSimulation').textContent = "Launch Drop Sequence";
+      document.getElementById('hudTime').textContent = "0.00";
+
+      [particleA, particleB].forEach((obj, idx) => {
+        obj.pos = 0;
+        obj.vel = 0;
+        obj.done = false;
+
+        document.getElementById(`dropObj${idx === 0 ? 'A' : 'B'}`).style.transform = "translateY(0px)";
+        document.getElementById(`telemetryVel${idx === 0 ? 'A' : 'B'}`).textContent = "0.00 m/s";
+        document.getElementById(`telemetryDist${idx === 0 ? 'A' : 'B'}`).textContent = "0.00 m";
+        
+        const statusSpan = document.getElementById(`telemetryStatus${idx === 0 ? 'A' : 'B'}`);
+        statusSpan.textContent = "STANDBY";
+        statusSpan.className = "font-bold text-slate-400";
+      });
+    }
+
+    // Step 4: Active Assessment System
+    function gradeModuleExam() {
+      const q1 = document.querySelector('input[name="labQ1"]:checked');
+      const q2 = document.querySelector('input[name="labQ2"]:checked');
+      const feedbackBox = document.getElementById('examFeedbackBox');
+
+      if (!q1 || !q2) {
+        feedbackBox.className = "p-4 rounded-xl text-center text-xs font-bold border bg-amber-50 text-amber-700 border-amber-200 block";
+        feedbackBox.textContent = "Attention required. Please complete both conceptual question fields.";
+        return;
+      }
+
+      if (q1.value === 'b' && q2.value === 'c') {
+        feedbackBox.className = "p-4 rounded-xl text-center text-xs font-bold border bg-emerald-50 text-emerald-800 border-emerald-200 block";
+        feedbackBox.textContent = "Congratulations! Excellent mastery of kinematic free fall mechanics. Certification complete.";
+        triggerAudioBeep(523.25, 0.25); // Happy impact tone
+      } else {
+        feedbackBox.className = "p-4 rounded-xl text-center text-xs font-bold border bg-red-50 text-red-800 border-red-200 block";
+        feedbackBox.textContent = "Errors detected in response patterns. Reset the experimental chamber to check the vacuum behaviour.";
+        triggerAudioBeep(196.00, 0.3); // Error tone
+      }
+    }
+
+    // Dynamic, bulletproof KaTeX and state initialization
+    function initializeMathAndState() {
+      if (typeof renderMathInElement === 'function') {
+        try {
+          renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+          });
+        } catch (e) {
+          console.warn("KaTeX render failed slightly:", e);
+        }
+      }
+      updateChamberObjects();
+    }
+
+    // Handle asynchronous environment load checks
+    window.addEventListener('DOMContentLoaded', () => {
+      // If auto-render isn't immediately attached, poll for it safely (prevents ReferenceError)
+      if (typeof renderMathInElement !== 'function') {
+        let attempts = 0;
+        const maxAttempts = 20; // 2 seconds total timeout
+        const intervalId = setInterval(() => {
+          attempts++;
+          if (typeof renderMathInElement === 'function' || attempts >= maxAttempts) {
+            clearInterval(intervalId);
+            initializeMathAndState();
+          }
+        }, 100);
+      } else {
+        initializeMathAndState();
+      }
+    });
+  </script>
+</body>
+</html>
