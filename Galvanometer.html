@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galvanometer & Electromagnetic Induction Virtual Lab</title>
+    <!-- Tailwind CSS for sleek UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for high-quality scientific icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- KaTeX for beautiful scientific LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbars for a premium feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Pulse animations for learners' attention */
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.03); }
+        }
+        .hint-pulse {
+            animation: subtle-pulse 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-gauge-high text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
+                    PhysiLab: Induction Suite
+                </h1>
+                <p class="text-xs text-slate-400 font-medium">Interactive Electromagnetic Discovery & Galvanometers</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center bg-slate-950 p-1.5 rounded-xl border border-slate-800/80">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
+                <i class="fa-solid fa-house mr-1.5"></i>Overview
+            </button>
+            <button onclick="switchTab('motor')" id="tab-motor" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-rotate mr-1.5"></i>1. Mechanical Core
+            </button>
+            <button onclick="switchTab('induction')" id="tab-induction" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-bolt mr-1.5"></i>2. Faraday's Lab
+            </button>
+            <button onclick="switchTab('missions')" id="tab-missions" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-trophy text-amber-500"></i>Missions <span id="mission-badge" class="bg-indigo-500/20 text-indigo-400 text-[10px] px-1.5 py-0.5 rounded-full border border-indigo-500/30">0/3</span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8">
+
+        <!-- TAB: DASHBOARD (OVERVIEW) -->
+        <section id="content-dashboard" class="space-y-8">
+            <!-- Hero Introduction -->
+            <div class="relative rounded-3xl overflow-hidden border border-slate-800 bg-gradient-to-br from-slate-900 to-indigo-950/40 p-8 md:p-12">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.1),transparent_50%)]"></div>
+                <div class="relative z-10 max-w-2xl space-y-4">
+                    <span class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold rounded-full uppercase tracking-wider">
+                        Pedagogical Simulator
+                    </span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+                        Can We Generate Electricity Out of Motion?
+                    </h2>
+                    <p class="text-slate-300 leading-relaxed text-sm md:text-base">
+                        Step into a digital sandbox engineered to demystify electromagnetic physics. Here, you'll learn that motors, generators, and measurement meters are all siblings of the exact same magnetic phenomena.
+                    </p>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <button onclick="switchTab('motor')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all">
+                            Explore Galvanometer Mechanics <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                        </button>
+                        <button onclick="switchTab('induction')" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-200 text-sm font-semibold rounded-xl transition-all">
+                            Try Faraday's Experiment
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Double-Track Visual Methodology -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Track A: Torque & The Core -->
+                <div class="border border-slate-800 bg-slate-900/50 rounded-2xl p-6 hover:border-slate-700 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="h-12 w-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-magnet text-violet-400 text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Track 1: Mechanical Motor Core</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+                            Discover how passing current through a tiny, spring-loaded coil inside a magnetic field creates rotatory force (torque). Adjust turns, magnets, and currents to see the physics formulas animate.
+                        </p>
+                    </div>
+                    <button onclick="switchTab('motor')" class="text-xs font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1.5 group">
+                        Enter Core Simulator <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+
+                <!-- Track B: Faraday's Sandbox -->
+                <div class="border border-slate-800 bg-slate-900/50 rounded-2xl p-6 hover:border-slate-700 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-wave-square text-emerald-400 text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Track 2: Faraday's Lab & Induction</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+                            Move a physical bar magnet or drag a live copper wire in real-time. Feel Lenz's Law and Faraday's Law in action: the direction and speed of movement dictates current magnitude and orientation.
+                        </p>
+                    </div>
+                    <button onclick="switchTab('induction')" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 group">
+                        Enter Induction Sandbox <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: CORE MECHANICS (MOTOR PRINCIPLE) -->
+        <section id="content-motor" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Sandbox Control & Visualizer Panel -->
+                <div class="lg:col-span-8 flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="border-b border-slate-800 bg-slate-950/50 px-6 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                            <h3 class="font-bold text-white text-sm">Internal Motor/Galvanometer Simulator</h3>
+                        </div>
+                        <span class="text-xs text-indigo-400 font-semibold bg-indigo-950/40 px-2.5 py-1 rounded-full border border-indigo-800/30">
+                            Core Physics
+                        </span>
+                    </div>
+
+                    <!-- Simulator Workspace (The Core Visualizer Canvas) -->
+                    <div class="relative bg-slate-950/80 p-6 flex flex-col items-center justify-center min-h-[360px] overflow-hidden">
+                        <!-- Scale / Gauge Overlay -->
+                        <div class="w-full max-w-sm relative flex flex-col items-center mb-10">
+                            <!-- Curved Gauge Scale -->
+                            <div class="relative w-64 h-32 border-b-2 border-slate-700 rounded-t-full flex items-end justify-center overflow-hidden">
+                                <div class="absolute inset-0 border-t-4 border-slate-800/60 rounded-t-full"></div>
+                                <!-- Tick marks -->
+                                <div class="absolute left-4 bottom-1 w-1 h-3 bg-slate-500 transform rotate-[45deg] origin-bottom"></div>
+                                <div class="absolute left-1/4 bottom-8 w-1 h-3 bg-slate-500 transform rotate-[22deg] origin-bottom"></div>
+                                <div class="absolute left-1/2 bottom-12 w-1.5 h-4 bg-slate-400 -translate-x-1/2"></div>
+                                <div class="absolute right-1/4 bottom-8 w-1 h-3 bg-slate-500 transform rotate-[-22deg] origin-bottom"></div>
+                                <div class="absolute right-4 bottom-1 w-1 h-3 bg-slate-500 transform rotate-[-45deg] origin-bottom"></div>
+
+                                <!-- Labels -->
+                                <div class="absolute left-6 bottom-4 text-[10px] font-bold text-slate-500">-50</div>
+                                <div class="absolute left-1/4 bottom-10 text-[10px] font-bold text-slate-500">-25</div>
+                                <div class="absolute left-1/2 bottom-[52px] text-xs font-black text-slate-300 -translate-x-1/2">0</div>
+                                <div class="absolute right-1/4 bottom-10 text-[10px] font-bold text-slate-500">+25</div>
+                                <div class="absolute right-6 bottom-4 text-[10px] font-bold text-slate-500">+50</div>
+
+                                <!-- The Deflecting Pointer (Needle) -->
+                                <div id="core-needle" class="absolute bottom-0 w-1 h-28 bg-red-500 rounded-full origin-bottom transform rotate-0 transition-transform duration-300 shadow-lg shadow-red-500/20 z-10">
+                                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-red-400"></div>
+                                </div>
+                                <div class="absolute bottom-[-10px] w-8 h-8 rounded-full bg-slate-800 border-4 border-slate-700 z-20 shadow-md"></div>
+                            </div>
+                            <span class="text-[10px] text-slate-500 uppercase tracking-widest mt-2 font-bold">Galvanometer Scale</span>
+                        </div>
+
+                        <!-- Inside The Coil: Visualizing Electric Motor Principles -->
+                        <div class="relative w-full max-w-md flex items-center justify-between border border-slate-800/60 bg-slate-900/40 p-4 rounded-xl mt-4">
+                            <!-- Left Magnet (North) -->
+                            <div class="h-28 w-14 rounded-lg bg-gradient-to-r from-red-600 to-red-500 flex flex-col items-center justify-center text-white font-extrabold text-lg shadow-md relative">
+                                <span>N</span>
+                                <span class="text-[9px] font-normal tracking-wide opacity-80 mt-1">Magnet</span>
+                                <div class="absolute right-[-15px] flex flex-col gap-1.5 opacity-40">
+                                    <i class="fa-solid fa-arrow-right text-red-300 text-xs"></i>
+                                    <i class="fa-solid fa-arrow-right text-red-300 text-xs"></i>
+                                </div>
+                            </div>
+
+                            <!-- Armature Coil Structure (Rotates visually!) -->
+                            <div class="relative flex flex-col items-center justify-center flex-1 h-32 mx-4">
+                                <div id="armature-coil" class="relative w-28 h-20 border-2 border-amber-500 bg-amber-950/20 rounded-md flex flex-col items-center justify-center transition-transform duration-300">
+                                    <!-- Inner Copper Turn lines based on Variable N -->
+                                    <div id="coil-windings" class="absolute inset-1 border border-dashed border-amber-600/60 rounded flex justify-around"></div>
+                                    <span class="text-[10px] font-mono text-amber-400 font-bold bg-amber-950/80 px-2 py-0.5 rounded border border-amber-800/40">COIL</span>
+                                    
+                                    <!-- Rotatory Torque Direction Indicators -->
+                                    <div id="force-up" class="absolute -top-6 left-2 flex flex-col items-center opacity-0 transition-opacity">
+                                        <i class="fa-solid fa-arrow-up text-emerald-400 text-xs"></i>
+                                        <span class="text-[8px] text-emerald-400 font-bold">Force</span>
+                                    </div>
+                                    <div id="force-down" class="absolute -bottom-6 right-2 flex flex-col items-center opacity-0 transition-opacity">
+                                        <span class="text-[8px] text-red-400 font-bold">Force</span>
+                                        <i class="fa-solid fa-arrow-down text-red-400 text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Magnet (South) -->
+                            <div class="h-28 w-14 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 flex flex-col items-center justify-center text-white font-extrabold text-lg shadow-md relative">
+                                <span>S</span>
+                                <span class="text-[9px] font-normal tracking-wide opacity-80 mt-1">Magnet</span>
+                                <div class="absolute left-[-15px] flex flex-col gap-1.5 opacity-40">
+                                    <i class="fa-solid fa-arrow-right text-indigo-300 text-xs"></i>
+                                    <i class="fa-solid fa-arrow-right text-indigo-300 text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spring Mechanism representation -->
+                        <div class="text-xs text-slate-400 mt-4 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-nodes text-slate-500"></i>
+                            <span>Restoring hairspring balances the magnetic torque: <span class="mono text-indigo-400">Torque = N × I × A × B</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Instrument readout -->
+                    <div class="bg-slate-950 p-4 border-t border-slate-800 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800/80">
+                            <span class="block text-[10px] text-slate-400 uppercase font-semibold">Active Current ($I$)</span>
+                            <span id="readout-current" class="text-lg font-bold text-indigo-400 font-mono">0.00 mA</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800/80">
+                            <span class="block text-[10px] text-slate-400 uppercase font-semibold">Coil Turns ($N$)</span>
+                            <span id="readout-turns" class="text-lg font-bold text-violet-400 font-mono">50</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800/80">
+                            <span class="block text-[10px] text-slate-400 uppercase font-semibold">Magnetic Field ($B$)</span>
+                            <span id="readout-field" class="text-lg font-bold text-emerald-400 font-mono">0.50 T</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800/80">
+                            <span class="block text-[10px] text-slate-400 uppercase font-semibold">Deflection Angle ($\theta$)</span>
+                            <span id="readout-deflection" class="text-lg font-bold text-amber-400 font-mono">0.00°</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theory and Control Panel (Education Scaffold) -->
+                <div class="lg:col-span-4 flex flex-col gap-6">
+                    <!-- Control Settings Box -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+                        <h4 class="font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-indigo-500"></i> Control Board
+                        </h4>
+
+                        <!-- Input Slider: Current -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="slider-current" class="text-slate-400 font-semibold">Current ($I$)</label>
+                                <span class="bg-indigo-950 text-indigo-400 px-2 py-0.5 rounded font-mono font-bold" id="label-current">0.0 mA</span>
+                            </div>
+                            <input type="range" id="slider-current" min="-5.0" max="5.0" step="0.1" value="0.0" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        </div>
+
+                        <!-- Input Slider: Number of Turns -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="slider-turns" class="text-slate-400 font-semibold">Coil Loops / Turns ($N$)</label>
+                                <span class="bg-violet-950 text-violet-400 px-2 py-0.5 rounded font-mono font-bold" id="label-turns">50</span>
+                            </div>
+                            <input type="range" id="slider-turns" min="10" max="100" step="5" value="50" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-violet-500">
+                        </div>
+
+                        <!-- Input Slider: Magnetic Strength -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="slider-field" class="text-slate-400 font-semibold">Magnetic Field ($B$)</label>
+                                <span class="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold" id="label-field">0.50 T</span>
+                            </div>
+                            <input type="range" id="slider-field" min="0.1" max="1.5" step="0.05" value="0.5" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+
+                        <div class="border-t border-slate-800/80 pt-4 flex flex-wrap gap-2">
+                            <button onclick="resetCoreSimulator()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-rotate-left"></i> Reset Values
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Formula breakdown Card -->
+                    <div class="bg-slate-900 border border-slate-850 rounded-2xl p-6 space-y-4">
+                        <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap text-indigo-400"></i> The Math Explorer
+                        </h4>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Inside the galvanometer, the deflection angle $\theta$ is reached when the magnetic torque matches the restoring spring force:
+                        </p>
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-850 text-center text-sm md:text-base font-mono py-4">
+                            $$\theta = \left(\frac{N \cdot A \cdot B}{k}\right) \cdot I$$
+                        </div>
+                        <div class="space-y-1 text-slate-400 text-[11px] leading-normal">
+                            <p><strong class="text-indigo-400">$\theta$:</strong> Pointer deflection angle</p>
+                            <p><strong class="text-violet-400">$N$:</strong> Number of wire turns in loop</p>
+                            <p><strong class="text-emerald-400">$B$:</strong> Magnetic flux density</p>
+                            <p><strong class="text-amber-400">$I$:</strong> Coil current input</p>
+                            <p><strong class="text-sky-400">$k$:</strong> Torsional spring stiffness (fixed)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: INDUCTION LAB (FARADAY'S DISCOVERY) -->
+        <section id="content-induction" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Main Interactive Sandbox Area -->
+                <div class="lg:col-span-8 flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="border-b border-slate-800 bg-slate-950/50 px-6 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <h3 class="font-bold text-white text-sm">Interactive Faraday Electromagnetic induction</h3>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="toggle-poles-btn" onclick="toggleInductionPoles()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-xs font-semibold rounded-lg border border-slate-750 text-slate-300">
+                                <i class="fa-solid fa-arrows-spin mr-1"></i>Flip Magnet Poles
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sandbox Visual Workspace -->
+                    <div class="relative bg-slate-950/80 p-6 flex flex-col md:flex-row items-center justify-around min-h-[420px] gap-6">
+                        <!-- Left Element: The Galvanometer Dial reading induced current -->
+                        <div class="flex flex-col items-center justify-center p-4 bg-slate-900/60 border border-slate-800/80 rounded-2xl w-60 h-64">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">Galvanometer Dial</span>
+                            
+                            <!-- Small dial representation -->
+                            <div class="relative w-40 h-20 border-b border-slate-700 rounded-t-full flex items-end justify-center overflow-hidden mb-4">
+                                <div class="absolute left-2 bottom-1 w-1 h-2 bg-slate-500 transform rotate-[45deg] origin-bottom"></div>
+                                <div class="absolute left-1/2 bottom-10 w-1 h-3 bg-slate-400 -translate-x-1/2"></div>
+                                <div class="absolute right-2 bottom-1 w-1 h-2 bg-slate-500 transform rotate-[-45deg] origin-bottom"></div>
+                                
+                                <!-- Pointer -->
+                                <div id="induction-needle" class="absolute bottom-0 w-[2px] h-16 bg-red-500 origin-bottom transform rotate-0 transition-transform duration-100"></div>
+                                <div class="absolute bottom-[-5px] w-4 h-4 rounded-full bg-slate-700 z-10"></div>
+                            </div>
+
+                            <div class="text-center">
+                                <span id="induction-current-label" class="block font-mono text-lg font-bold text-emerald-400">0.00 mA</span>
+                                <span class="text-[9px] text-slate-400">Real-time Induced Current ($I_{ind}$)</span>
+                            </div>
+                        </div>
+
+                        <!-- Center/Right Elements: Physical Workspace where user interacts -->
+                        <div class="relative flex-1 w-full max-w-md h-72 border border-slate-800 bg-slate-900/30 rounded-2xl flex flex-col items-center justify-between p-4 overflow-hidden">
+                            <!-- Visual Loop/Copper Wire connection leading to the Galvanometer dial -->
+                            <div class="absolute inset-0 border-2 border-dashed border-indigo-500/20 rounded-2xl pointer-events-none"></div>
+                            
+                            <!-- Static Element Choice -->
+                            <div class="w-full text-center">
+                                <span class="text-xs text-slate-400 font-semibold bg-slate-950 px-3 py-1 rounded-full border border-slate-800" id="interaction-instructions">
+                                    Click and Drag the magnet left/right!
+                                </span>
+                            </div>
+
+                            <!-- The Physical Simulation Items (Magnet & Copper Coil) -->
+                            <div class="relative flex-1 w-full flex items-center justify-center">
+                                <!-- Copper Wire Loop coil centered in playground -->
+                                <div id="induction-wire-assembly" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-40 border-4 border-amber-600 bg-amber-900/10 rounded-2xl z-10 flex flex-col items-center justify-center pointer-events-none">
+                                    <div class="w-12 h-1 bg-amber-600 my-1"></div>
+                                    <div class="w-12 h-1 bg-amber-600 my-1"></div>
+                                    <div class="w-12 h-1 bg-amber-600 my-1"></div>
+                                    <div class="w-12 h-1 bg-amber-600 my-1"></div>
+                                    <div class="w-12 h-1 bg-amber-600 my-1"></div>
+                                </div>
+
+                                <!-- Magnet (Interactive/Draggable inside the bounds) -->
+                                <div id="induction-magnet" class="absolute left-10 top-1/2 -translate-y-1/2 h-12 w-32 rounded-lg cursor-grab active:cursor-grabbing flex overflow-hidden shadow-2xl z-20 select-none">
+                                    <div id="ind-magnet-north" class="w-1/2 bg-red-600 text-white font-black flex items-center justify-center text-sm shadow-inner">N</div>
+                                    <div id="ind-magnet-south" class="w-1/2 bg-indigo-600 text-white font-black flex items-center justify-center text-sm shadow-inner">S</div>
+                                </div>
+
+                                <!-- Optional Magnetic Field Lines visual display overlay -->
+                                <div class="absolute inset-0 pointer-events-none overflow-hidden" id="magnetic-field-lines-container">
+                                    <!-- Dynamic field lines generated via JS based on magnet position -->
+                                </div>
+                            </div>
+
+                            <div class="w-full flex items-center justify-between text-xs text-slate-400">
+                                <span>A</span>
+                                <span>Magnet Center Line</span>
+                                <span>B</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Oscilloscope readout representing Change in flux (engineering utility) -->
+                    <div class="bg-slate-950 p-4 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex-1 w-full">
+                            <span class="block text-[10px] text-indigo-400 uppercase font-semibold mb-2">Live Induced Energy Plot ($d\Phi/dt$)</span>
+                            <div class="bg-slate-900 rounded-xl border border-slate-800 p-2 h-20 relative overflow-hidden">
+                                <canvas id="oscilloscope-canvas" class="w-full h-full block"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 text-center">
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800 w-24">
+                                <span class="text-[9px] text-slate-400 block">Relative Velocity</span>
+                                <span id="readout-velocity" class="text-sm font-bold text-indigo-400 font-mono">0 px/s</span>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800 w-24">
+                                <span class="text-[9px] text-slate-400 block">Peak Current</span>
+                                <span id="readout-peak" class="text-sm font-bold text-emerald-400 font-mono">0.00 mA</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guided Educational Mechanics -->
+                <div class="lg:col-span-4 flex flex-col gap-6">
+                    <!-- Setup Selector Options -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                        <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-hands-holding-child text-indigo-400"></i> Setup Options
+                        </h4>
+                        
+                        <div class="space-y-3">
+                            <label class="text-xs text-slate-400 font-semibold block">Choose Your Experiment Mode:</label>
+                            <div class="grid grid-cols-1 gap-2">
+                                <button onclick="setInductionSystemMode('magnet')" id="ind-mode-magnet" class="w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-all text-left flex items-center justify-between">
+                                    <span>Move Magnet (Wire Fixed)</span>
+                                    <i class="fa-solid fa-magnet text-xs"></i>
+                                </button>
+                                <button onclick="setInductionSystemMode('wire')" id="ind-mode-wire" class="w-full px-3 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold text-xs rounded-lg transition-all text-left flex items-center justify-between">
+                                    <span>Move Wire (Magnet Fixed)</span>
+                                    <i class="fa-solid fa-infinity text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sensitivity Setting -->
+                        <div class="space-y-2 pt-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="slider-loops-ind" class="text-slate-400 font-semibold">Loop Wire Density</label>
+                                <span class="bg-indigo-950 text-indigo-400 px-1.5 py-0.5 rounded font-mono font-bold" id="label-loops-ind">3 Loops</span>
+                            </div>
+                            <input type="range" id="slider-loops-ind" min="1" max="5" step="1" value="3" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        </div>
+                    </div>
+
+                    <!-- Theoretical Lesson: Faraday & Lenz Laws -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                        <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap text-indigo-400"></i> Induction Rules
+                        </h4>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Faraday discovered that moving magnets around a loop of wire induces electrical currents because it changes the amount of magnetic flux passing through the loop:
+                        </p>
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-850 text-center text-sm font-mono py-4">
+                            $$\mathcal{E} = -N \frac{d\Phi}{dt}$$
+                        </div>
+                        <p class="text-slate-400 text-[11px] leading-relaxed">
+                            The negative sign (-) is <strong>Lenz's Law</strong>, meaning the induced current will flow in a direction that opposes the original change in magnetic flux.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: LAB MISSIONS (GAMIFIED LEARNING) -->
+        <section id="content-missions" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
+                <div class="max-w-xl space-y-2 mb-8">
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-3">
+                        <i class="fa-solid fa-trophy text-amber-500"></i> Electro-Magnetic Quests
+                    </h2>
+                    <p class="text-slate-400 text-sm">
+                        Apply what you've learned to complete these interactive missions. Successfully manipulate the simulators to trigger automatic accomplishment flags.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Mission Card 1 -->
+                    <div id="card-m1" class="bg-slate-950 rounded-xl p-5 border border-slate-800/80 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
+                        <div class="space-y-2">
+                            <span id="badge-m1" class="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] font-bold rounded-full uppercase">Pending</span>
+                            <h4 class="font-bold text-white text-sm">Mission 1: The Motor Turn Force</h4>
+                            <p class="text-slate-400 text-xs leading-relaxed">
+                                Go to the <strong class="text-indigo-400">Mechanical Core Tab</strong>. Calibrate the device by adjusting variables to achieve an extreme positive deflection of <strong class="text-amber-400">&ge; 40.00°</strong>.
+                            </p>
+                        </div>
+                        <button onclick="goToMissionTab('motor')" class="w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-400 font-bold text-xs rounded-lg transition-all">
+                            Solve Quest 1
+                        </button>
+                    </div>
+
+                    <!-- Mission Card 2 -->
+                    <div id="card-m2" class="bg-slate-950 rounded-xl p-5 border border-slate-800/80 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
+                        <div class="space-y-2">
+                            <span id="badge-m2" class="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] font-bold rounded-full uppercase">Pending</span>
+                            <h4 class="font-bold text-white text-sm">Mission 2: Rapid Generation Peak</h4>
+                            <p class="text-slate-400 text-xs leading-relaxed">
+                                Go to <strong class="text-emerald-400">Faraday's Lab</strong>. Swipe the Magnet or Wire so fast that you generate an induced current peak exceeding <strong class="text-emerald-400">12.00 mA</strong>.
+                            </p>
+                        </div>
+                        <button onclick="goToMissionTab('induction')" class="w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-400 font-bold text-xs rounded-lg transition-all">
+                            Solve Quest 2
+                        </button>
+                    </div>
+
+                    <!-- Mission Card 3 -->
+                    <div id="card-m3" class="bg-slate-950 rounded-xl p-5 border border-slate-800/80 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
+                        <div class="space-y-2">
+                            <span id="badge-m3" class="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] font-bold rounded-full uppercase">Pending</span>
+                            <h4 class="font-bold text-white text-sm">Mission 3: Lenz Opponent Effect</h4>
+                            <p class="text-slate-400 text-xs leading-relaxed">
+                                Flip the Magnet Poles in <strong class="text-emerald-400">Faraday's Lab</strong>, then move the magnet to discover how pole-reversals impact electron flows. (Triggers on Flipping poles & moving magnet).
+                            </p>
+                        </div>
+                        <button onclick="goToMissionTab('induction')" class="w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-400 font-bold text-xs rounded-lg transition-all">
+                            Solve Quest 3
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Interactive Bottom Notifications / Accomplishment Banners -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-emerald-500/30 text-slate-100 px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="h-8 w-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <h5 class="font-bold text-white text-xs" id="toast-title">Mission Completed!</h5>
+            <p class="text-[10px] text-slate-400" id="toast-desc">You've unlocked a secret achievement.</p>
+        </div>
+    </div>
+
+    <!-- JavaScript containing Simulator Math engines and State controllers -->
+    <script>
+        // Tab switching controller
+        function switchTab(tabId) {
+            ['dashboard', 'motor', 'induction', 'missions'].forEach(id => {
+                const button = document.getElementById(`tab-${id}`);
+                const element = document.getElementById(`content-${id}`);
+                if (id === tabId) {
+                    button.className = "px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
+                    element.classList.remove('hidden');
+                } else {
+                    button.className = "px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white";
+                    element.classList.add('hidden');
+                }
+            });
+        }
+
+        function goToMissionTab(tabId) {
+            switchTab(tabId);
+        }
+
+        // State Tracking for Missions
+        const missionState = {
+            m1: false,
+            m2: false,
+            m3: false
+        };
+
+        function checkMissionCompletion() {
+            // Update UI Badges & Status Panels
+            let completedCount = 0;
+            if (missionState.m1) {
+                completedCount++;
+                document.getElementById('badge-m1').className = "px-2 py-0.5 bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] font-bold rounded-full uppercase";
+                document.getElementById('badge-m1').innerText = "Completed";
+                document.getElementById('card-m1').classList.add('border-emerald-500/30');
+            }
+            if (missionState.m2) {
+                completedCount++;
+                document.getElementById('badge-m2').className = "px-2 py-0.5 bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] font-bold rounded-full uppercase";
+                document.getElementById('badge-m2').innerText = "Completed";
+                document.getElementById('card-m2').classList.add('border-emerald-500/30');
+            }
+            if (missionState.m3) {
+                completedCount++;
+                document.getElementById('badge-m3').className = "px-2 py-0.5 bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] font-bold rounded-full uppercase";
+                document.getElementById('badge-m3').innerText = "Completed";
+                document.getElementById('card-m3').classList.add('border-emerald-500/30');
+            }
+
+            document.getElementById('mission-badge').innerText = `${completedCount}/3`;
+        }
+
+        function triggerToast(title, desc) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-desc').innerText = desc;
+            
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+
+        // ==========================================
+        // 1. MECHANICAL CORE / MOTOR SIMULATOR ENGINE
+        // ==========================================
+        const sliderCurrent = document.getElementById('slider-current');
+        const sliderTurns = document.getElementById('slider-turns');
+        const sliderField = document.getElementById('slider-field');
+
+        const labelCurrent = document.getElementById('label-current');
+        const labelTurns = document.getElementById('label-turns');
+        const labelField = document.getElementById('label-field');
+
+        const coreNeedle = document.getElementById('core-needle');
+        const armatureCoil = document.getElementById('armature-coil');
+        const forceUp = document.getElementById('force-up');
+        const forceDown = document.getElementById('force-down');
+
+        const readoutCurrent = document.getElementById('readout-current');
+        const readoutTurns = document.getElementById('readout-turns');
+        const readoutField = document.getElementById('readout-field');
+        const readoutDeflection = document.getElementById('readout-deflection');
+
+        function updateCoreSimulator() {
+            const current = parseFloat(sliderCurrent.value);
+            const turns = parseInt(sliderTurns.value);
+            const field = parseFloat(sliderField.value);
+
+            // Display sliders readouts
+            labelCurrent.innerText = `${current.toFixed(1)} mA`;
+            labelTurns.innerText = turns;
+            labelField.innerText = `${field.toFixed(2)} T`;
+
+            // Core physics formula calculation: θ = (N * I * B) / k
+            const k = 0.05; // Spring torsional stiffness constant
+            const Area = 0.1; // Loop Area
+            const deflectionAngleRad = (turns * (current * 0.001) * Area * field) / k;
+            const deflectionAngleDeg = deflectionAngleRad * (180 / Math.PI);
+
+            // Cap the maximum rotation angle for the dial visual boundary
+            const visualRotation = Math.max(-50, Math.min(50, deflectionAngleDeg * 1.5));
+
+            // Apply rotation style
+            coreNeedle.style.transform = `rotate(${visualRotation}deg)`;
+            armatureCoil.style.transform = `rotate(${-visualRotation * 0.4}deg)`;
+
+            // Force vectors visualization based on current sign
+            if (current > 0.1) {
+                forceUp.style.opacity = '1';
+                forceDown.style.opacity = '1';
+                forceUp.className = 'absolute -top-6 left-2 flex flex-col items-center transition-all opacity-100 duration-200';
+                forceDown.className = 'absolute -bottom-6 right-2 flex flex-col items-center transition-all opacity-100 duration-200';
+            } else if (current < -0.1) {
+                forceUp.style.opacity = '1';
+                forceDown.style.opacity = '1';
+                // Swap direction forces
+                forceUp.className = 'absolute -top-6 left-2 flex flex-col items-center transition-all opacity-100 duration-200 transform scale-y-[-1]';
+                forceDown.className = 'absolute -bottom-6 right-2 flex flex-col items-center transition-all opacity-100 duration-200 transform scale-y-[-1]';
+            } else {
+                forceUp.style.opacity = '0';
+                forceDown.style.opacity = '0';
+            }
+
+            // Realtime readout updates
+            readoutCurrent.innerText = `${current.toFixed(2)} mA`;
+            readoutTurns.innerText = turns;
+            readoutField.innerText = `${field.toFixed(2)} T`;
+            readoutDeflection.innerText = `${deflectionAngleDeg.toFixed(2)}°`;
+
+            // Mission 1 validation check
+            if (deflectionAngleDeg >= 40.00 && !missionState.m1) {
+                missionState.m1 = true;
+                triggerToast("Mission 1 Complete!", "You successfully maximized coil torque to hit 40°!");
+                checkMissionCompletion();
+            }
+        }
+
+        function resetCoreSimulator() {
+            sliderCurrent.value = 0.0;
+            sliderTurns.value = 50;
+            sliderField.value = 0.5;
+            updateCoreSimulator();
+        }
+
+        // Add event listeners for core controls
+        [sliderCurrent, sliderTurns, sliderField].forEach(elem => {
+            elem.addEventListener('input', updateCoreSimulator);
+        });
+
+        // Initialize Core Lab
+        updateCoreSimulator();
+
+        // ==========================================
+        // 2. FARADAY'S LAB / INDUCTION SYSTEM ENGINE
+        // ==========================================
+        const inductionMagnet = document.getElementById('induction-magnet');
+        const inductionWireAssembly = document.getElementById('induction-wire-assembly');
+        const sliderLoopsInd = document.getElementById('slider-loops-ind');
+        const labelLoopsInd = document.getElementById('label-loops-ind');
+        const inductionNeedle = document.getElementById('induction-needle');
+        const inductionCurrentLabel = document.getElementById('induction-current-label');
+        const velocityReadout = document.getElementById('readout-velocity');
+        const peakReadout = document.getElementById('readout-peak');
+        const instructionLabel = document.getElementById('interaction-instructions');
+
+        let isWireMoveMode = false; // Toggle between moving Magnet vs Wire
+        let isMagnetPolarityNorthLeft = true; // Magnet Poles Toggle
+
+        // Physics engine tracking positions
+        let draggingElement = null;
+        let startX = 0;
+        let startLeft = 0;
+        let lastPositionX = 0;
+        let lastTime = 0;
+        let currentVelocity = 0;
+        let peakInducedCurrent = 0.0;
+        let currentOffsetLeftPercent = 25; // Default Magnet Starting percent offset
+
+        // Oscilloscope Chart System Setup
+        const oscCanvas = document.getElementById('oscilloscope-canvas');
+        const oscCtx = oscCanvas.getContext('2d');
+        const waveHistory = Array(150).fill(0); // Scope sample buffer
+
+        // Redraw canvas loop
+        function drawOscilloscope() {
+            oscCtx.clearRect(0, 0, oscCanvas.width, oscCanvas.height);
+            
+            // Baseline 0-point
+            oscCtx.beginPath();
+            oscCtx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+            oscCtx.lineWidth = 1;
+            oscCtx.moveTo(0, oscCanvas.height / 2);
+            oscCtx.lineTo(oscCanvas.width, oscCanvas.height / 2);
+            oscCtx.stroke();
+
+            // Wave Line Plot
+            oscCtx.beginPath();
+            oscCtx.strokeStyle = '#10b981'; // Emerald 500 line
+            oscCtx.lineWidth = 2.5;
+            oscCtx.lineJoin = 'round';
+
+            const step = oscCanvas.width / (waveHistory.length - 1);
+            for (let i = 0; i < waveHistory.length; i++) {
+                const x = i * step;
+                // Scale wave points to vertical canvas range
+                const y = (oscCanvas.height / 2) - (waveHistory[i] * 3);
+                if (i === 0) {
+                    oscCtx.moveTo(x, y);
+                } else {
+                    oscCtx.lineTo(x, y);
+                }
+            }
+            oscCtx.stroke();
+
+            // Render neon/glow effect
+            oscCtx.shadowBlur = 8;
+            oscCtx.shadowColor = '#10b981';
+        }
+
+        function resizeOscilloscope() {
+            oscCanvas.width = oscCanvas.parentElement.clientWidth;
+            oscCanvas.height = oscCanvas.parentElement.clientHeight;
+            drawOscilloscope();
+        }
+
+        window.addEventListener('resize', resizeOscilloscope);
+        setTimeout(resizeOscilloscope, 100);
+
+        function updateOscilloscopeData(newValue) {
+            waveHistory.push(newValue);
+            waveHistory.shift();
+            drawOscilloscope();
+        }
+
+        // Handle Mode Selection: Move Magnet or Move Wire
+        function setInductionSystemMode(mode) {
+            const magnetBtn = document.getElementById('ind-mode-magnet');
+            const wireBtn = document.getElementById('ind-mode-wire');
+
+            // Reset physical position states first
+            inductionMagnet.style.left = "25%";
+            inductionWireAssembly.style.left = "50%";
+            currentOffsetLeftPercent = 25;
+
+            if (mode === 'magnet') {
+                isWireMoveMode = false;
+                magnetBtn.className = "w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-all text-left flex items-center justify-between";
+                wireBtn.className = "w-full px-3 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold text-xs rounded-lg transition-all text-left flex items-center justify-between";
+                instructionLabel.innerText = "Click and Drag the magnet left/right!";
+                inductionMagnet.style.cursor = 'grab';
+                inductionWireAssembly.style.pointerEvents = 'none';
+                inductionMagnet.style.pointerEvents = 'auto';
+            } else {
+                isWireMoveMode = true;
+                magnetBtn.className = "w-full px-3 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold text-xs rounded-lg transition-all text-left flex items-center justify-between";
+                wireBtn.className = "w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-all text-left flex items-center justify-between";
+                instructionLabel.innerText = "Click and Drag the copper wire loops left/right!";
+                inductionWireAssembly.style.cursor = 'grab';
+                inductionWireAssembly.style.pointerEvents = 'auto';
+                inductionMagnet.style.pointerEvents = 'none';
+            }
+        }
+
+        // Toggle North/South Pole Orientation
+        function toggleInductionPoles() {
+            isMagnetPolarityNorthLeft = !isMagnetPolarityNorthLeft;
+            const north = document.getElementById('ind-magnet-north');
+            const south = document.getElementById('ind-magnet-south');
+
+            if (isMagnetPolarityNorthLeft) {
+                north.className = "w-1/2 bg-red-600 text-white font-black flex items-center justify-center text-sm shadow-inner";
+                south.className = "w-1/2 bg-indigo-600 text-white font-black flex items-center justify-center text-sm shadow-inner";
+                north.innerText = "N";
+                south.innerText = "S";
+            } else {
+                north.className = "w-1/2 bg-indigo-600 text-white font-black flex items-center justify-center text-sm shadow-inner";
+                south.className = "w-1/2 bg-red-600 text-white font-black flex items-center justify-center text-sm shadow-inner";
+                north.innerText = "S";
+                south.innerText = "N";
+            }
+            
+            // Check Mission 3 requirement
+            if (missionState.m2 && !missionState.m3) {
+                // If they have done mission 2, flipping poles and trying completes mission 3
+                missionState.m3 = true;
+                triggerToast("Mission 3 Complete!", "You investigated the poles and observed inverse induction!");
+                checkMissionCompletion();
+            }
+        }
+
+        // Loop Density input change
+        sliderLoopsInd.addEventListener('input', () => {
+            const loops = parseInt(sliderLoopsInd.value);
+            labelLoopsInd.innerText = `${loops} Loops`;
+        });
+
+        // Initialize Drag-and-Drop Physics Logic
+        function setupDraggableElement(elem) {
+            function onDragStart(e) {
+                draggingElement = elem;
+                const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                startX = clientX;
+                startLeft = elem.offsetLeft;
+                lastPositionX = startLeft;
+                lastTime = performance.now();
+                elem.style.cursor = 'grabbing';
+            }
+
+            elem.addEventListener('mousedown', onDragStart);
+            elem.addEventListener('touchstart', onDragStart, { passive: true });
+        }
+
+        setupDraggableElement(inductionMagnet);
+        setupDraggableElement(inductionWireAssembly);
+
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('touchmove', onDragMove, { passive: false });
+
+        document.addEventListener('mouseup', onDragEnd);
+        document.addEventListener('touchend', onDragEnd);
+
+        function onDragMove(e) {
+            if (!draggingElement) return;
+
+            // Prevent mobile scrolling while dragging inside the sandbox
+            if (e.type === 'touchmove') e.preventDefault();
+
+            const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const container = draggingElement.parentElement;
+            const containerWidth = container.clientWidth;
+            const elemWidth = draggingElement.clientWidth;
+
+            // Calculate new position
+            const deltaX = clientX - startX;
+            let newLeft = startLeft + deltaX;
+
+            // Confined boundaries
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft > containerWidth - elemWidth) newLeft = containerWidth - elemWidth;
+
+            draggingElement.style.left = `${newLeft}px`;
+
+            // Velocity Calculus calculations ($v = dx / dt$)
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000; // in seconds
+            const dx = newLeft - lastPositionX; // in pixels
+
+            if (dt > 0.01) {
+                currentVelocity = dx / dt; // pixels per second
+                lastPositionX = newLeft;
+                lastTime = now;
+            }
+
+            // Perform Electromagnetic Induction calculations
+            processInductionPhysics(currentVelocity);
+        }
+
+        function onDragEnd() {
+            if (!draggingElement) return;
+            draggingElement.style.cursor = 'grab';
+            draggingElement = null;
+            currentVelocity = 0;
+            processInductionPhysics(0);
+        }
+
+        function processInductionPhysics(velocity) {
+            // Find current positions to check physical overlap (distance matters!)
+            const containerWidth = inductionMagnet.parentElement.clientWidth;
+            
+            const magnetLeft = inductionMagnet.offsetLeft;
+            const magnetWidth = inductionMagnet.clientWidth;
+            const magnetCenter = magnetLeft + magnetWidth / 2;
+
+            const wireLeft = inductionWireAssembly.offsetLeft;
+            const wireWidth = inductionWireAssembly.clientWidth;
+            const wireCenter = wireLeft + wireWidth / 2;
+
+            // Distance factor (induction is stronger when overlapping closely)
+            const distance = Math.abs(magnetCenter - wireCenter);
+            const activeOverlapMultiplier = Math.max(0, 1 - (distance / (containerWidth * 0.4)));
+
+            // Loops factor density multiplier
+            const loopsDensity = parseInt(sliderLoopsInd.value);
+
+            // Compute induced voltage (Faraday's Law): Emf = -N * (dFlux / dt)
+            // Voltage/current magnitude proportional to velocity & loops factor & proximity density
+            let inducedValue = (velocity * 0.05) * loopsDensity * activeOverlapMultiplier;
+
+            // Flip current signs based on Polarity Direction selected
+            if (!isMagnetPolarityNorthLeft) {
+                inducedValue = -inducedValue;
+            }
+
+            // Cap deflection output value range limits
+            inducedValue = Math.max(-15, Math.min(15, inducedValue));
+
+            // Apply deflection visual states to needle
+            const visualDeflectionAngle = inducedValue * 3.5;
+            inductionNeedle.style.transform = `rotate(${visualDeflectionAngle}deg)`;
+            inductionCurrentLabel.innerText = `${inducedValue.toFixed(2)} mA`;
+
+            // Set dashboard statuses
+            velocityReadout.innerText = `${Math.round(velocity)} px/s`;
+            
+            // Peak absolute checking
+            const absCurrentVal = Math.abs(inducedValue);
+            if (absCurrentVal > peakInducedCurrent) {
+                peakInducedCurrent = absCurrentVal;
+                peakReadout.innerText = `${peakInducedCurrent.toFixed(2)} mA`;
+            }
+
+            // Mission completions flags checks
+            if (absCurrentVal >= 12.0 && !missionState.m2) {
+                missionState.m2 = true;
+                triggerToast("Mission 2 Complete!", "Awesome energy generation! Speed is key to flux dynamics!");
+                checkMissionCompletion();
+            }
+
+            // Visual dynamic updates to wave buffer
+            updateOscilloscopeData(inducedValue);
+        }
+
+        // Automatic decay loop to smoothly return needle back to zero when idle
+        setInterval(() => {
+            if (!draggingElement) {
+                updateOscilloscopeData(0);
+                inductionNeedle.style.transform = 'rotate(0deg)';
+                inductionCurrentLabel.innerText = '0.00 mA';
+                velocityReadout.innerText = '0 px/s';
+            }
+        }, 100);
+
+        // Safe Initialization of KaTeX typesetting once DOM and scripts are fully ready
+        if (typeof renderMathInElement === 'function') {
+            renderMathInElement(document.body);
+        }
+    </script>
+</body>
+</html>
