@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermoconnect - The Interactive Science of Thermometry</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for beautiful scientific/game icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        thermal: {
+                            cold: '#38bdf8',
+                            warm: '#fb923c',
+                            hot: '#ef4444',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom diagonal stripes representing an adiabatic wall */
+        .adiabatic-stripes {
+            background: repeating-linear-gradient(
+                45deg,
+                #475569,
+                #475569 8px,
+                #334155 8px,
+                #334155 16px
+            );
+        }
+        /* Continuous pulse effect for thermal radiation flow */
+        @keyframes flow-right {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes flow-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-flow-right {
+            animation: flow-right 2s linear infinite;
+        }
+        .animate-flow-left {
+            animation: flow-left 2s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen selection:bg-brand-500 selection:text-white">
+
+    <!-- Header & Navigation -->
+    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+                        <i class="fa-solid fa-temperature-half text-white text-xl animate-pulse"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-orange-400 via-pink-500 to-brand-500 bg-clip-text text-transparent">THERMOCONNECT</span>
+                        <p class="text-[10px] text-slate-400 font-mono tracking-widest uppercase">The Physics of Thermometry</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex items-center gap-2">
+                    <button onclick="switchTab('sandbox')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-slate-800 text-orange-400 border border-orange-500/30" id="tab-sandbox">
+                        <i class="fa-solid fa-cubes-stacked mr-1.5"></i>Zeroth Law Sandbox
+                    </button>
+                    <button onclick="switchTab('calibrator')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-slate-200 transition-all duration-200" id="tab-calibrator">
+                        <i class="fa-solid fa-scale-balanced mr-1.5"></i>Scale Calibrator
+                    </button>
+                    <button onclick="switchTab('explorer')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-slate-200 transition-all duration-200" id="tab-explorer">
+                        <i class="fa-solid fa-flask-vial mr-1.5"></i>Property Explorer
+                    </button>
+                    <button onclick="switchTab('quest')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-slate-200 transition-all duration-200" id="tab-quest">
+                        <i class="fa-solid fa-circle-question mr-1.5"></i>Quest Challenge
+                    </button>
+                </nav>
+                <div class="flex items-center gap-3">
+                    <span id="global-score-badge" class="bg-slate-800 border border-slate-700 text-yellow-400 px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-star text-amber-400"></i> Score: <span id="score-val">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Frame -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Tab 1: Zeroth Law Sandbox (Interactive simulation of wall types & equilibrium) -->
+        <section id="pane-sandbox" class="tab-content block">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Control Panel & Educator Introduction -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/50 backdrop-blur">
+                        <span class="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-400 px-2.5 py-1 rounded-full text-xs font-semibold mb-3">
+                            <i class="fa-solid fa-graduation-cap"></i> Concept Lab 1
+                        </span>
+                        <h2 class="text-2xl font-bold text-white mb-3">Zeroth Law & Wall Partition Sandbox</h2>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            How do we isolate materials or allow them to exchange heat? Start by toggling the wall types to witness heat propagation!
+                        </p>
+                        <div class="mt-4 p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded bg-amber-500/80"></span>
+                                <span><strong>Diathermic Wall:</strong> Thin Copper. Fast conductor of heat energy.</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded adiabatic-stripes"></span>
+                                <span><strong>Adiabatic Wall:</strong> Ideal wood/glass wool. Total insulator.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sandbox Interactive Controls -->
+                    <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/50">
+                        <h3 class="text-md font-bold text-slate-200 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-brand-500"></i> Setup Controls
+                        </h3>
+                        
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-2">PARTITION TYPE (A vs B)</label>
+                                <div class="grid grid-cols-2 gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                                    <button onclick="setWallAB('adiabatic')" id="wall-ab-adiabatic" class="py-2 px-3 text-xs font-bold rounded-lg transition-all bg-slate-800 text-white border border-slate-700">
+                                        <i class="fa-solid fa-ban mr-1"></i> Adiabatic
+                                    </button>
+                                    <button onclick="setWallAB('diathermic')" id="wall-ab-diathermic" class="py-2 px-3 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                                        <i class="fa-solid fa-bolt mr-1"></i> Diathermic
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-2">PARTITIONS TO AUXILIARY SYSTEM (C)</label>
+                                <div class="grid grid-cols-2 gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                                    <button onclick="setWallC('adiabatic')" id="wall-c-adiabatic" class="py-2 px-3 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                                        <i class="fa-solid fa-ban mr-1"></i> Adiabatic
+                                    </button>
+                                    <button onclick="setWallC('diathermic')" id="wall-c-diathermic" class="py-2 px-3 text-xs font-bold rounded-lg transition-all bg-slate-800 text-white border border-slate-700">
+                                        <i class="fa-solid fa-bolt mr-1"></i> Diathermic
+                                    </button>
+                                </div>
+                            </div>
+
+                            <hr class="border-slate-700/50">
+
+                            <!-- Temperature Initializers -->
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                                        <span>SYSTEM A (°C)</span>
+                                        <span id="val-tempA" class="font-mono text-orange-400 font-bold">100°C</span>
+                                    </div>
+                                    <input type="range" id="slider-tempA" min="0" max="100" value="100" oninput="adjustTemperature('A', this.value)" class="w-full h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                                        <span>SYSTEM B (°C)</span>
+                                        <span id="val-tempB" class="font-mono text-blue-400 font-bold">10°C</span>
+                                    </div>
+                                    <input type="range" id="slider-tempB" min="0" max="100" value="10" oninput="adjustTemperature('B', this.value)" class="w-full h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                                        <span>SYSTEM C (°C)</span>
+                                        <span id="val-tempC" class="font-mono text-emerald-400 font-bold">50°C</span>
+                                    </div>
+                                    <input type="range" id="slider-tempC" min="0" max="100" value="50" oninput="adjustTemperature('C', this.value)" class="w-full h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 pt-2">
+                                <button onclick="resetEquilibriumSimulation()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2.5 rounded-xl transition duration-150">
+                                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset Sandbox
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Visual Board -->
+                <div class="lg:col-span-8 flex flex-col justify-between bg-slate-950/80 rounded-3xl p-6 sm:p-8 border border-slate-800 relative overflow-hidden">
+                    <!-- Dynamic Grid explaining the System A, B, and C positioning -->
+                    <div class="relative w-full aspect-[4/3] max-h-[500px] flex flex-col justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-800/80">
+                        
+                        <!-- Top Row: System A and System B side-by-side -->
+                        <div class="flex h-[55%] gap-4 relative">
+                            <!-- System A Box -->
+                            <div id="box-A" class="flex-1 rounded-2xl border border-slate-700/60 p-4 transition-colors duration-500 flex flex-col justify-between relative overflow-hidden">
+                                <div class="z-10">
+                                    <span class="bg-slate-950/80 px-2 py-0.5 rounded text-[10px] font-mono tracking-wider text-slate-400 border border-slate-800">SYSTEM A (GAS)</span>
+                                    <h4 class="text-3xl font-extrabold font-mono mt-1" id="box-tempA">100°C</h4>
+                                </div>
+                                <!-- Heat particle simulation container -->
+                                <div id="particles-A" class="absolute inset-0 pointer-events-none opacity-40"></div>
+                            </div>
+
+                            <!-- Wall AB Partition Separator (Visual & Dynamic) -->
+                            <div id="wall-AB" class="w-8 adiabatic-stripes rounded-lg cursor-pointer hover:brightness-110 active:scale-95 transition-all flex flex-col items-center justify-center border border-slate-800" title="Click to toggle wall type between System A and System B">
+                                <div class="bg-slate-900/90 text-slate-300 p-1.5 rounded-md text-[9px] font-extrabold writing-mode-vertical uppercase tracking-wider text-center">
+                                    WALL
+                                </div>
+                            </div>
+
+                            <!-- System B Box -->
+                            <div id="box-B" class="flex-1 rounded-2xl border border-slate-700/60 p-4 transition-colors duration-500 flex flex-col justify-between relative overflow-hidden">
+                                <div class="z-10">
+                                    <span class="bg-slate-950/80 px-2 py-0.5 rounded text-[10px] font-mono tracking-wider text-slate-400 border border-slate-800">SYSTEM B (GAS)</span>
+                                    <h4 class="text-3xl font-extrabold font-mono mt-1" id="box-tempB">10°C</h4>
+                                </div>
+                                <!-- Heat particle simulation container -->
+                                <div id="particles-B" class="absolute inset-0 pointer-events-none opacity-40"></div>
+                            </div>
+                        </div>
+
+                        <!-- Mid Partition separator separating AB from C -->
+                        <div class="h-8 my-3 relative">
+                            <div id="wall-C" class="absolute inset-x-0 h-full bg-orange-600/90 rounded-lg cursor-pointer hover:brightness-110 transition-all flex items-center justify-center border border-slate-800 text-center" title="Click to toggle wall type between systems AB and system C">
+                                <span class="bg-slate-900/95 text-orange-400 px-3 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase">
+                                    DIATHERMIC WALL (THIN COPPER)
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Row: System C acting as physical intermediary -->
+                        <div id="box-C" class="h-[30%] rounded-2xl border border-slate-700/60 p-4 transition-colors duration-500 flex flex-col justify-between relative overflow-hidden">
+                            <div class="z-10 flex justify-between items-center">
+                                <div>
+                                    <span class="bg-slate-950/80 px-2 py-0.5 rounded text-[10px] font-mono tracking-wider text-slate-400 border border-slate-800">AUXILIARY SYSTEM C</span>
+                                    <h4 class="text-2xl font-extrabold font-mono mt-1" id="box-tempC">50°C</h4>
+                                </div>
+                                <div class="text-xs text-slate-400 italic font-medium hidden sm:block">
+                                    Acting as the calibration standard / thermometer bridge
+                                </div>
+                            </div>
+                            <!-- Heat particle simulation container -->
+                            <div id="particles-C" class="absolute inset-0 pointer-events-none opacity-40"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- Sandbox Real-Time Analytics Message -->
+                    <div class="mt-6 bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-start gap-3">
+                        <div class="bg-brand-500/20 text-brand-400 p-2 rounded-lg mt-0.5">
+                            <i class="fa-solid fa-circle-nodes"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-mono font-bold text-slate-400">THERMAL EQUILIBRIUM OBSERVER:</span>
+                            <p id="observer-output" class="text-sm text-slate-200 mt-1">
+                                Adjust variables to start energy distribution and verify the Zeroth Law of Thermodynamics.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: Scale Calibration Chamber -->
+        <section id="pane-calibrator" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Instruction Panel & Formulas -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/50">
+                        <span class="inline-flex items-center gap-1.5 bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-full text-xs font-semibold mb-3">
+                            <i class="fa-solid fa-graduation-cap"></i> Concept Lab 2
+                        </span>
+                        <h2 class="text-2xl font-bold text-white mb-3">Scale Calibration & Formulae</h2>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            Establish fixed reference points: the <strong>melting point of ice (0°C / 32°F)</strong> and the <strong>boiling point of water (100°C / 212°F)</strong>. Use these divisions to convert!
+                        </p>
+                        
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800/80 space-y-3 font-mono">
+                            <div class="text-xs text-slate-400 text-center border-b border-slate-800 pb-2">CONVERSION RELATIONSHIP</div>
+                            <div class="text-center text-sm py-1 font-semibold text-slate-200">
+                                <span class="text-pink-400">$$ \frac{T_F - 32}{180} = \frac{T_C}{100} $$</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 space-y-1 pt-1 border-t border-slate-800/80">
+                                <p><span class="text-brand-400">°C to °F:</span> $ T_F = \frac{9}{5} T_C + 32 $</p>
+                                <p><span class="text-purple-400">°F to °C:</span> $ T_C = \frac{5}{9} (T_F - 32) $</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Solver Playground -->
+                    <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/50">
+                        <h3 class="text-sm font-bold text-slate-200 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-purple-500"></i> Interactive Math solver
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">Enter any custom target value below to automatically solve with mathematical sequence steps.</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">SOLVER MODE</label>
+                                <select id="solver-direction" onchange="toggleSolverInputLabel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+                                    <option value="CtoF">Convert Celsius (°C) ➔ Fahrenheit (°F)</option>
+                                    <option value="FtoC">Convert Fahrenheit (°F) ➔ Celsius (°C)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label id="solver-input-label" class="block text-xs font-semibold text-slate-400 mb-1.5">CELSIUS TEMPERATURE VALUE</label>
+                                <div class="relative">
+                                    <input type="number" id="solver-input-val" value="27" oninput="calculateCustomSolver()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 font-mono text-sm text-slate-100 focus:outline-none focus:border-purple-500">
+                                    <span id="solver-unit-addon" class="absolute right-3 top-2.5 text-xs text-slate-500 font-bold font-mono">°C</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-purple-950/20 border border-purple-900/40 p-4 rounded-xl space-y-2">
+                                <div class="text-xs font-semibold text-purple-400 tracking-wider">DERIVATION PATHWAY:</div>
+                                <div id="solver-pathway" class="font-mono text-xs text-slate-300 space-y-1.5 leading-relaxed">
+                                    <!-- Dynamic step list populated by solver logic -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dual Visual Scale Thermometers -->
+                <div class="lg:col-span-8 bg-slate-950/80 rounded-3xl p-6 sm:p-8 border border-slate-800">
+                    <h3 class="text-lg font-bold text-white mb-2">Dual Comparison Column</h3>
+                    <p class="text-xs text-slate-400 mb-8">Drag the thermometer column control slider below to inspect physical phase matches in real time.</p>
+                    
+                    <div class="grid grid-cols-2 gap-8 md:gap-12 max-w-md mx-auto relative py-6">
+                        <!-- Left Thermometer: Celsius -->
+                        <div class="flex flex-col items-center">
+                            <span class="text-sm font-extrabold text-brand-400 mb-3">CELSIUS SCALE</span>
+                            <div class="relative w-12 h-80 bg-slate-800 rounded-full border-4 border-slate-700/80 flex flex-col justify-end p-1 overflow-hidden shadow-inner">
+                                <div id="celsius-fill" class="w-full bg-gradient-to-t from-orange-600 via-pink-500 to-red-500 rounded-full transition-all duration-300" style="height: 50%;"></div>
+                                <!-- Level Ticks inside thermometer -->
+                                <div class="absolute inset-y-0 right-1 flex flex-col justify-between text-[9px] font-mono text-slate-500 py-4 pointer-events-none">
+                                    <span>100</span>
+                                    <span>80</span>
+                                    <span>60</span>
+                                    <span>40</span>
+                                    <span>20</span>
+                                    <span>0</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <div class="text-xs text-slate-400">Ice Pt: <strong class="text-slate-200">0°</strong></div>
+                                <div class="text-xs text-slate-400">Steam Pt: <strong class="text-slate-200">100°</strong></div>
+                                <div class="mt-2 text-xl font-mono font-black text-brand-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-xl" id="therm-celsius-val">50.0°C</div>
+                            </div>
+                        </div>
+
+                        <!-- Right Thermometer: Fahrenheit -->
+                        <div class="flex flex-col items-center">
+                            <span class="text-sm font-extrabold text-purple-400 mb-3">FAHRENHEIT SCALE</span>
+                            <div class="relative w-12 h-80 bg-slate-800 rounded-full border-4 border-slate-700/80 flex flex-col justify-end p-1 overflow-hidden shadow-inner">
+                                <div id="fahrenheit-fill" class="w-full bg-gradient-to-t from-orange-600 via-pink-500 to-red-500 rounded-full transition-all duration-300" style="height: 50%;"></div>
+                                <!-- Level Ticks inside thermometer -->
+                                <div class="absolute inset-y-0 right-1 flex flex-col justify-between text-[9px] font-mono text-slate-500 py-4 pointer-events-none">
+                                    <span>212</span>
+                                    <span>170</span>
+                                    <span>130</span>
+                                    <span>90</span>
+                                    <span>50</span>
+                                    <span>32</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <div class="text-xs text-slate-400">Ice Pt: <strong class="text-slate-200">32°</strong></div>
+                                <div class="text-xs text-slate-400">Steam Pt: <strong class="text-slate-200">212°</strong></div>
+                                <div class="mt-2 text-xl font-mono font-black text-purple-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-xl" id="therm-fahrenheit-val">122.0°F</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Master Slider representing actual state -->
+                    <div class="mt-8 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">DRAG TO SET EMULATOR STATE</label>
+                            <span class="bg-brand-500/10 text-brand-400 text-xs px-2.5 py-0.5 rounded-full font-mono font-bold" id="slider-temp-state">50°C / 122°F</span>
+                        </div>
+                        <input type="range" id="calibration-master-slider" min="0" max="100" value="50" oninput="updateCalibrationDisplay(this.value)" class="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                        
+                        <!-- Water state indicators at this temperature -->
+                        <div class="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] font-semibold text-slate-400">
+                            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800" id="phase-ice">
+                                <i class="fa-regular fa-snowflake mr-1"></i> ICE POINT (0°C)
+                            </div>
+                            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800" id="phase-ambient">
+                                <i class="fa-solid fa-droplet mr-1"></i> ROOM TEMP (27°C)
+                            </div>
+                            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800" id="phase-boil">
+                                <i class="fa-solid fa-fire mr-1"></i> STEAM POINT (100°C)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: Thermometric Property Explorer -->
+        <section id="pane-explorer" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Educational Context -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/50">
+                        <span class="inline-flex items-center gap-1.5 bg-cyan-500/10 text-cyan-400 px-2.5 py-1 rounded-full text-xs font-semibold mb-3">
+                            <i class="fa-solid fa-graduation-cap"></i> Concept Lab 3
+                        </span>
+                        <h2 class="text-2xl font-bold text-white mb-3">Thermometric Property Explorer</h2>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            We measure temperature by tracking properties that vary linearly and monotonically. Look at how these materials react at different physical properties!
+                        </p>
+                        
+                        <!-- Material Selector -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-400">SELECT THERMOMETRIC SYSTEM</label>
+                            <div class="space-y-2">
+                                <!-- Option 1: Liquid-in-glass (Mercury) -->
+                                <button onclick="selectExplorerMaterial('mercury')" id="btn-mat-mercury" class="w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 bg-slate-900 border-cyan-500/40 text-cyan-400">
+                                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-lg">
+                                        <i class="fa-solid fa-glass-water-droplet text-red-500"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-200">Mercury Column Height</div>
+                                        <div class="text-[10px] text-slate-400 font-mono">Property: Column Length ($L$) in mm</div>
+                                    </div>
+                                </button>
+
+                                <!-- Option 2: Platinum Resistance wire -->
+                                <button onclick="selectExplorerMaterial('resistance')" id="btn-mat-resistance" class="w-full text-left p-3 rounded-xl border border-slate-800 text-slate-400 hover:text-slate-200 transition-all flex items-center gap-3 bg-slate-900/60">
+                                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-lg">
+                                        <i class="fa-solid fa-bezier-curve text-yellow-500"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-200">Platinum Wire Resistance</div>
+                                        <div class="text-[10px] text-slate-400 font-mono">Property: Electrical Resistance ($R$) in $ \Omega $</div>
+                                    </div>
+                                </button>
+
+                                <!-- Option 3: Thermochromic Material -->
+                                <button onclick="selectExplorerMaterial('thermochromic')" id="btn-mat-thermochromic" class="w-full text-left p-3 rounded-xl border border-slate-800 text-slate-400 hover:text-slate-200 transition-all flex items-center gap-3 bg-slate-900/60">
+                                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-lg">
+                                        <i class="fa-solid fa-palette text-cyan-400"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-200">Thermochromic Oxides</div>
+                                        <div class="text-[10px] text-slate-400 font-mono">Property: Visible Spectrum Color Tone</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Linear Scale Formula Widget -->
+                    <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/50">
+                        <span class="block text-xs font-semibold text-slate-400 mb-2">THERMOMETRIC PROPERTY CALCULATION</span>
+                        <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 text-xs font-mono space-y-2 leading-relaxed">
+                            <p class="text-center font-bold text-amber-400">$$ T = \frac{P_T - P_1}{P_2 - P_1} \times 100 $$</p>
+                            <div class="border-t border-slate-800 pt-2 text-[11px] text-slate-400">
+                                <p>• $ P_1 $: Property value at Ice Point (0°C)</p>
+                                <p>• $ P_2 $: Property value at Steam Point (100°C)</p>
+                                <p>• $ P_T $: Property value at current Temperature ($ T $)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation & Interaction Display Area -->
+                <div class="lg:col-span-8 bg-slate-950/80 rounded-3xl p-6 sm:p-8 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2" id="explorer-subheading">Liquid-In-Glass Mercury Column</h3>
+                        <p class="text-xs text-slate-400 mb-6">Observe the linear growth of the property. Drag the property slider to calculate the equivalent temperature.</p>
+                        
+                        <!-- Main Visual Board containing Sandbox interactive graphics -->
+                        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[300px] relative overflow-hidden">
+                            
+                            <!-- Visual representation 1: Mercury Column Container -->
+                            <div id="vis-mercury-box" class="w-full flex flex-col items-center justify-center space-y-4">
+                                <div class="relative w-full max-w-sm h-12 bg-slate-800 rounded-full border-4 border-slate-700/80 flex items-center p-1 overflow-hidden">
+                                    <div id="mercury-column-bar" class="h-full bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 rounded-full transition-all duration-300" style="width: 25%;"></div>
+                                    <span class="absolute right-4 text-xs font-mono text-slate-400 font-bold" id="lbl-mercury-height">25 mm</span>
+                                </div>
+                                <div class="text-xs text-slate-400 text-center max-w-md mt-2">
+                                    Mercury expansion is measured from <span class="text-amber-400">25 mm (0°C)</span> to <span class="text-red-500">180 mm (100°C)</span>.
+                                </div>
+                            </div>
+
+                            <!-- Visual representation 2: Electrical Resistance Wire -->
+                            <div id="vis-resistance-box" class="w-full hidden flex-col items-center justify-center space-y-4">
+                                <div class="flex items-center gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800 max-w-sm w-full">
+                                    <i class="fa-solid fa-microchip text-yellow-500 text-3xl"></i>
+                                    <div>
+                                        <div class="text-xs text-slate-400 font-mono">MEASURED ELECTRICAL RESISTANCE</div>
+                                        <div class="text-2xl font-black font-mono text-yellow-400" id="lbl-resistance-omega">95.2 Ω</div>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-slate-400 text-center max-w-md mt-2">
+                                    The platinum resistance scale ranges from <span class="text-yellow-400">95.2 Ω (0°C)</span> to <span class="text-amber-500">138.6 Ω (100°C)</span>.
+                                </div>
+                            </div>
+
+                            <!-- Visual representation 3: Thermochromic Pigment oxides -->
+                            <div id="vis-thermochromic-box" class="w-full hidden flex-col items-center justify-center space-y-4">
+                                <div class="flex items-center justify-center gap-4">
+                                    <!-- A color box that changes visually with heat -->
+                                    <div id="thermochromic-color-disk" class="w-24 h-24 rounded-2xl border-4 border-slate-700/80 shadow-lg transition-all duration-300 flex items-center justify-center bg-white">
+                                        <span class="text-xs font-bold text-slate-800" id="lbl-thermochromic-text">WHITE</span>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-xs text-slate-300 font-bold">Titanium/Zinc Oxide mix</p>
+                                        <p class="text-[11px] text-slate-400">Switches from <span class="text-white font-bold">White (at 0°C)</span> to <span class="text-yellow-400 font-bold">Yellow (at 100°C)</span>.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Sandbox Controller input with instant equation rendering feedback -->
+                    <div class="mt-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider" id="explorer-slider-title">DRAG PROPERTY SLIDER (HEIGHT IN mm)</label>
+                                <span class="bg-cyan-500/10 text-cyan-400 text-xs px-2.5 py-0.5 rounded-full font-mono font-bold" id="lbl-explorer-slider-val">25 mm</span>
+                            </div>
+                            <input type="range" id="explorer-property-slider" min="25" max="180" value="25" step="1" oninput="updateExplorerCalculation(this.value)" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                        </div>
+
+                        <!-- Mathematical Proof Step -->
+                        <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800/80">
+                            <span class="text-[10px] font-bold text-slate-400 tracking-wider block mb-2">THERMODYNAMIC EQUILIBRIUM CALCULATION STEPS:</span>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
+                                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/60">
+                                    <div class="text-slate-400 mb-1">Step 1: Get Reference Values</div>
+                                    <p id="calc-step-1" class="text-slate-200">P₁ = 25 mm, P₂ = 180 mm</p>
+                                </div>
+                                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/60">
+                                    <div class="text-slate-400 mb-1">Step 2: Delta Difference</div>
+                                    <p id="calc-step-2" class="text-slate-200">(60 - 25) / (180 - 25)</p>
+                                </div>
+                                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/60">
+                                    <div class="text-slate-400 mb-1">Step 3: Solve Result Temperature</div>
+                                    <p id="calc-step-3" class="text-cyan-400 font-bold">T = 22.58 °C</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 4: Interactive Quest (Gamified Sandbox Challenges) -->
+        <section id="pane-quest" class="tab-content hidden">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Welcome/Status Card -->
+                <div class="bg-gradient-to-r from-brand-600 via-pink-600 to-orange-600 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+                    <div class="absolute inset-0 bg-slate-950/20 backdrop-blur-xs"></div>
+                    <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                        <div class="space-y-2">
+                            <span class="inline-flex items-center gap-1.5 bg-white/20 text-white px-2.5 py-1 rounded-full text-xs font-bold">
+                                <i class="fa-solid fa-trophy text-yellow-300"></i> Gamified Quest Module
+                            </span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Thermometry Quest Challenge</h2>
+                            <p class="text-sm text-slate-100 max-w-xl">
+                                Test your understanding of thermal processes, mathematical scale calculations, and material choices. Correct answers build up your global score badge.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="restartQuestChallenge()" class="bg-slate-900/80 hover:bg-slate-900 text-white font-bold py-2.5 px-5 rounded-xl border border-white/10 transition">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Restart Quest
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quest Question Frame -->
+                <div class="bg-slate-800/80 rounded-2xl p-6 sm:p-8 border border-slate-700/50" id="quest-container">
+                    <div class="flex justify-between items-center mb-6">
+                        <span id="quest-index" class="text-xs font-mono font-bold text-slate-400">QUESTION 1 OF 5</span>
+                        <div class="flex gap-1" id="quest-progress-dots">
+                            <!-- JS will inject indicator circles -->
+                        </div>
+                    </div>
+
+                    <div id="quest-content">
+                        <!-- Instantly populated by JavaScript -->
+                        <h3 class="text-lg font-bold text-slate-100 mb-4" id="quest-question-text">
+                            Loading Quest Questions...
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="quest-options-grid">
+                            <!-- Dynamic Option Buttons -->
+                        </div>
+                    </div>
+
+                    <!-- Instant Feedback Message -->
+                    <div id="quest-feedback" class="mt-6 hidden p-4 rounded-xl border flex items-start gap-3">
+                        <!-- Icon -->
+                        <div id="quest-feedback-icon" class="text-xl"></div>
+                        <div>
+                            <span id="quest-feedback-title" class="text-xs font-mono font-bold uppercase tracking-wider block"></span>
+                            <p id="quest-feedback-text" class="text-sm text-slate-200 mt-1"></p>
+                        </div>
+                    </div>
+
+                    <!-- Next Question trigger Button -->
+                    <div class="mt-6 flex justify-end">
+                        <button id="quest-next-btn" onclick="nextQuestQuestion()" disabled class="bg-slate-700 text-slate-400 cursor-not-allowed font-bold py-2 px-6 rounded-xl transition duration-150 flex items-center gap-1.5 text-sm">
+                            Next Challenge <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Leaderboard & Summary Card (Hidden initially) -->
+                <div id="quest-completion-card" class="hidden bg-slate-800/80 rounded-2xl p-8 border border-slate-700 text-center space-y-6">
+                    <div class="w-16 h-16 rounded-full bg-yellow-500/10 text-yellow-400 flex items-center justify-center text-3xl mx-auto border border-yellow-500/20">
+                        <i class="fa-solid fa-medal"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">Congratulations, Physicist!</h3>
+                        <p class="text-sm text-slate-400 mt-1">You have completed all calibration checks and system verifications.</p>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl max-w-sm mx-auto border border-slate-800">
+                        <div class="text-xs text-slate-400 uppercase tracking-widest font-mono">YOUR TOTAL METRICS</div>
+                        <div class="text-3xl font-black text-yellow-400 font-mono mt-1" id="quest-final-score">500 / 500 XP</div>
+                    </div>
+                    <button onclick="restartQuestChallenge()" class="bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 px-6 rounded-xl transition inline-flex items-center gap-1.5 text-sm">
+                        <i class="fa-solid fa-rotate-left"></i> Run Calibration Training Again
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer of the Web application -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-xs text-slate-400 space-y-2 mt-12">
+        <p>© 2026 Thermoconnect Interactive Systems. Built with scientific accuracy for physics educators.</p>
+        <div class="flex justify-center gap-4 text-slate-500">
+            <span>Zeroth Law of Thermodynamics</span>
+            <span>•</span>
+            <span>Thermometry Scales</span>
+            <span>•</span>
+            <span>Continuous Linear Properties</span>
+        </div>
+    </footer>
+
+    <!-- Mathematical formulas LaTeX typesetting engine fallback library integration (KaTeX) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <script>
+        // Global App State Variables
+        let userPoints = 0;
+        let systemA_Temp = 100;
+        let systemB_Temp = 10;
+        let systemC_Temp = 50;
+
+        let wallAB_Type = 'adiabatic'; // 'adiabatic' or 'diathermic'
+        let wallC_Type = 'diathermic';   // 'adiabatic' or 'diathermic'
+
+        // Particle counts based on heat densities
+        const particleMap = {
+            'A': [],
+            'B': [],
+            'C': []
+        };
+
+        // Thermometric Explorer Material Configurations
+        let currentMaterial = 'mercury';
+        const materialConfigs = {
+            'mercury': {
+                minP: 25,
+                maxP: 180,
+                unit: 'mm',
+                p1Label: '25 mm',
+                p2Label: '180 mm',
+                propertyName: 'Column height (mm)',
+                subheading: 'Liquid-In-Glass Mercury Column',
+                sliderLabel: 'DRAG COLUMN HEIGHT SLIDER (mm)',
+            },
+            'resistance': {
+                minP: 95.2,
+                maxP: 138.6,
+                unit: 'Ω',
+                p1Label: '95.2 Ω',
+                p2Label: '138.6 Ω',
+                propertyName: 'Platinum Wire Resistance (Ω)',
+                subheading: 'Electrical Platinum Resistance Thermometer',
+                sliderLabel: 'DRAG RESISTANCE SLIDER (Ω)',
+            },
+            'thermochromic': {
+                minP: 0,
+                maxP: 100,
+                unit: '% Hue',
+                p1Label: 'White (0%)',
+                p2Label: 'Yellow (100%)',
+                propertyName: 'Zinc Oxide Color Shift Hue',
+                subheading: 'Thermochromic Liquid Pigment',
+                sliderLabel: 'DRAG COLOR SPECTRUM PERCENTAGE',
+            }
+        };
+
+        // Quest Engine Data Array
+        const questDatabase = [
+            {
+                question: "If System A and System B are separately in thermal equilibrium with System C, what is the mutual relationship of A and B when the adiabatic wall is removed?",
+                options: [
+                    "They will immediately begin rapid, turbulent exchange of thermal heat energy.",
+                    "They will remain in perfect mutual thermal equilibrium with no net exchange of heat.",
+                    "The temperatures will diverge until one system reaches absolute zero.",
+                    "Heat will only flow if System C is made of copper partition metals."
+                ],
+                correct: 1,
+                points: 100,
+                explanation: "Correct! This is the fundamental definition of the Zeroth Law of Thermodynamics: if two systems are individually in equilibrium with a third system, they are mutually in equilibrium with each other."
+            },
+            {
+                question: "What numerical value is matched to the freezing point (Ice point) of pure water under standard atmospheric conditions on the Fahrenheit scale?",
+                options: [
+                    "0 °F",
+                    "32 °F",
+                    "100 °F",
+                    "212 °F"
+                ],
+                correct: 1,
+                points: 100,
+                explanation: "Spot on! The ice point is marked as 32 °F on the Fahrenheit scale, while the steam point is defined as 212 °F, separating the intervals into exactly 180 divisions."
+            },
+            {
+                question: "Average room temperature on a comfortable afternoon is defined as 27°C. Convert this value to equivalent Fahrenheit (°F).",
+                options: [
+                    "80.6 °F",
+                    "68.0 °F",
+                    "98.4 °F",
+                    "54.6 °F"
+                ],
+                correct: 0,
+                points: 100,
+                explanation: "Correct calculation! TF = (1.8 * 27) + 32 = 48.6 + 32 = 80.6 °F."
+            },
+            {
+                question: "Which physical property would be classified as the 'thermometric property' when utilizing a resistance thermometer wire?",
+                options: [
+                    "The volumetric expansion height of mercury columns inside glass capillaries.",
+                    "The electrical resistance of the metal wire changing linearly with temperature.",
+                    "The electromotive force generated between two distinct alloys like copper and iron.",
+                    "The color shift in titanium-zinc oxides from white to deep yellow."
+                ],
+                correct: 1,
+                points: 100,
+                explanation: "Excellent! In resistance thermometers, the measured electrical resistance (in ohms) is the chosen physical property representing continuous monotonic temperature shifts."
+            },
+            {
+                question: "A mercury column measures 25 mm at ice point and 180 mm at steam point. If the current mercury length is 60 mm, what is the temperature?",
+                options: [
+                    "15.35 °C",
+                    "35.40 °C",
+                    "22.58 °C",
+                    "41.22 °C"
+                ],
+                correct: 2,
+                points: 100,
+                explanation: "Mathematically correct! T = [ (60 - 25) / (180 - 25) ] * 100 = [ 35 / 155 ] * 100 ≈ 22.58 °C."
+            }
+        ];
+        let currentQuestIndex = 0;
+        let questSelectedOption = null;
+
+        // On Load Initializations
+        window.onload = function() {
+            // Start the sandbox thermal simulation loop
+            initSandboxSimulation();
+            setInterval(runEquilibriumPhysicsTick, 100);
+
+            // Initiate custom scale calibrators
+            updateCalibrationDisplay(50);
+            calculateCustomSolver();
+
+            // Initiate Explorer calculation step
+            updateExplorerCalculation(25);
+
+            // Initiate Quest Engine
+            buildQuestProgressIndicators();
+            loadQuestQuestion();
+
+            // Initial LaTeX render checks
+            renderLaTeX();
+        };
+
+        // Render mathematical formulas via KaTeX safely
+        function renderLaTeX() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // Global Navigation/Tab Control
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(element => {
+                element.classList.add('hidden');
+                element.classList.remove('block');
+            });
+            // Show requested pane
+            const targetPane = document.getElementById('pane-' + tabId);
+            targetPane.classList.remove('hidden');
+            targetPane.classList.add('block');
+
+            // Style and update selected tabs UI active highlights
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-slate-200 transition-all duration-200';
+            });
+            const activeTabButton = document.getElementById('tab-' + tabId);
+            if (activeTabButton) {
+                if (tabId === 'sandbox') activeTabButton.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-slate-800 text-orange-400 border border-orange-500/30';
+                else if (tabId === 'calibrator') activeTabButton.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-slate-800 text-purple-400 border border-purple-500/30';
+                else if (tabId === 'explorer') activeTabButton.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-slate-800 text-cyan-400 border border-cyan-500/30';
+                else if (tabId === 'quest') activeTabButton.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-slate-800 text-yellow-400 border border-yellow-500/30';
+            }
+
+            // Specific refresh on dynamic formulas
+            renderLaTeX();
+        }
+
+        /* ----------------------------------------------------
+           LAB 1: ZEROTH LAW SANDBOX IMPLEMENTATION
+           ---------------------------------------------------- */
+        function initSandboxSimulation() {
+            // Set default wall visual styles on initiation
+            setWallAB('adiabatic');
+            setWallC('diathermic');
+            adjustTemperature('A', 100);
+            adjustTemperature('B', 10);
+            adjustTemperature('C', 50);
+        }
+
+        function adjustTemperature(systemLetter, val) {
+            const intVal = parseInt(val);
+            if (systemLetter === 'A') {
+                systemA_Temp = intVal;
+                document.getElementById('val-tempA').innerText = intVal + '°C';
+                document.getElementById('slider-tempA').value = intVal;
+            } else if (systemLetter === 'B') {
+                systemB_Temp = intVal;
+                document.getElementById('val-tempB').innerText = intVal + '°C';
+                document.getElementById('slider-tempB').value = intVal;
+            } else if (systemLetter === 'C') {
+                systemC_Temp = intVal;
+                document.getElementById('val-tempC').innerText = intVal + '°C';
+                document.getElementById('slider-tempC').value = intVal;
+            }
+            updateSandboxContainerVisuals();
+        }
+
+        // Toggles partition wall separating system A and B
+        function setWallAB(type) {
+            wallAB_Type = type;
+            const btnAdiabatic = document.getElementById('wall-ab-adiabatic');
+            const btnDiathermic = document.getElementById('wall-ab-diathermic');
+            const wallDiv = document.getElementById('wall-AB');
+
+            if (type === 'adiabatic') {
+                btnAdiabatic.className = "py-2 px-3 text-xs font-bold rounded-lg transition-all bg-slate-800 text-white border border-slate-700";
+                btnDiathermic.className = "py-2 px-3 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                wallDiv.className = "w-8 adiabatic-stripes rounded-lg cursor-pointer hover:brightness-110 active:scale-95 transition-all flex flex-col items-center justify-center border border-slate-800";
+                wallDiv.title = "Adiabatic Wall (Insulator)";
+                wallDiv.innerHTML = '<span class="text-[9px] font-mono tracking-widest text-slate-400 text-center font-bold rotate-90 my-2">ADIABATIC</span>';
+            } else {
+                btnDiathermic.className = "py-2 px-3 text-xs font-bold rounded-lg transition-all bg-slate-800 text-white border border-slate-700";
+                btnAdiabatic.className = "py-2 px-3 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                wallDiv.className = "w-2 bg-amber-500 rounded-lg cursor-pointer hover:brightness-110 active:scale-95 transition-all flex flex-col items-center justify-center border border-amber-600 shadow-[0_0_8px_rgba(245,158,11,0.5)]";
+                wallDiv.title = "Diathermic Wall (Conductor)";
+                wallDiv.innerHTML = '';
+            }
+        }
+
+        // Toggles partition wall separating chambers A & B from intermediate C
+        function setWallC(type) {
+            wallC_Type = type;
+            const btnAdiabatic = document.getElementById('wall-c-adiabatic');
+            const btnDiathermic = document.getElementById('wall-c-diathermic');
+            const wallDiv = document.getElementById('wall-C');
+
+            if (type === 'adiabatic') {
+                btnAdiabatic.className = "py-2 px-3 text-xs font-bold rounded-lg transition-all bg-slate-800 text-white border border-slate-700";
+                btnDiathermic.className = "py-2 px-3 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                wallDiv.className = "absolute inset-x-0 h-full adiabatic-stripes rounded-lg cursor-pointer hover:brightness-110 transition-all flex items-center justify-center border border-slate-800";
+                wallDiv.innerHTML = '<span class="bg-slate-900/95 text-slate-400 px-3 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase">ADIABATIC INSULATING WALL</span>';
+            } else {
+                btnDiathermic.className = "py-2 px-3 text-xs font-bold rounded-lg transition-all bg-slate-800 text-white border border-slate-700";
+                btnAdiabatic.className = "py-2 px-3 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                wallDiv.className = "absolute inset-x-0 h-full bg-orange-600/95 rounded-lg cursor-pointer hover:brightness-110 transition-all flex items-center justify-center border border-slate-800 shadow-[0_0_12px_rgba(234,88,12,0.4)]";
+                wallDiv.innerHTML = '<span class="bg-slate-900/95 text-orange-400 px-3 py-0.5 rounded-full text-xs font-bold tracking-widest uppercase">DIATHERMIC WALL (THIN COPPER)</span>';
+            }
+        }
+
+        // Resets temperatures to original lab configurations
+        function resetEquilibriumSimulation() {
+            adjustTemperature('A', 100);
+            adjustTemperature('B', 10);
+            adjustTemperature('C', 50);
+            setWallAB('adiabatic');
+            setWallC('diathermic');
+        }
+
+        // Physical exchange simulation mathematics loop
+        function runEquilibriumPhysicsTick() {
+            const transferSpeed = 0.04; // Energy transfer scale factor per tick
+
+            // 1. Heat propagation between System A and System B
+            if (wallAB_Type === 'diathermic') {
+                let deltaAB = (systemA_Temp - systemB_Temp) * transferSpeed;
+                systemA_Temp -= deltaAB;
+                systemB_Temp += deltaAB;
+            }
+
+            // 2. Heat propagation between Systems A/B and System C
+            if (wallC_Type === 'diathermic') {
+                // A leaks into C or vice versa
+                let deltaAC = (systemA_Temp - systemC_Temp) * transferSpeed;
+                systemA_Temp -= deltaAC;
+                systemC_Temp += deltaAC;
+
+                // B leaks into C or vice versa
+                let deltaBC = (systemB_Temp - systemC_Temp) * transferSpeed;
+                systemB_Temp -= deltaBC;
+                systemC_Temp += deltaBC;
+            }
+
+            // Keep internal limits bound
+            systemA_Temp = Math.max(0, Math.min(100, systemA_Temp));
+            systemB_Temp = Math.max(0, Math.min(100, systemB_Temp));
+            systemC_Temp = Math.max(0, Math.min(100, systemC_Temp));
+
+            // Sync slide controls so user visual feedback feels aligned
+            document.getElementById('slider-tempA').value = Math.round(systemA_Temp);
+            document.getElementById('slider-tempB').value = Math.round(systemB_Temp);
+            document.getElementById('slider-tempC').value = Math.round(systemC_Temp);
+
+            document.getElementById('val-tempA').innerText = Math.round(systemA_Temp) + '°C';
+            document.getElementById('val-tempB').innerText = Math.round(systemB_Temp) + '°C';
+            document.getElementById('val-tempC').innerText = Math.round(systemC_Temp) + '°C';
+
+            updateSandboxContainerVisuals();
+            analyzeSandboxState();
+        }
+
+        // Evaluates colors and UI classes dynamically based on Celsius heights
+        function updateSandboxContainerVisuals() {
+            document.getElementById('box-tempA').innerText = Math.round(systemA_Temp) + '°C';
+            document.getElementById('box-tempB').innerText = Math.round(systemB_Temp) + '°C';
+            document.getElementById('box-tempC').innerText = Math.round(systemC_Temp) + '°C';
+
+            // Get background colors corresponding to temperature
+            document.getElementById('box-A').style.backgroundColor = getThermalColorAlpha(systemA_Temp);
+            document.getElementById('box-B').style.backgroundColor = getThermalColorAlpha(systemB_Temp);
+            document.getElementById('box-C').style.backgroundColor = getThermalColorAlpha(systemC_Temp);
+        }
+
+        // Dynamic background colors corresponding to thermal energy levels
+        function getThermalColorAlpha(temp) {
+            // Cold to Hot interpolation: Blue(0,0,255) to Red(255,0,0)
+            const red = Math.round((temp / 100) * 190 + 30);
+            const blue = Math.round(((100 - temp) / 100) * 190 + 40);
+            const green = Math.round((100 - Math.abs(temp - 50)) / 100 * 60 + 30);
+            return `rgba(${red}, ${green}, ${blue}, 0.25)`;
+        }
+
+        // Logic check reflecting of the Zeroth Law
+        function analyzeSandboxState() {
+            const differenceLimit = 0.5; // Equilibrium tolerance margin
+            const diff_AC = Math.abs(systemA_Temp - systemC_Temp);
+            const diff_BC = Math.abs(systemB_Temp - systemC_Temp);
+            const diff_AB = Math.abs(systemA_Temp - systemB_Temp);
+
+            let message = "";
+
+            if (diff_AB < differenceLimit && diff_AC < differenceLimit && diff_BC < differenceLimit) {
+                message = "🔥 <strong>Complete Thermal Equilibrium Reached!</strong> All three systems (A, B, and C) have equalized at exactly the same temperature. This perfectly demonstrates the Zeroth Law: system temperature state parity.";
+            } else if (diff_AC < differenceLimit && diff_BC < differenceLimit && wallAB_Type === 'adiabatic') {
+                message = "🔗 <strong>System A and B are in independent equilibrium with C.</strong> Even with the adiabatic wall separating A and B, they are mutually equal temperature. Thus, they will maintain equilibrium if united!";
+            } else if (wallAB_Type === 'adiabatic' && wallC_Type === 'adiabatic') {
+                message = "🚫 <strong>No Heat Flow Occurring.</strong> Both partition boundaries are set to Adiabatic (insulators). All systems remain entirely isolated from temperature balancing exchanges.";
+            } else {
+                message = "⚡ <strong>Heat Energy Flowing:</strong> Thermal exchange is ongoing through diathermic copper boundaries. Heat travels naturally from high-energy molecules to lower-energy regions.";
+            }
+
+            document.getElementById('observer-output').innerHTML = message;
+        }
+
+
+        /* ----------------------------------------------------
+           LAB 2: SCALE CALIBRATION CHAMBER
+           ---------------------------------------------------- */
+        function updateCalibrationDisplay(val) {
+            const tempCelsius = parseFloat(val);
+            // Formulate conversion: TF = (TC * 9/5) + 32
+            const tempFahrenheit = (tempCelsius * 1.8) + 32;
+
+            // Update Heights of thermometer visually
+            document.getElementById('celsius-fill').style.height = tempCelsius + '%';
+            // Scale height of Fahrenheit from 32 to 212
+            document.getElementById('fahrenheit-fill').style.height = tempCelsius + '%';
+
+            // Text Outputs
+            document.getElementById('therm-celsius-val').innerText = tempCelsius.toFixed(1) + ' °C';
+            document.getElementById('therm-fahrenheit-val').innerText = tempFahrenheit.toFixed(1) + ' °F';
+
+            document.getElementById('slider-temp-state').innerText = `${Math.round(tempCelsius)}°C / ${Math.round(tempFahrenheit)}°F`;
+
+            // Phase State Visual Badges
+            document.getElementById('phase-ice').className = "p-2 rounded-lg bg-slate-950 border border-slate-800 transition-all";
+            document.getElementById('phase-ambient').className = "p-2 rounded-lg bg-slate-950 border border-slate-800 transition-all";
+            document.getElementById('phase-boil').className = "p-2 rounded-lg bg-slate-950 border border-slate-800 transition-all";
+
+            if (tempCelsius <= 1) {
+                document.getElementById('phase-ice').className = "p-2 rounded-lg bg-blue-500/20 border border-blue-500 text-blue-300 font-bold transition-all";
+            } else if (Math.round(tempCelsius) === 27) {
+                document.getElementById('phase-ambient').className = "p-2 rounded-lg bg-orange-500/20 border border-orange-500 text-orange-300 font-bold transition-all";
+            } else if (tempCelsius >= 99) {
+                document.getElementById('phase-boil').className = "p-2 rounded-lg bg-red-500/20 border border-red-500 text-red-300 font-bold transition-all";
+            }
+        }
+
+        function toggleSolverInputLabel() {
+            const selectMode = document.getElementById('solver-direction').value;
+            const inputLabel = document.getElementById('solver-input-label');
+            const unitAddon = document.getElementById('solver-unit-addon');
+
+            if (selectMode === 'CtoF') {
+                inputLabel.innerText = "CELSIUS TEMPERATURE VALUE";
+                unitAddon.innerText = "°C";
+                document.getElementById('solver-input-val').value = "27";
+            } else {
+                inputLabel.innerText = "FAHRENHEIT TEMPERATURE VALUE";
+                unitAddon.innerText = "°F";
+                document.getElementById('solver-input-val').value = "98.4";
+            }
+            calculateCustomSolver();
+        }
+
+        function calculateCustomSolver() {
+            const selectMode = document.getElementById('solver-direction').value;
+            const inputVal = parseFloat(document.getElementById('solver-input-val').value);
+            const pathwayDiv = document.getElementById('solver-pathway');
+
+            if (isNaN(inputVal)) {
+                pathwayDiv.innerHTML = "<p class='text-red-400'>Please enter a valid numeric value.</p>";
+                return;
+            }
+
+            if (selectMode === 'CtoF') {
+                // Celsius to Fahrenheit
+                const resultF = (inputVal * 1.8) + 32;
+                pathwayDiv.innerHTML = `
+                    <div><strong>Formula:</strong> $T_F = T_C \\times 1.8 + 32$</div>
+                    <div class="text-slate-400 mt-1">1. Multiply Celsius value by ratio (9/5):</div>
+                    <div class="text-slate-200 pl-3">${inputVal} × 1.8 = ${(inputVal * 1.8).toFixed(2)}</div>
+                    <div class="text-slate-400 mt-1">2. Add offset of 32:</div>
+                    <div class="text-slate-200 pl-3">${(inputVal * 1.8).toFixed(2)} + 32 = ${resultF.toFixed(2)}</div>
+                    <div class="text-brand-400 font-bold mt-2 text-sm border-t border-purple-900/40 pt-2">Result: ${resultF.toFixed(2)} °F</div>
+                `;
+            } else {
+                // Fahrenheit to Celsius
+                const resultC = (inputVal - 32) * (5 / 9);
+                pathwayDiv.innerHTML = `
+                    <div><strong>Formula:</strong> $T_C = (T_F - 32) \\times \\frac{5}{9}$</div>
+                    <div class="text-slate-400 mt-1">1. Subtract offset of 32:</div>
+                    <div class="text-slate-200 pl-3">${inputVal} - 32 = ${(inputVal - 32).toFixed(2)}</div>
+                    <div class="text-slate-400 mt-1">2. Multiply by standard ratio (5/9):</div>
+                    <div class="text-slate-200 pl-3">${(inputVal - 32).toFixed(2)} × 0.5556 = ${resultC.toFixed(2)}</div>
+                    <div class="text-brand-400 font-bold mt-2 text-sm border-t border-purple-900/40 pt-2">Result: ${resultC.toFixed(2)} °C</div>
+                `;
+            }
+
+            // Trigger equations refresh inside derivation box
+            renderLaTeX();
+        }
+
+
+        /* ----------------------------------------------------
+           LAB 3: THERMOMETRIC PROPERTY EXPLORER
+           ---------------------------------------------------- */
+        function selectExplorerMaterial(materialId) {
+            currentMaterial = materialId;
+            const config = materialConfigs[materialId];
+
+            // Toggle selected state buttons in navigation sidebar
+            ['mercury', 'resistance', 'thermochromic'].forEach(mat => {
+                const btn = document.getElementById('btn-mat-' + mat);
+                if (mat === materialId) {
+                    btn.className = "w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 bg-slate-900 border-cyan-500/40 text-cyan-400";
+                } else {
+                    btn.className = "w-full text-left p-3 rounded-xl border border-slate-800 text-slate-400 hover:text-slate-200 transition-all flex items-center gap-3 bg-slate-900/60";
+                }
+            });
+
+            // Toggle visualization elements
+            document.getElementById('vis-mercury-box').classList.add('hidden');
+            document.getElementById('vis-resistance-box').classList.add('hidden');
+            document.getElementById('vis-thermochromic-box').classList.add('hidden');
+
+            if (materialId === 'mercury') {
+                document.getElementById('vis-mercury-box').classList.remove('hidden');
+            } else if (materialId === 'resistance') {
+                document.getElementById('vis-resistance-box').classList.remove('hidden');
+            } else if (materialId === 'thermochromic') {
+                document.getElementById('vis-thermochromic-box').classList.remove('hidden');
+            }
+
+            // Set titles & Adjust properties limits dynamically
+            document.getElementById('explorer-subheading').innerText = config.subheading;
+            document.getElementById('explorer-slider-title').innerText = config.sliderLabel;
+
+            const slider = document.getElementById('explorer-property-slider');
+            slider.min = config.minP;
+            slider.max = config.maxP;
+            // Preset to midpoint value on toggle
+            const mid = (config.minP + config.maxP) / 2;
+            slider.value = mid;
+
+            updateExplorerCalculation(mid);
+        }
+
+        function updateExplorerCalculation(val) {
+            const pVal = parseFloat(val);
+            const config = materialConfigs[currentMaterial];
+            document.getElementById('lbl-explorer-slider-val').innerText = pVal.toFixed(1) + " " + config.unit;
+
+            // Calculate Temperature: T = ((P_T - P_1)/(P_2 - P_1)) * 100
+            const p1 = config.minP;
+            const p2 = config.maxP;
+            const solvedTemp = ((pVal - p1) / (p2 - p1)) * 100;
+
+            // Sync visual representation details
+            if (currentMaterial === 'mercury') {
+                const percentage = ((pVal - p1) / (p2 - p1)) * 100;
+                document.getElementById('mercury-column-bar').style.width = percentage + '%';
+                document.getElementById('lbl-mercury-height').innerText = pVal.toFixed(1) + ' mm';
+            } else if (currentMaterial === 'resistance') {
+                document.getElementById('lbl-resistance-omega').innerText = pVal.toFixed(1) + ' Ω';
+            } else if (currentMaterial === 'thermochromic') {
+                // Update color disk visually from white to yellow based on percentage
+                const hueOffset = ((pVal - p1) / (p2 - p1)); // 0 to 1
+                // Mix background color
+                const red = 255;
+                const green = Math.round(255 * hueOffset + (255 * (1 - hueOffset)));
+                const blue = Math.round(255 * (1 - hueOffset));
+                const disk = document.getElementById('thermochromic-color-disk');
+                disk.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+
+                const labelText = hueOffset > 0.8 ? "DEEP YELLOW" : hueOffset > 0.4 ? "PALE YELLOW" : "WHITE";
+                document.getElementById('lbl-thermochromic-text').innerText = labelText;
+                document.getElementById('lbl-thermochromic-text').style.color = hueOffset > 0.4 ? "#475569" : "#1e293b";
+            }
+
+            // Sync numerical step display blocks
+            document.getElementById('calc-step-1').innerHTML = `P₁ = ${p1} ${config.unit}<br>P₂ = ${p2} ${config.unit}`;
+            document.getElementById('calc-step-2').innerHTML = `(${pVal.toFixed(1)} - ${p1}) / (${p2} - ${p1})`;
+            document.getElementById('calc-step-3').innerHTML = `T = ${solvedTemp.toFixed(2)} °C`;
+        }
+
+
+        /* ----------------------------------------------------
+           LAB 4: QUEST & GAMIFIED ASSESSMENT ENGINE
+           ---------------------------------------------------- */
+        function buildQuestProgressIndicators() {
+            const dotsContainer = document.getElementById('quest-progress-dots');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < questDatabase.length; i++) {
+                const dot = document.createElement('div');
+                dot.id = 'quest-dot-' + i;
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-700 transition-colors';
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function loadQuestQuestion() {
+            const quest = questDatabase[currentQuestIndex];
+            questSelectedOption = null;
+
+            // Update Progress Header & Next states
+            document.getElementById('quest-index').innerText = `CHALLENGE ${currentQuestIndex + 1} OF ${questDatabase.length}`;
+            document.getElementById('quest-next-btn').disabled = true;
+            document.getElementById('quest-next-btn').className = "bg-slate-700 text-slate-400 cursor-not-allowed font-bold py-2.5 px-6 rounded-xl transition duration-150 flex items-center gap-1.5 text-sm";
+            document.getElementById('quest-feedback').classList.add('hidden');
+
+            // Set main text
+            document.getElementById('quest-question-text').innerText = quest.question;
+
+            // Generate option Grid blocks
+            const optionsGrid = document.getElementById('quest-options-grid');
+            optionsGrid.innerHTML = '';
+            quest.options.forEach((optText, index) => {
+                const btn = document.createElement('button');
+                btn.className = "text-left p-4 rounded-xl border border-slate-700 bg-slate-900/60 hover:bg-slate-900 text-slate-300 hover:text-slate-100 transition text-xs leading-relaxed flex items-start gap-3";
+                btn.onclick = () => selectQuestOption(index);
+                btn.innerHTML = `
+                    <span class="w-5 h-5 rounded bg-slate-800 text-slate-400 text-[10px] font-bold flex items-center justify-center border border-slate-700 flex-shrink-0">
+                        ${String.fromCharCode(65 + index)}
+                    </span>
+                    <span>${optText}</span>
+                `;
+                btn.id = 'opt-btn-' + index;
+                optionsGrid.appendChild(btn);
+            });
+
+            // Update state bullet
+            for (let i = 0; i < questDatabase.length; i++) {
+                const dot = document.getElementById('quest-dot-' + i);
+                if (i === currentQuestIndex) {
+                    dot.className = "w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-md shadow-yellow-500/20";
+                } else if (i < currentQuestIndex) {
+                    dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                } else {
+                    dot.className = "w-2.5 h-2.5 rounded-full bg-slate-700";
+                }
+            }
+        }
+
+        function selectQuestOption(optionIndex) {
+            // Guard to prevent clicking multiple options after selection locking
+            if (questSelectedOption !== null) return;
+
+            questSelectedOption = optionIndex;
+            const quest = questDatabase[currentQuestIndex];
+            const feedbackContainer = document.getElementById('quest-feedback');
+            const feedbackIcon = document.getElementById('quest-feedback-icon');
+            const feedbackTitle = document.getElementById('quest-feedback-title');
+            const feedbackText = document.getElementById('quest-feedback-text');
+
+            // Apply styling highlights
+            const targetBtn = document.getElementById('opt-btn-' + optionIndex);
+            
+            if (optionIndex === quest.correct) {
+                // Correct Answer selected
+                targetBtn.className = "text-left p-4 rounded-xl border-2 border-emerald-500 bg-emerald-950/20 text-emerald-200 transition text-xs leading-relaxed flex items-start gap-3";
+                
+                // Awarding points update
+                userPoints += quest.points;
+                document.getElementById('score-val').innerText = userPoints;
+
+                // Configure success message
+                feedbackContainer.className = "mt-6 p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-start gap-3";
+                feedbackIcon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+                feedbackTitle.innerText = "SUCCESS! CALIBRATION ACCURACY CONFIRMED";
+                feedbackTitle.className = "text-xs font-mono font-bold uppercase tracking-wider block text-emerald-400";
+                feedbackText.innerText = quest.explanation;
+
+            } else {
+                // Incorrect option selection highlight
+                targetBtn.className = "text-left p-4 rounded-xl border-2 border-red-500 bg-red-950/20 text-red-200 transition text-xs leading-relaxed flex items-start gap-3";
+                
+                // Highlight real correct option
+                const correctBtn = document.getElementById('opt-btn-' + quest.correct);
+                correctBtn.className = "text-left p-4 rounded-xl border-2 border-emerald-500 bg-slate-900 text-emerald-200 transition text-xs leading-relaxed flex items-start gap-3";
+
+                // Configure error message
+                feedbackContainer.className = "mt-6 p-4 rounded-xl border border-red-500/30 bg-red-500/10 flex items-start gap-3";
+                feedbackIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400"></i>';
+                feedbackTitle.innerText = "CALIBRATION ERROR DETECTED";
+                feedbackTitle.className = "text-xs font-mono font-bold uppercase tracking-wider block text-red-400";
+                feedbackText.innerText = quest.explanation;
+            }
+
+            feedbackContainer.classList.remove('hidden');
+
+            // Enable next button
+            const nextBtn = document.getElementById('quest-next-btn');
+            nextBtn.disabled = false;
+            nextBtn.className = "bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-extrabold py-2.5 px-6 rounded-xl transition duration-150 flex items-center gap-1.5 text-sm shadow-lg shadow-yellow-500/15";
+        }
+
+        function nextQuestQuestion() {
+            if (currentQuestIndex < questDatabase.length - 1) {
+                currentQuestIndex++;
+                loadQuestQuestion();
+            } else {
+                // End of the Quiz database, render completion scoreboard
+                document.getElementById('quest-container').classList.add('hidden');
+                document.getElementById('quest-completion-card').classList.remove('hidden');
+                document.getElementById('quest-final-score').innerText = `${userPoints} / 500 XP`;
+            }
+        }
+
+        function restartQuestChallenge() {
+            userPoints = 0;
+            currentQuestIndex = 0;
+            document.getElementById('score-val').innerText = userPoints;
+
+            document.getElementById('quest-container').classList.remove('hidden');
+            document.getElementById('quest-completion-card').classList.add('hidden');
+
+            buildQuestProgressIndicators();
+            loadQuestQuestion();
+        }
+    </script>
+</body>
+</html>
