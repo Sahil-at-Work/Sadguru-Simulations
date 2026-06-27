@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oersted's Electromagnetism Lab</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+        }
+        .heading-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        /* Glow effects */
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.35);
+        }
+        .glow-amber {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+        }
+        .glow-green {
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+        }
+        /* Animations */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+        .pulse-bg {
+            animation: pulse-slow 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Top Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center glow-blue">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold heading-font tracking-tight text-white flex items-center gap-2">
+                        Oersted's Lab <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">v2.5</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Magnetic Effect of Electric Current Interactive Sandbox</p>
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <nav class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button onclick="switchTab('sandbox')" id="tab-sandbox" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-blue-600 text-white shadow-lg">
+                    🧪 Interactive Lab
+                </button>
+                <button onclick="switchTab('missions')" id="tab-missions" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    🎯 Guided Missions
+                </button>
+                <button onclick="switchTab('theory')" id="tab-theory" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    📚 Theory & Rules
+                </button>
+                <button onclick="switchTab('quiz')" id="tab-quiz" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    🧠 Challenge Arena
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- SECTION 1: SANDBOX TAB (Default Active) -->
+        <div id="section-sandbox" class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+            
+            <!-- Simulation Canvas & Overlay Info -->
+            <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative flex flex-col">
+                <!-- Status bar -->
+                <div class="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex justify-between items-center text-xs">
+                    <div class="flex items-center gap-2">
+                        <span id="circuit-status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span id="circuit-status-text" class="font-mono text-slate-400">CIRCUIT DISCONNECTED</span>
+                    </div>
+                    <div class="flex gap-4 font-mono text-slate-400">
+                        <span>Current (I): <strong id="val-current-display" class="text-blue-400">0.0 A</strong></span>
+                        <span>Max Field Strength ($B_{max}$): <strong id="val-field-display" class="text-amber-400">0.00 μT</strong></span>
+                    </div>
+                </div>
+
+                <!-- Live Simulation Canvas Box -->
+                <div class="relative flex-grow min-h-[420px] md:min-h-[500px] bg-slate-950 flex items-center justify-center">
+                    <!-- Help Badge -->
+                    <div class="absolute top-3 left-3 bg-slate-900/90 border border-slate-800 text-slate-300 text-xs px-2.5 py-1.5 rounded-lg backdrop-blur pointer-events-none z-10">
+                        💡 <strong>Hint:</strong> Click anywhere on the board to place a dynamic Compass!
+                    </div>
+
+                    <!-- Right-Hand Thumb Visual Overlay Widget -->
+                    <div id="rht-overlay" class="absolute bottom-3 left-3 bg-slate-900/95 border border-slate-800 p-3 rounded-xl backdrop-blur hidden max-w-xs z-10 shadow-xl transition-all duration-300">
+                        <div class="flex gap-2 items-start">
+                            <span class="text-xl">👍</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-amber-400 heading-font">Right-Hand Thumb Rule</h4>
+                                <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                                    Thumb points to current (<span id="rht-current-dir" class="text-blue-400 font-bold">UP</span>).
+                                    Curled fingers show magnetic direction (<span id="rht-mag-dir" class="text-amber-400 font-bold">Counter-Clockwise</span>).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Canvas -->
+                    <canvas id="simCanvas" class="w-full h-full cursor-crosshair block"></canvas>
+                </div>
+
+                <!-- Quick Interaction Bar -->
+                <div class="bg-slate-900 border-t border-slate-800 p-3 flex flex-wrap gap-2 justify-between items-center">
+                    <div class="flex gap-2">
+                        <button onclick="toggleCircuit()" id="btn-circuit-toggle" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-red-600 hover:bg-red-500 text-white transition glow-blue flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+                            Close Switch (Power On)
+                        </button>
+                        <button onclick="reversePolarity()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700">
+                            🔄 Reverse Polarity
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="clearCompasses()" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/60 hover:bg-slate-800 text-slate-300 transition">
+                            🗑️ Clear Compasses
+                        </button>
+                        <button onclick="triggerCardboardTap()" id="btn-tap-board" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition glow-amber">
+                            👋 Tap Cardboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parameters Dashboard -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- Simulation Controls Card -->
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                    <h3 class="text-lg font-bold heading-font text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <span>⚙️</span> Interactive Controls
+                    </h3>
+
+                    <!-- Current (Amperage) Slider -->
+                    <div class="mb-5">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Electric Current (A)</label>
+                            <span id="current-slider-val" class="text-sm font-mono font-bold text-blue-400">1.5 A</span>
+                        </div>
+                        <input id="slider-current" type="range" min="-5" max="5" step="0.5" value="1.5" class="w-full accent-blue-500 h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                            <span>-5A (Downward)</span>
+                            <span>0A</span>
+                            <span>+5A (Upward)</span>
+                        </div>
+                    </div>
+
+                    <!-- Material View Options -->
+                    <div class="mb-6">
+                        <label class="text-xs font-semibold text-slate-300 block mb-2">Observation Mode</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setViewingMode('compass')" id="view-compass" class="py-2.5 px-3 rounded-xl border border-blue-500 bg-blue-500/10 text-blue-400 text-xs font-semibold transition flex flex-col items-center gap-1">
+                                <span class="text-lg">🧭</span>
+                                Compasses
+                            </button>
+                            <button onclick="setViewingMode('filings')" id="view-filings" class="py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-xs font-semibold transition flex flex-col items-center gap-1">
+                                <span class="text-lg">✨</span>
+                                Iron Filings
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Physical Parameters -->
+                    <div class="space-y-4 pt-4 border-t border-slate-800/60">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                                    Wire Thickness
+                                    <span class="text-[10px] text-slate-500">(Resistance)</span>
+                                </label>
+                                <span id="thickness-display" class="text-xs font-mono font-bold text-slate-300">Medium (Thick Copper)</span>
+                            </div>
+                            <select id="select-thickness" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500">
+                                <option value="thin">Thin Wire (Higher Heat, Low Field)</option>
+                                <option value="medium" selected>Standard Copper (1.2mm)</option>
+                                <option value="thick">Thick Copper Conductor (Maximum Field)</option>
+                            </select>
+                        </div>
+
+                        <!-- Grid Helper switch -->
+                        <div class="flex items-center justify-between py-1">
+                            <div>
+                                <label class="text-xs font-semibold text-slate-300">Visualize Magnetic Field Lines</label>
+                                <p class="text-[10px] text-slate-500">Render concentric flux vector rings</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-flux-lines" class="sr-only peer" checked>
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Mathematical Readout -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-5 rounded-2xl shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl"></div>
+                    <h3 class="text-sm font-bold heading-font text-white mb-3 tracking-wide uppercase text-slate-400">
+                        📊 Live Mathematical Sensor
+                    </h3>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                        Drag the green <strong>Sensor Node</strong> on the preview board to measure the field intensity ($B$) dynamically.
+                    </p>
+                    <div class="space-y-2 bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 font-mono text-xs">
+                        <div class="flex justify-between border-b border-slate-900 pb-1.5">
+                            <span class="text-slate-500">Formula:</span>
+                            <span class="text-amber-400">$B = \frac{\mu_0 \cdot I}{2\pi \cdot r}$</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-900 pb-1.5">
+                            <span class="text-slate-500">Distance ($r$):</span>
+                            <span id="sensor-r" class="text-slate-300">4.5 cm</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-900 pb-1.5">
+                            <span class="text-slate-500">Current ($I$):</span>
+                            <span id="sensor-i" class="text-blue-400">1.5 A</span>
+                        </div>
+                        <div class="flex justify-between pt-1">
+                            <span class="text-slate-400 font-bold">Field Intensity ($B$):</span>
+                            <span id="sensor-b" class="text-green-400 font-bold">6.67 μT</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: GUIDED MISSIONS TAB (Hidden by default) -->
+        <div id="section-missions" class="lg:col-span-12 hidden w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-4 space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                    <h3 class="text-lg font-bold heading-font text-white mb-2">🎯 Oersted's Lab Missions</h3>
+                    <p class="text-xs text-slate-400 mb-4">Complete these 3 interactive challenges to verify your experimental observations like a true physicist!</p>
+                    
+                    <!-- Mission Trackers -->
+                    <div class="space-y-3">
+                        <div id="mission-card-1" class="border border-blue-500/40 bg-blue-950/20 p-4 rounded-xl transition cursor-pointer" onclick="activateMission(1)">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-bold uppercase">Mission 1</span>
+                                <span id="mission-status-1" class="text-xs text-amber-400 font-bold">🟡 Active</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-white">The Accidental Deflection</h4>
+                            <p class="text-xs text-slate-400 mt-1">Simulate Hans Christian Oersted's landmark 1820 experiment by powering up the circuit.</p>
+                        </div>
+
+                        <div id="mission-card-2" class="border border-slate-800 bg-slate-950 p-4 rounded-xl transition cursor-pointer" onclick="activateMission(2)">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase">Mission 2</span>
+                                <span id="mission-status-2" class="text-xs text-slate-500">🔒 Locked</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-300">The Polar Flip</h4>
+                            <p class="text-xs text-slate-400 mt-1">Reverse the flow of electric current and study how magnetic polarity flips directions.</p>
+                        </div>
+
+                        <div id="mission-card-3" class="border border-slate-800 bg-slate-950 p-4 rounded-xl transition cursor-pointer" onclick="activateMission(3)">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase">Mission 3</span>
+                                <span id="mission-status-3" class="text-xs text-slate-500">🔒 Locked</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-300">Patterns of Magnetic Force</h4>
+                            <p class="text-xs text-slate-400 mt-1">Scatter virtual iron filings and tap the cardboard to align them into beautiful loops.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Mission Details Area -->
+            <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between min-h-[450px]">
+                <div>
+                    <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-4">
+                        <div class="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center text-2xl font-bold">🎯</div>
+                        <div>
+                            <h2 id="active-mission-title" class="text-xl font-bold heading-font text-white">Mission 1: The Accidental Deflection</h2>
+                            <p id="active-mission-tagline" class="text-xs text-slate-400">Step in the shoes of Hans Christian Oersted (1820)</p>
+                        </div>
+                    </div>
+
+                    <!-- Mission Details/Instructions -->
+                    <div class="space-y-4 my-6">
+                        <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-4">
+                            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">📋 Experimental Instructions</h4>
+                            <p id="active-mission-instructions" class="text-sm text-slate-300 leading-relaxed">
+                                Hans Christian Oersted noticed a compass needle deflection only when electric current was turned on. Your task is to power on the circuit and watch the magnetic field spring into life.
+                            </p>
+                        </div>
+
+                        <!-- Live Checklist status -->
+                        <div class="space-y-2">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">✔️ Objective Criteria</h4>
+                            <div id="mission-checklist" class="space-y-2 text-sm">
+                                <!-- Dynamically generated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons inside the missions -->
+                <div class="flex justify-between items-center border-t border-slate-800 pt-4 mt-4">
+                    <span id="mission-feedback" class="text-xs font-semibold text-amber-400">Complete objectives to unlock next steps.</span>
+                    <button id="btn-next-mission" disabled class="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 cursor-not-allowed transition">
+                        Next Mission 🚀
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: THEORY & RULES TAB (Hidden by default) -->
+        <div id="section-theory" class="lg:col-span-12 hidden w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Hans Christian Oersted Bio Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-16 -top-16 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
+                
+                <span class="text-xs font-bold bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full uppercase tracking-wider">Scientist Profile</span>
+                <h3 class="text-2xl font-bold heading-font text-white mt-3 mb-1">Hans Christian Oersted</h3>
+                <p class="text-sm text-slate-400 font-medium mb-4">1777 – 1851 | Denmark</p>
+                
+                <div class="border-t border-b border-slate-800/80 py-4 my-4 space-y-3 text-sm text-slate-300 leading-relaxed">
+                    <p>
+                        In 1820, while preparing a lecture demonstration, Oersted closed an electric circuit and accidentally noticed that a nearby compass needle deviated from pointing north to pointing perpendicular to the wire.
+                    </p>
+                    <p>
+                        This tiny, accidental observation permanently linked electricity and magnetism, giving birth to the study of <strong>electromagnetism</strong> and paving the way for motors, generators, and today's electronics.
+                    </p>
+                </div>
+                <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/60 flex items-center gap-3">
+                    <span class="text-2xl">🏅</span>
+                    <p class="text-xs text-slate-400">
+                        In his honor, the physical unit of <strong>magnetic field strength / intensity</strong> in the CGS system is officially named the <strong>Oersted (Oe)</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Hand Thumb Rule Visual card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full uppercase tracking-wider">Physics Rulebook</span>
+                    <h3 class="text-2xl font-bold heading-font text-white mt-3 mb-2">Right-Hand Thumb Rule</h3>
+                    <p class="text-sm text-slate-400 mb-4">A practical shortcut to visualize the circular direction of magnetic lines of force.</p>
+                    
+                    <div class="space-y-4 border-t border-slate-800/80 pt-4 text-sm text-slate-300">
+                        <div class="flex items-start gap-3">
+                            <div class="w-7 h-7 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center font-bold text-xs shrink-0">1</div>
+                            <p class="leading-relaxed">
+                                Imagine holding a straight current-carrying conductor in your <strong>right hand</strong> with your thumb pointing in the direction of the electric current.
+                            </p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-7 h-7 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center font-bold text-xs shrink-0">2</div>
+                            <p class="leading-relaxed">
+                                Your curled fingers will wrap around the wire in the exact direction of the <strong>magnetic lines of force</strong>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 mt-6 text-xs text-slate-400 flex items-center justify-between">
+                    <span>💡 Reverse current? Direction swaps!</span>
+                    <button onclick="switchTab('sandbox')" class="text-blue-400 hover:underline font-semibold">Try it on Lab Canvas &rarr;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: CHALLENGE ARENA (Hidden by default) -->
+        <div id="section-quiz" class="lg:col-span-12 hidden w-full max-w-3xl mx-auto">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-2xl relative">
+                <!-- Header / Progress bar -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <span class="text-xs bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full uppercase tracking-wider font-bold">Conceptual Assessment</span>
+                        <h3 class="text-xl font-bold heading-font text-white mt-2">Magnetism Challenge Arena</h3>
+                    </div>
+                    <span id="quiz-progress" class="text-xs font-mono text-slate-500">Question 1 of 5</span>
+                </div>
+
+                <!-- Progress fill -->
+                <div class="w-full bg-slate-950 h-2 rounded-full mb-6 overflow-hidden border border-slate-800">
+                    <div id="quiz-progress-bar" class="bg-gradient-to-r from-blue-500 to-purple-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+
+                <!-- Question Screen -->
+                <div id="quiz-active-panel" class="space-y-6">
+                    <p id="quiz-question-text" class="text-base md:text-lg font-bold text-slate-100 leading-relaxed">
+                        What is the relationship between the intensity of a magnetic field and the distance from a current-carrying wire?
+                    </p>
+
+                    <!-- Option Buttons -->
+                    <div id="quiz-options-container" class="space-y-3">
+                        <!-- Instantiated by JS -->
+                    </div>
+
+                    <!-- Custom Prompt / Modal for Explanation (Hidden by default) -->
+                    <div id="quiz-explanation-box" class="hidden p-4 rounded-xl border bg-slate-950 text-xs leading-relaxed">
+                        <!-- Text loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Action row -->
+                <div class="flex justify-between items-center border-t border-slate-800 pt-6 mt-6">
+                    <button id="btn-quiz-back" onclick="resetQuiz()" class="text-xs text-slate-500 hover:text-slate-300 transition">
+                        Reset Quiz
+                    </button>
+                    <button id="btn-quiz-next" onclick="submitQuizAnswer()" disabled class="px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        Check Answer &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Area -->
+    <footer class="border-t border-slate-800 bg-slate-950/80 py-6 px-4 text-center mt-12 text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>&copy; 2026 Interactive Physics Lab. Tailored for Next-Generation STEM Education.</p>
+            <div class="flex gap-4">
+                <a href="#" class="hover:text-slate-300">Terms</a>
+                <a href="#" class="hover:text-slate-300">Privacy Policy</a>
+                <a href="#" class="hover:text-slate-300">Developer API</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS Physics Engine, Canvas Visualizers & App Management -->
+    <script>
+        // ----------------- STATE & MATH ENGINE -----------------
+        let state = {
+            activeTab: 'sandbox',
+            current: 1.5,           // Current in Amps
+            isCircuitClosed: false, // Default switch OFF
+            viewingMode: 'compass', // 'compass' | 'filings'
+            wireThickness: 'medium', // thin | medium | thick
+            visualizeFlux: true,
+            activeMissionId: 1,
+            completedMissions: [],
+            compasses: [
+                // {x, y, angle, size}
+            ],
+            filings: [],            // Array of filings particles
+            sensor: { x: 0, y: 0, distance: 4.5 }, // Interactive measuring node
+            canvasWidth: 0,
+            canvasHeight: 0,
+            electronFlowOffset: 0,
+            isTappingCardboard: false,
+            tapEffectIntensity: 0
+        };
+
+        // Static constants
+        const MU_0_OVER_2PI = 2; // Arbitrary physics scale factor for readable ui numbers
+
+        // Mission definitions
+        const missions = {
+            1: {
+                title: "The Accidental Deflection",
+                instructions: "Simulate Oersted's discovery: turn the switch ON (Close the Switch) to let the electricity flow, and observe if the compasses deflect in direction of the field.",
+                objectives: [
+                    { id: "powOn", label: "Turn the Switch ON (Current > 0)", done: false },
+                    { id: "placeCompass", label: "Place at least 2 compasses on the cardboard to study deflection", done: false }
+                ]
+            },
+            2: {
+                title: "The Polar Flip",
+                instructions: "Reverse the flow of electric current to witness the instantaneous 180-degree rotation of your magnetic compass. Note how changing the sign of I affects rotation.",
+                objectives: [
+                    { id: "reverseFlow", label: "Reverse Current Polarity (make current negative)", done: false },
+                    { id: "observeShift", label: "Keep current negative while reading the magnetic lines direction", done: false }
+                ]
+            },
+            3: {
+                title: "Patterns of Magnetic Force",
+                instructions: "Switch to the 'Iron Filings' mode. Sprinkle filing particles on the board. Tap the cardboard a few times to let them align to the concentric magnetic loops.",
+                objectives: [
+                    { id: "modeFilings", label: "Switch Observation Mode to 'Iron Filings'", done: false },
+                    { id: "tapBoard", label: "Tap the Cardboard to align filing structures", done: false }
+                ]
+            }
+        };
+
+        // Quiz Question Pool
+        const quizQuestions = [
+            {
+                q: "When a current flows through a vertical copper wire, what shape do the magnetic lines of force form around it?",
+                options: [
+                    "Straight parallel lines perpendicular to the wire",
+                    "Concentric circles with the wire at the center",
+                    "A single spiral moving away infinitely",
+                    "No magnetic lines are generated around straight wires"
+                ],
+                correct: 1,
+                explanation: "Correct! The magnetic field lines generated around a straight current-carrying wire form Concentric Circles perpendicular to the path of current flow."
+            },
+            {
+                q: "According to the Right-Hand Thumb Rule, what does the curled fingers' direction represent?",
+                options: [
+                    "The direction of positive electron flow",
+                    "The direction of the voltage difference",
+                    "The direction of magnetic lines of force",
+                    "The direction of gravity acting on the wire"
+                ],
+                correct: 2,
+                explanation: "Yes! Your curled fingers show the concentric direction of the Magnetic Lines of Force (magnetic field loops)."
+            },
+            {
+                q: "If you move a compass farther away from a straight current-carrying wire, what happens to its deflection?",
+                options: [
+                    "Deflection increases because magnetic fields gain power as they expand",
+                    "Deflection decreases because magnetic field intensity is inversely proportional to distance",
+                    "Deflection remains unchanged unless current is reversed",
+                    "The needle rotates in erratic random patterns"
+                ],
+                correct: 1,
+                explanation: "Spot on! The intensity of a magnetic field ($B$) decreases as distance ($r$) increases, represented by $B \\propto 1/r$."
+            },
+            {
+                q: "What changes occur in the magnetic field when we increase the current flowing through the conductor?",
+                options: [
+                    "The field intensity increases directly with the current",
+                    "The field intensity decreases in inverse proportion",
+                    "The magnetic field changes from circular to triangular",
+                    "There is no change in intensity, only the speed of electrons increases"
+                ],
+                correct: 0,
+                explanation: "Exactly! If the current through the wire is increased, the intensity of the magnetic field increases proportionally."
+            },
+            {
+                q: "Who is the Danish physicist credited with discovering that electricity and magnetism are closely related in 1820?",
+                options: [
+                    "Michael Faraday",
+                    "Alessandro Volta",
+                    "Hans Christian Oersted",
+                    "André-Marie Ampère"
+                ],
+                correct: 2,
+                explanation: "Hans Christian Oersted made the accidental discovery in 1820 that ignited the electromagnetism revolution."
+            }
+        ];
+
+        let quizIndex = 0;
+        let selectedQuizOption = null;
+
+        // ----------------- CANVAS DRAWING & SIMULATION ENGINE -----------------
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Initialize Canvas Size
+        function resizeCanvas() {
+            const rect = canvas.parentNode.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            state.canvasWidth = rect.width;
+            state.canvasHeight = rect.height;
+            
+            // Set default sensor coordinate if not initialized
+            if (state.sensor.x === 0 && state.sensor.y === 0) {
+                state.sensor.x = canvas.width / 2 + 100;
+                state.sensor.y = canvas.height / 2;
+            }
+        }
+
+        // Initialize Filings at random positions
+        function initFilings() {
+            state.filings = [];
+            const numFilings = 400;
+            for (let i = 0; i < numFilings; i++) {
+                state.filings.push({
+                    x: Math.random() * 500 - 250, // relative to center
+                    y: Math.random() * 340 - 170, // relative to center
+                    angle: Math.random() * Math.PI * 2, // randomized initial orientation
+                    length: Math.random() * 6 + 6,
+                    color: `hsl(215, ${Math.random() * 20 + 10}%, ${Math.random() * 30 + 35}%)`
+                });
+            }
+        }
+
+        // Get magnetic field vector at relative (dx, dy) coordinate
+        function getMagneticFieldVector(dx, dy) {
+            const r = Math.sqrt(dx * dx + dy * dy);
+            if (r < 10) return { bx: 0, by: 0, strength: 0 };
+
+            // Field strength formula: B = k * I / r
+            const activeCurrent = state.isCircuitClosed ? state.current : 0;
+            const strength = Math.abs(activeCurrent) * 45 / r; 
+
+            // Tangent vector direction
+            // Tangent of circle (x, y) around (0,0) is (-y, x) or (y, -x) depending on current direction
+            const dirMultiplier = activeCurrent >= 0 ? 1 : -1;
+            const bx = -dy / r * dirMultiplier * strength;
+            const by = dx / r * dirMultiplier * strength;
+
+            return { bx, by, strength };
+        }
+
+        // Add dynamic starting compasses
+        function addDefaultCompasses() {
+            state.compasses = [
+                { relX: -80, relY: -50, angle: 0 },
+                { relX: 120, relY: 60, angle: 0 },
+                { relX: -40, relY: 100, angle: 0 }
+            ];
+        }
+
+        // Interactive mouse placement
+        canvas.addEventListener('mousedown', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Check if clicking close to the Sensor Node to drag it
+            const sensorScreenX = centerX + (state.sensor.x - centerX);
+            const sensorScreenY = centerY + (state.sensor.y - centerY);
+            const distToSensor = Math.hypot(mouseX - state.sensor.x, mouseY - state.sensor.y);
+
+            if (distToSensor < 20) {
+                state.draggingSensor = true;
+                return;
+            }
+
+            // Otherwise, place a compass or sprinkle filings
+            if (state.viewingMode === 'compass') {
+                state.compasses.push({
+                    relX: mouseX - centerX,
+                    relY: mouseY - centerY,
+                    angle: 0
+                });
+                triggerMissionCheck('placeCompass');
+            } else {
+                // Add high density filings where clicked
+                for(let i=0; i<15; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = Math.random() * 30;
+                    state.filings.push({
+                        x: (mouseX - centerX) + Math.cos(angle) * radius,
+                        y: (mouseY - centerY) + Math.sin(angle) * radius,
+                        angle: Math.random() * Math.PI * 2,
+                        length: Math.random() * 5 + 5,
+                        color: `hsl(190, 80%, ${Math.random() * 20 + 50}%)`
+                    });
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            if (state.draggingSensor) {
+                // Constrain sensor coordinates within reasonable bounds
+                state.sensor.x = Math.max(20, Math.min(canvas.width - 20, mouseX));
+                state.sensor.y = Math.max(20, Math.min(canvas.height - 20, mouseY));
+                
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const dx = state.sensor.x - centerX;
+                const dy = state.sensor.y - centerY;
+                state.sensor.distance = Math.max(1.5, Math.hypot(dx, dy) / 25); // Scale pixel distance to cm
+            }
+        });
+
+        window.addEventListener('mouseup', function() {
+            state.draggingSensor = false;
+        });
+
+        // Touch support for mobile layouts
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.touches[0].clientX - rect.left;
+                const mouseY = e.touches[0].clientY - rect.top;
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                const distToSensor = Math.hypot(mouseX - state.sensor.x, mouseY - state.sensor.y);
+                if (distToSensor < 30) {
+                    state.draggingSensor = true;
+                    e.preventDefault();
+                }
+            }
+        });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (state.draggingSensor && e.touches.length === 1) {
+                const rect = canvas.getBoundingClientRect();
+                state.sensor.x = e.touches[0].clientX - rect.left;
+                state.sensor.y = e.touches[0].clientY - rect.top;
+                
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const dx = state.sensor.x - centerX;
+                const dy = state.sensor.y - centerY;
+                state.sensor.distance = Math.max(1.5, Math.hypot(dx, dy) / 25);
+                e.preventDefault();
+            }
+        });
+
+        canvas.addEventListener('touchend', function() {
+            state.draggingSensor = false;
+        });
+
+        // ----------------- RENDERING LOOP -----------------
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Draw Cardboard Perspective Plate
+            drawCardboard(centerX, centerY);
+
+            // Animate Electron flow representation through wire
+            if (state.isCircuitClosed && state.current !== 0) {
+                state.electronFlowOffset += state.current * 2;
+            }
+
+            // Draw Copper Wire
+            drawCopperWire(centerX, centerY);
+
+            // Draw Flux Lines if active
+            if (state.visualizeFlux && state.isCircuitClosed && state.current !== 0) {
+                drawMagneticFluxRings(centerX, centerY);
+            }
+
+            // Render interactive view structures
+            if (state.viewingMode === 'compass') {
+                drawCompasses(centerX, centerY);
+            } else {
+                drawIronFilings(centerX, centerY);
+            }
+
+            // Render live Sensor Node
+            drawSensorNode(centerX, centerY);
+
+            // Update real-time mathematical labels
+            updateFormulasAndFeedback();
+
+            // Run continuous updates on filings animation
+            updateFilingsPhysics();
+
+            requestAnimationFrame(render);
+        }
+
+        function drawCardboard(cx, cy) {
+            ctx.save();
+            // Glassmorphic board styling
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 3;
+
+            // Draw a tilted parallelogram to simulate isometric/perspective view
+            ctx.beginPath();
+            ctx.moveTo(cx - 260, cy - 180);
+            ctx.lineTo(cx + 260, cy - 180);
+            ctx.lineTo(cx + 210, cy + 180);
+            ctx.lineTo(cx - 310, cy + 180);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Add grid patterns on cardboard
+            ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+            ctx.lineWidth = 1;
+            for(let i = -200; i <= 200; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(cx - 260 + (i + 200) * 1.3, cy - 180);
+                ctx.lineTo(cx - 310 + (i + 200) * 1.3, cy + 180);
+                ctx.stroke();
+            }
+
+            // Title label on cardboard
+            ctx.fillStyle = '#475569';
+            ctx.font = '10px monospace';
+            ctx.fillText('EXPERIMENTAL CARDBOARD SURFACE', cx - 290, cy + 160);
+            ctx.restore();
+        }
+
+        function drawCopperWire(cx, cy) {
+            ctx.save();
+            const activeThickness = state.wireThickness === 'thin' ? 4 : state.wireThickness === 'thick' ? 14 : 8;
+
+            // Wire shading behind cardboard (renders as depth layering)
+            const gradientBack = ctx.createLinearGradient(cx - activeThickness/2, 0, cx + activeThickness/2, 0);
+            gradientBack.addColorStop(0, '#b45309');
+            gradientBack.addColorStop(0.5, '#f59e0b');
+            gradientBack.addColorStop(1, '#b45309');
+
+            ctx.fillStyle = gradientBack;
+            ctx.fillRect(cx - activeThickness/2, 0, activeThickness, cy - 180);
+
+            // Wire going frontwards through the center hole
+            ctx.fillRect(cx - activeThickness/2, cy + 180, activeThickness, canvas.height - (cy + 180));
+
+            // Inner core wire passing directly in center projection
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(cx - activeThickness/2, cy - 180, activeThickness, 360);
+
+            // Electron Flow Particle Visualizer inside copper wire
+            if (state.isCircuitClosed && state.current !== 0) {
+                ctx.fillStyle = '#38bdf8';
+                const count = 12;
+                for (let i = 0; i < count; i++) {
+                    const dir = state.current > 0 ? -1 : 1; // Conventional current vs Electron flow
+                    const speedMultiplier = Math.abs(state.current);
+                    const yPos = ((state.electronFlowOffset * dir + (i * (canvas.height / count))) % canvas.height + canvas.height) % canvas.height;
+                    
+                    ctx.beginPath();
+                    ctx.arc(cx, yPos, activeThickness / 2.5, 0, Math.PI * 2);
+                    ctx.shadowColor = '#0ea5e9';
+                    ctx.shadowBlur = 8;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            // Draw center physical hole ring
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(cx, cy, activeThickness + 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Direct sign for current vector
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 9px monospace';
+            if (state.isCircuitClosed && state.current !== 0) {
+                const indicatorText = state.current > 0 ? "▲ CURRENT" : "▼ CURRENT";
+                ctx.fillText(indicatorText, cx + activeThickness + 10, cy - 80);
+            }
+
+            ctx.restore();
+        }
+
+        function drawMagneticFluxRings(cx, cy) {
+            ctx.save();
+            const currentAmp = Math.abs(state.current);
+            const numRings = 4;
+            
+            for (let i = 1; i <= numRings; i++) {
+                const radius = i * 45;
+                const alpha = Math.max(0.05, (0.4 - (radius / 250)) * (currentAmp / 5));
+                
+                // Color matches polarity mapping (Blue for Conventional forward flow, Orange for Reverse polarity)
+                ctx.strokeStyle = state.current > 0 ? `rgba(14, 165, 233, ${alpha})` : `rgba(245, 158, 11, ${alpha})`;
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([6, 8]);
+
+                // Create a flattened ellipse visual matching cardboard tilt
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, radius * 1.1, radius * 0.7, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Direction Arrows along the ellipse
+                const angleSpeed = (Date.now() * 0.001 * (state.current > 0 ? 1 : -1)) % (Math.PI * 2);
+                ctx.fillStyle = state.current > 0 ? '#38bdf8' : '#fbbf24';
+                
+                for(let j = 0; j < 3; j++) {
+                    const arrowAngle = angleSpeed + (j * (Math.PI * 2 / 3));
+                    const arrowX = cx + Math.cos(arrowAngle) * (radius * 1.1);
+                    const arrowY = cy + Math.sin(arrowAngle) * (radius * 0.7);
+
+                    ctx.beginPath();
+                    ctx.arc(arrowX, arrowY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawCompasses(cx, cy) {
+            state.compasses.forEach((compass) => {
+                const screenX = cx + compass.relX;
+                const screenY = cy + compass.relY;
+
+                // Physics angle update with momentum decay
+                const force = getMagneticFieldVector(compass.relX, compass.relY);
+                let targetAngle = Math.atan2(force.by, force.bx);
+
+                if (!state.isCircuitClosed || state.current === 0) {
+                    // Falls back to point towards Geographical Earth North (Upward/Perpendicular to wire layout)
+                    targetAngle = -Math.PI / 2;
+                }
+
+                // Smooth interpolation of angle (inertia simulation)
+                let diff = targetAngle - compass.angle;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                compass.angle += diff * 0.15;
+
+                // Draw outer compass body
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                
+                // Glass-metal body base
+                ctx.fillStyle = '#0f172a';
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Core scale ring
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(0, 0, 12, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Rotate to match active magnetic vector alignment
+                ctx.rotate(compass.angle);
+
+                // Draw magnetic needle (Red points North/Attractive Pole, White points South)
+                const needleLength = 11;
+                const needleWidth = 3.5;
+
+                // North (Red)
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.moveTo(-needleWidth, 0);
+                ctx.lineTo(0, -needleLength);
+                ctx.lineTo(needleWidth, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                // South (White)
+                ctx.fillStyle = '#cbd5e1';
+                ctx.beginPath();
+                ctx.moveTo(-needleWidth, 0);
+                ctx.lineTo(0, needleLength);
+                ctx.lineTo(needleWidth, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                // Pivot center dot
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(0, 0, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            });
+        }
+
+        function drawIronFilings(cx, cy) {
+            ctx.save();
+            state.filings.forEach((filing) => {
+                // Apply custom isometric deformation matrix projection mapping cardboard tilt
+                const screenX = cx + filing.x;
+                const screenY = cy + filing.y * 0.7; // Squish vertical axis to match visual tilt angle
+
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                ctx.rotate(filing.angle);
+                ctx.strokeStyle = filing.color;
+                ctx.lineWidth = 1.2;
+                
+                ctx.beginPath();
+                ctx.moveTo(-filing.length / 2, 0);
+                ctx.lineTo(filing.length / 2, 0);
+                ctx.stroke();
+                ctx.restore();
+            });
+            ctx.restore();
+        }
+
+        function updateFilingsPhysics() {
+            if (!state.isCircuitClosed || state.current === 0) return;
+
+            const alignmentRate = 0.02 + (state.tapEffectIntensity * 0.15); // Alignment only happens quickly when cardboard is tapped
+
+            state.filings.forEach((filing) => {
+                // Read physical magnetic vector for coordinate
+                const force = getMagneticFieldVector(filing.x, filing.y);
+                const targetAngle = Math.atan2(force.by, force.bx);
+
+                // Add small thermal kinetic randomness inverse to magnetic field strength
+                const distanceFactor = Math.hypot(filing.x, filing.y);
+                const noise = (Math.random() - 0.5) * (0.01 + (distanceFactor / 800));
+
+                let angleDiff = targetAngle - filing.angle;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+
+                // Gradually align filing angles
+                filing.angle += angleDiff * alignmentRate + noise;
+            });
+
+            // Gradually decay custom cardboard tap effect
+            if (state.isTappingCardboard) {
+                state.tapEffectIntensity *= 0.92;
+                if (state.tapEffectIntensity < 0.01) {
+                    state.isTappingCardboard = false;
+                    state.tapEffectIntensity = 0;
+                }
+            }
+        }
+
+        function drawSensorNode(cx, cy) {
+            ctx.save();
+            const x = state.sensor.x;
+            const y = state.sensor.y;
+
+            // Target Pulse Glow Ring
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            const pulseRadius = 14 + Math.sin(Date.now() * 0.01) * 3;
+            ctx.arc(x, y, pulseRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Center Pin Point
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label text over sensor
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px monospace';
+            ctx.fillText('SENSOR', x + 10, y - 10);
+
+            ctx.restore();
+        }
+
+        // ----------------- FORMULAS & FEEDBACK INTERACTION -----------------
+        function updateFormulasAndFeedback() {
+            // Calculated dynamic readings
+            const activeCurrent = state.isCircuitClosed ? state.current : 0;
+            const absoluteCurrent = Math.abs(activeCurrent);
+            const sensorDistance = state.sensor.distance;
+
+            // Field strength formula: B = k * I / r
+            const fieldIntensity = (absoluteCurrent * MU_0_OVER_2PI) / sensorDistance;
+
+            // Update UI widgets
+            document.getElementById('val-current-display').textContent = `${activeCurrent.toFixed(1)} A`;
+            document.getElementById('val-field-display').textContent = `${(Math.abs(activeCurrent) * 4.5).toFixed(2)} μT`;
+            
+            document.getElementById('sensor-r').textContent = `${sensorDistance.toFixed(1)} cm`;
+            document.getElementById('sensor-i').textContent = `${activeCurrent.toFixed(1)} A`;
+            document.getElementById('sensor-b').textContent = `${fieldIntensity.toFixed(2)} μT`;
+
+            // Adjust live status indicator colors
+            const indicatorDot = document.getElementById('circuit-status-dot');
+            const indicatorText = document.getElementById('circuit-status-text');
+
+            if (state.isCircuitClosed) {
+                indicatorDot.className = "w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse glow-green";
+                indicatorText.textContent = "CIRCUIT CLOSED (CURRENT ACTIVE)";
+                indicatorText.classList.remove('text-slate-400');
+                indicatorText.classList.add('text-green-400');
+            } else {
+                indicatorDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+                indicatorText.textContent = "CIRCUIT DISCONNECTED (SWITCH OPEN)";
+                indicatorText.classList.remove('text-green-400');
+                indicatorText.classList.add('text-slate-400');
+            }
+
+            // Real-time Right Hand Thumb Overlay sync
+            const rhtOverlay = document.getElementById('rht-overlay');
+            if (state.isCircuitClosed && state.current !== 0) {
+                rhtOverlay.classList.remove('hidden');
+                document.getElementById('rht-current-dir').textContent = state.current > 0 ? "UPWARD" : "DOWNWARD";
+                document.getElementById('rht-mag-dir').textContent = state.current > 0 ? "Counter-Clockwise ↺" : "Clockwise ↻";
+            } else {
+                rhtOverlay.classList.add('hidden');
+            }
+
+            // Real-time Mission Objective verification
+            verifyMissionObjectives();
+        }
+
+        // ----------------- INTERACTIVE USER ACTIONS -----------------
+        function toggleCircuit() {
+            state.isCircuitClosed = !state.isCircuitClosed;
+            const btn = document.getElementById('btn-circuit-toggle');
+            if (state.isCircuitClosed) {
+                btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-green-600 hover:bg-green-500 text-white transition glow-green flex items-center gap-2";
+                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white"></span> Open Switch (Power Off)`;
+                triggerMissionCheck('powOn');
+            } else {
+                btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-red-600 hover:bg-red-500 text-white transition glow-blue flex items-center gap-2";
+                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span> Close Switch (Power On)`;
+            }
+        }
+
+        function reversePolarity() {
+            state.current = -state.current;
+            document.getElementById('slider-current').value = state.current;
+            document.getElementById('current-slider-val').textContent = `${state.current.toFixed(1)} A`;
+            if (state.current < 0) {
+                triggerMissionCheck('reverseFlow');
+            }
+        }
+
+        function clearCompasses() {
+            state.compasses = [];
+        }
+
+        function triggerCardboardTap() {
+            state.isTappingCardboard = true;
+            state.tapEffectIntensity = 1.0;
+            triggerMissionCheck('tapBoard');
+
+            // Apply a rapid shake effect to all filings values
+            state.filings.forEach((filing) => {
+                filing.x += (Math.random() - 0.5) * 5;
+                filing.y += (Math.random() - 0.5) * 5;
+            });
+        }
+
+        function setViewingMode(mode) {
+            state.viewingMode = mode;
+            const btnCompass = document.getElementById('view-compass');
+            const btnFilings = document.getElementById('view-filings');
+
+            if (mode === 'compass') {
+                btnCompass.className = "py-2.5 px-3 rounded-xl border border-blue-500 bg-blue-500/10 text-blue-400 text-xs font-semibold transition flex flex-col items-center gap-1";
+                btnFilings.className = "py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-xs font-semibold transition flex flex-col items-center gap-1";
+            } else {
+                btnFilings.className = "py-2.5 px-3 rounded-xl border border-blue-500 bg-blue-500/10 text-blue-400 text-xs font-semibold transition flex flex-col items-center gap-1";
+                btnCompass.className = "py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-xs font-semibold transition flex flex-col items-center gap-1";
+                triggerMissionCheck('modeFilings');
+            }
+        }
+
+        // Sync HTML Inputs
+        document.getElementById('slider-current').addEventListener('input', function(e) {
+            state.current = parseFloat(e.target.value);
+            document.getElementById('current-slider-val').textContent = `${state.current.toFixed(1)} A`;
+            if (state.current < 0) {
+                triggerMissionCheck('reverseFlow');
+            }
+        });
+
+        document.getElementById('select-thickness').addEventListener('change', function(e) {
+            state.wireThickness = e.target.value;
+            const displays = {
+                thin: "Thin Wire (Higher Heat, Low Field)",
+                medium: "Standard Copper (1.2mm)",
+                thick: "Thick Copper Conductor (Maximum Field)"
+            };
+            document.getElementById('thickness-display').textContent = displays[state.wireThickness];
+        });
+
+        document.getElementById('toggle-flux-lines').addEventListener('change', function(e) {
+            state.visualizeFlux = e.target.checked;
+        });
+
+        // Tab Switching
+        function switchTab(tabId) {
+            state.activeTab = tabId;
+            const tabs = ['sandbox', 'missions', 'theory', 'quiz'];
+            
+            // Toggle Section displays
+            tabs.forEach(t => {
+                const section = document.getElementById(`section-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabId) {
+                    section.classList.remove('hidden');
+                    btn.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-blue-600 text-white shadow-lg";
+                } else {
+                    section.classList.add('hidden');
+                    btn.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white";
+                }
+            });
+
+            // Remap missions layout structure when opened
+            if (tabId === 'missions') {
+                activateMission(state.activeMissionId);
+            }
+        }
+
+        // ----------------- MISSION LOGIC -----------------
+        function activateMission(missionId) {
+            state.activeMissionId = missionId;
+            const def = missions[missionId];
+
+            document.getElementById('active-mission-title').textContent = `Mission ${missionId}: ${def.title}`;
+            document.getElementById('active-mission-instructions').textContent = def.instructions;
+
+            // Re-render objective cards highlighting
+            [1, 2, 3].forEach(id => {
+                const card = document.getElementById(`mission-card-${id}`);
+                const status = document.getElementById(`mission-status-${id}`);
+                if (id === missionId) {
+                    card.className = "border border-amber-500/40 bg-amber-950/20 p-4 rounded-xl transition cursor-pointer scale-[1.02]";
+                    status.textContent = "🟡 Active";
+                    status.className = "text-xs text-amber-400 font-bold";
+                } else if (state.completedMissions.includes(id)) {
+                    card.className = "border border-green-500/35 bg-green-950/10 p-4 rounded-xl transition cursor-pointer opacity-80";
+                    status.textContent = "🟢 Completed";
+                    status.className = "text-xs text-green-400 font-bold";
+                } else {
+                    card.className = "border border-slate-800 bg-slate-950 p-4 rounded-xl transition cursor-pointer opacity-50";
+                    status.textContent = "🔒 Locked";
+                    status.className = "text-xs text-slate-500";
+                }
+            });
+
+            renderChecklistUI(def.objectives);
+        }
+
+        function renderChecklistUI(objectives) {
+            const container = document.getElementById('mission-checklist');
+            container.innerHTML = '';
+            
+            objectives.forEach(obj => {
+                const statusClass = obj.done ? "text-green-400 line-through" : "text-slate-300";
+                const checkIcon = obj.done ? "🟢" : "⚪";
+                const item = document.createElement('div');
+                item.className = "flex items-center gap-2 " + statusClass;
+                item.innerHTML = `<span>${checkIcon}</span> <span>${obj.label}</span>`;
+                container.appendChild(item);
+            });
+        }
+
+        function triggerMissionCheck(objectiveId) {
+            const activeMission = missions[state.activeMissionId];
+            if (!activeMission) return;
+
+            const objective = activeMission.objectives.find(o => o.id === objectiveId);
+            if (objective && !objective.done) {
+                objective.done = true;
+                verifyMissionObjectives();
+            }
+        }
+
+        function verifyMissionObjectives() {
+            // General background tracking triggers based on physical state values
+            if (state.isCircuitClosed && Math.abs(state.current) > 0) {
+                triggerMissionCheck('powOn');
+            }
+            if (state.compasses.length >= 2) {
+                triggerMissionCheck('placeCompass');
+            }
+            if (state.isCircuitClosed && state.current < 0) {
+                triggerMissionCheck('reverseFlow');
+                triggerMissionCheck('observeShift');
+            }
+            if (state.viewingMode === 'filings') {
+                triggerMissionCheck('modeFilings');
+            }
+
+            const activeMission = missions[state.activeMissionId];
+            if (!activeMission) return;
+
+            const allDone = activeMission.objectives.every(o => o.done);
+            const nextBtn = document.getElementById('btn-next-mission');
+            const feedback = document.getElementById('mission-feedback');
+
+            if (allDone) {
+                feedback.textContent = "🎉 Objectives complete! Move to next research step.";
+                feedback.className = "text-xs font-bold text-green-400";
+                nextBtn.disabled = false;
+                nextBtn.className = "px-5 py-2.5 rounded-xl text-xs font-bold bg-green-600 hover:bg-green-500 text-white shadow-lg transition";
+                
+                if (!state.completedMissions.includes(state.activeMissionId)) {
+                    state.completedMissions.push(state.activeMissionId);
+                }
+            } else {
+                feedback.textContent = "Complete current objectives to unlock next steps.";
+                feedback.className = "text-xs font-semibold text-amber-400";
+                nextBtn.disabled = true;
+                nextBtn.className = "px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 cursor-not-allowed transition";
+            }
+        }
+
+        document.getElementById('btn-next-mission').addEventListener('click', function() {
+            if (state.activeMissionId < 3) {
+                activateMission(state.activeMissionId + 1);
+            } else {
+                // Graduation scenario
+                showGraduationDialogue();
+            }
+        });
+
+        function showGraduationDialogue() {
+            alert("Outstanding achievement! You have completed all physical electromagnetism research missions. Test your wisdom in the Challenge Arena!");
+            switchTab('quiz');
+        }
+
+        // ----------------- QUIZ & CHALLENGE ARENA -----------------
+        function renderQuizQuestion() {
+            const data = quizQuestions[quizIndex];
+            
+            // Set Progress labels
+            document.getElementById('quiz-progress').textContent = `Question ${quizIndex + 1} of ${quizQuestions.length}`;
+            const percent = ((quizIndex) / quizQuestions.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${percent}%`;
+
+            // Display question
+            document.getElementById('quiz-question-text').textContent = data.q;
+
+            // Render options
+            const optionsBox = document.getElementById('quiz-options-container');
+            optionsBox.innerHTML = '';
+            selectedQuizOption = null;
+
+            data.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.onclick = () => selectQuizOption(idx);
+                btn.className = "w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-900 hover:border-slate-700 transition text-sm text-slate-300";
+                btn.id = `quiz-opt-${idx}`;
+                btn.innerHTML = `<span class="inline-block w-6 h-6 rounded-lg bg-slate-800 text-center leading-6 text-xs mr-3 font-bold text-slate-400">${String.fromCharCode(65 + idx)}</span> ${opt}`;
+                optionsBox.appendChild(btn);
+            });
+
+            // Hide explanation card
+            const exp = document.getElementById('quiz-explanation-box');
+            exp.classList.add('hidden');
+
+            const nextBtn = document.getElementById('btn-quiz-next');
+            nextBtn.disabled = true;
+            nextBtn.textContent = "Check Answer ⚡";
+        }
+
+        function selectQuizOption(idx) {
+            selectedQuizOption = idx;
+            // Highlight selected button
+            const total = quizQuestions[quizIndex].options.length;
+            for(let i=0; i<total; i++) {
+                const btn = document.getElementById(`quiz-opt-${i}`);
+                if (i === idx) {
+                    btn.className = "w-full text-left p-4 rounded-xl border border-blue-500 bg-blue-500/10 transition text-sm font-semibold text-blue-300";
+                } else {
+                    btn.className = "w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-900 transition text-sm text-slate-300";
+                }
+            }
+            document.getElementById('btn-quiz-next').disabled = false;
+        }
+
+        function submitQuizAnswer() {
+            const activeQ = quizQuestions[quizIndex];
+            const isCorrect = selectedQuizOption === activeQ.correct;
+            const exp = document.getElementById('quiz-explanation-box');
+
+            // Format validation feedback
+            exp.classList.remove('hidden');
+            if (isCorrect) {
+                exp.className = "p-4 rounded-xl border border-green-500/30 bg-green-950/10 text-xs text-green-400 leading-relaxed";
+                exp.innerHTML = `<strong>🎉 Correct:</strong> ${activeQ.explanation}`;
+            } else {
+                exp.className = "p-4 rounded-xl border border-red-500/30 bg-red-950/10 text-xs text-red-400 leading-relaxed";
+                exp.innerHTML = `<strong>❌ Incorrect:</strong> The correct answer was <em>"${activeQ.options[activeQ.correct]}"</em>. ${activeQ.explanation}`;
+            }
+
+            const nextBtn = document.getElementById('btn-quiz-next');
+            nextBtn.onclick = progressQuiz;
+            nextBtn.textContent = (quizIndex === quizQuestions.length - 1) ? "View Results!" : "Next Question ➡️";
+        }
+
+        function progressQuiz() {
+            if (quizIndex < quizQuestions.length - 1) {
+                quizIndex++;
+                renderQuizQuestion();
+                document.getElementById('btn-quiz-next').onclick = submitQuizAnswer;
+            } else {
+                // Show completion summary
+                const box = document.getElementById('quiz-active-panel');
+                document.getElementById('quiz-progress-bar').style.width = `100%`;
+                box.innerHTML = `
+                    <div class="text-center py-8 space-y-4">
+                        <div class="text-6xl">🏆</div>
+                        <h4 class="text-xl font-bold heading-font text-white">Challenge Complete!</h4>
+                        <p class="text-sm text-slate-400 max-w-md mx-auto">
+                            You have mastered the foundational physical laws of electromagnetism. Hans Christian Oersted would be proud of your experimental dedication.
+                        </p>
+                        <button onclick="resetQuiz()" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition">
+                            🔄 Retry Challenge Arena
+                        </button>
+                    </div>
+                `;
+                document.getElementById('btn-quiz-next').classList.add('hidden');
+            }
+        }
+
+        function resetQuiz() {
+            quizIndex = 0;
+            const box = document.getElementById('quiz-active-panel');
+            box.innerHTML = `
+                <p id="quiz-question-text" class="text-base md:text-lg font-bold text-slate-100 leading-relaxed"></p>
+                <div id="quiz-options-container" class="space-y-3"></div>
+                <div id="quiz-explanation-box" class="hidden p-4 rounded-xl border text-xs leading-relaxed"></div>
+            `;
+            const nextBtn = document.getElementById('btn-quiz-next');
+            nextBtn.classList.remove('hidden');
+            nextBtn.onclick = submitQuizAnswer;
+            renderQuizQuestion();
+        }
+
+        // ----------------- STARTUP -----------------
+        window.onload = function() {
+            resizeCanvas();
+            initFilings();
+            addDefaultCompasses();
+            activateMission(1);
+            resetQuiz();
+            
+            // Start physical update loop
+            render();
+        };
+
+        window.onresize = resizeCanvas;
+    </script>
+</body>
+</html>
