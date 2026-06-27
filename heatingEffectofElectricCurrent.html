@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Electric Current & Heating Laboratory</title>
+    <!-- Tailwind CSS for sleek UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for beautiful, crisp icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tab-active {
+            border-bottom-color: #3b82f6;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.08);
+        }
+        /* Custom scrollbar for premium look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+
+    <!-- Premium Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-amber-500 to-amber-300 p-2.5 rounded-xl text-slate-950 shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-bolt text-xl animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-100 via-slate-200 to-amber-300 bg-clip-text text-transparent">
+                    Electrodynamics & Thermal Laboratory
+                </h1>
+                <p class="text-xs text-slate-400 font-medium">Interactive Framework for Effects of Electric Current</p>
+            </div>
+        </div>
+        
+        <!-- Tab Navigation Switcher -->
+        <nav class="flex rounded-xl bg-slate-950 p-1 border border-slate-800/80 text-sm font-medium">
+            <button onclick="switchTab('conduction')" id="btn-conduction" class="tab-active px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-microscope text-amber-400"></i> Joule's Heating Sandbox
+            </button>
+            <button onclick="switchTab('appliances')" id="btn-appliances" class="px-4 py-2 text-slate-400 hover:text-slate-200 rounded-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-lightbulb text-yellow-400"></i> Appliance Engineering
+            </button>
+            <button onclick="switchTab('safety')" id="btn-safety" class="px-4 py-2 text-slate-400 hover:text-slate-200 rounded-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-emerald-400"></i> Safety & Overload Lab
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Laboratory Workspace Wrapper -->
+    <main class="flex-1 p-6 max-w-[1600px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT CONTROL & WORKSPACE PANEL (Takes 8 cols) -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- TAB 1: JOULE'S HEATING SANDBOX -->
+            <div id="tab-conduction" class="tab-content flex flex-col gap-6">
+                <!-- Interactive Canvas Visualizer Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/50 flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                            <h2 class="font-bold text-slate-200">Atomic Lattice & Electron Scattering Simulation</h2>
+                        </div>
+                        <div class="text-xs bg-slate-950 px-3 py-1.5 rounded-lg text-slate-400 border border-slate-800 code-font">
+                            Scale: 30x Speed Factor Realtime
+                        </div>
+                    </div>
+                    
+                    <!-- Main Physics Simulation Viewport -->
+                    <div class="relative bg-slate-950 p-4 flex justify-center items-center group">
+                        <canvas id="latticeCanvas" width="750" height="320" class="rounded-xl border border-slate-900 bg-slate-950 shadow-inner w-full max-w-[750px]"></canvas>
+                        
+                        <!-- Floating Live Readout Dashboard -->
+                        <div class="absolute bottom-6 left-6 right-6 grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-900/95 backdrop-blur-md p-3 rounded-xl border border-slate-800 text-xs shadow-xl">
+                            <div class="flex flex-col">
+                                <span class="text-slate-400 mb-0.5"><i class="fa-solid fa-temperature-three-quarters text-red-400 mr-1"></i> Resistor Temp</span>
+                                <span class="text-base font-bold text-slate-200 code-font" id="lbl-temp">27.0 °C</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-slate-400 mb-0.5"><i class="fa-solid fa-gauge text-blue-400 mr-1"></i> Current Flow (I)</span>
+                                <span class="text-base font-bold text-blue-400 code-font" id="lbl-current">2.00 A</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-slate-400 mb-0.5"><i class="fa-solid fa-fire text-amber-400 mr-1"></i> Cumulative Heat (H)</span>
+                                <span class="text-base font-bold text-amber-400 code-font" id="lbl-heat">0.00 J</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-slate-400 mb-0.5"><i class="fa-solid fa-stopwatch text-purple-400 mr-1"></i> Elapsed Time</span>
+                                <span class="text-base font-bold text-purple-400 code-font" id="lbl-time">0.0 s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Material and Parameter Controller Console -->
+                    <div class="p-6 bg-slate-900 border-t border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Parameter 1: Voltage Slider -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center text-sm">
+                                <label class="text-slate-300 font-medium flex items-center gap-1.5">
+                                    <i class="fa-solid fa-car-battery text-blue-400"></i> Potential Difference (V)
+                                </label>
+                                <span class="code-font font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded text-xs" id="val-v">12 V</span>
+                            </div>
+                            <input type="range" id="input-v" min="0" max="40" value="12" step="1" 
+                                class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 transition-all hover:bg-slate-700"
+                                oninput="updateJouleParameters()">
+                            <span class="text-[11px] text-slate-500">Alters global kinetic driving force of electrons.</span>
+                        </div>
+
+                        <!-- Parameter 2: Material Selection Presets -->
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm text-slate-300 font-medium flex items-center gap-1.5">
+                                <i class="fa-solid fa-cubes text-amber-400"></i> Conductor Material Preset
+                            </label>
+                            <select id="input-material" onchange="changeMaterialPreset()" 
+                                class="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 p-2.5 outline-none cursor-pointer">
+                                <option value="nichrome">Nichrome Alloy (High Resistor - 100 Ω)</option>
+                                <option value="tungsten">Tungsten Filament (Medium-High - 45 Ω)</option>
+                                <option value="iron">Pure Iron Block (Low-Medium - 10 Ω)</option>
+                                <option value="copper">Copper Wiring (Ultra-Low - 1.5 Ω)</option>
+                            </select>
+                            <span class="text-[11px] text-slate-500" id="material-desc">Nichrome creates significant structural scattering.</span>
+                        </div>
+
+                        <!-- Parameter 3: Live Actions & Presets -->
+                        <div class="flex flex-col justify-end gap-2">
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="toggleSimulation()" id="btn-pause-play" class="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-pause"></i> Pause Lab
+                                </button>
+                                <button onclick="resetSimulation()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-2.5 px-4 rounded-xl border border-slate-700/80 transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-rotate-right"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Analytical Plotting Subsystem (SVG Engine) -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-5 flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-purple-400"></i> Energy Converted vs. Time Profile [H vs. t]
+                        </h3>
+                        <div class="flex gap-4 text-xs font-semibold">
+                            <span class="flex items-center gap-1.5 text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Joule Heat ($H = I^2 R t$)</span>
+                        </div>
+                    </div>
+                    <!-- Live Dynamic SVG Plot wrapper -->
+                    <div class="bg-slate-950 rounded-xl p-2 border border-slate-900 shadow-inner relative">
+                        <svg id="liveGraph" viewBox="0 0 700 180" class="w-full h-auto overflow-visible">
+                            <!-- Grid lines -->
+                            <line x1="40" y1="20" x2="680" y2="20" stroke="#1e293b" stroke-dasharray="4,4"/>
+                            <line x1="40" y1="70" x2="680" y2="70" stroke="#1e293b" stroke-dasharray="4,4"/>
+                            <line x1="40" y1="120" x2="680" y2="120" stroke="#1e293b" stroke-dasharray="4,4"/>
+                            <line x1="40" y1="150" x2="680" y2="150" stroke="#334155" stroke-width="1.5"/>
+                            <line x1="40" y1="20" x2="40" y2="150" stroke="#334155" stroke-width="1.5"/>
+                            
+                            <!-- Graph Polylines -->
+                            <polyline id="heatPath" fill="none" stroke="#f59e0b" stroke-width="2.5" points="40,150" />
+                            
+                            <!-- Axis labels -->
+                            <text x="35" y="15" fill="#64748b" font-size="9" text-anchor="end" class="code-font">Max J</text>
+                            <text x="35" y="153" fill="#64748b" font-size="9" text-anchor="end" class="code-font">0J</text>
+                            <text x="680" y="165" fill="#64748b" font-size="9" text-anchor="end" class="code-font">Time (s)</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: APPLIANCE ENGINEERING LAB -->
+            <div id="tab-appliances" class="tab-content hidden flex flex-col gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
+                        <h2 class="font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-nodes text-yellow-400 animate-spin-slow"></i> High-Resistivity Filament & Coil Laboratory
+                        </h2>
+                        <span class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-300 font-medium">Thermodynamic Simulation</span>
+                    </div>
+
+                    <!-- Side-by-Side Appliance Comparison Grid -->
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950">
+                        <!-- Appliance A: Incandescent Tungsten Bulb -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col items-center relative group">
+                            <div class="absolute top-4 left-4 bg-yellow-500/10 text-yellow-400 font-bold px-2 py-0.5 rounded text-[11px] border border-yellow-500/20">
+                                Tungsten Wire
+                            </div>
+                            <div class="w-full h-48 bg-slate-950 rounded-lg flex items-center justify-center border border-slate-800 shadow-inner relative overflow-hidden">
+                                <!-- Simulated Glow Effect via dynamic DIV overlay -->
+                                <div id="bulb-glow" class="absolute inset-0 bg-yellow-500/0 transition-all pointer-events-none mix-blend-screen"></div>
+                                <canvas id="bulbCanvas" width="220" height="180" class="z-10"></canvas>
+                            </div>
+                            <div class="w-full mt-4 flex flex-col gap-1.5">
+                                <h3 class="font-bold text-slate-200">Tungsten Glass Bulb</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">Heats up to nearly <span class="text-yellow-400 font-semibold">3400 °C</span> under standard current. Emits white-hot electromagnetic radiation (light) & localized heat.</p>
+                                <div class="mt-2 flex justify-between items-center bg-slate-950/80 p-2 rounded-lg border border-slate-800 text-xs code-font">
+                                    <span class="text-slate-400">Filament Temp:</span>
+                                    <span id="lbl-bulb-temp" class="text-yellow-400 font-bold">27 °C</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appliance B: Electric Cooking Coil / Heater -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col items-center relative group">
+                            <div class="absolute top-4 left-4 bg-orange-500/10 text-orange-400 font-bold px-2 py-0.5 rounded text-[11px] border border-orange-500/20">
+                                Nichrome Alloy
+                            </div>
+                            <div class="w-full h-48 bg-slate-950 rounded-lg flex items-center justify-center border border-slate-800 shadow-inner relative overflow-hidden">
+                                <div id="heater-glow" class="absolute inset-0 bg-red-600/0 transition-all pointer-events-none mix-blend-screen"></div>
+                                <canvas id="heaterCanvas" width="220" height="180" class="z-10"></canvas>
+                            </div>
+                            <div class="w-full mt-4 flex flex-col gap-1.5">
+                                <h3 class="font-bold text-slate-200">Nichrome Cooker Element</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">High electrical resistivity alloy prevents shorting while allowing high structural temperatures, glowing <span class="text-red-400 font-semibold">cherry red</span> for intense heat transfer.</p>
+                                <div class="mt-2 flex justify-between items-center bg-slate-950/80 p-2 rounded-lg border border-slate-800 text-xs code-font">
+                                    <span class="text-slate-400">Coil Temp:</span>
+                                    <span id="lbl-heater-temp" class="text-red-400 font-bold">27 °C</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Voltage Drive Slider for Appliances -->
+                    <div class="p-6 bg-slate-900 border-t border-slate-800">
+                        <div class="max-w-md mx-auto flex flex-col gap-3">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="font-semibold text-slate-300"><i class="fa-solid fa-sliders mr-1.5 text-amber-400"></i> Main Appliance Grid Drive Voltage</span>
+                                <span id="val-appliance-v" class="code-font font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">110 V</span>
+                            </div>
+                            <input type="range" id="input-appliance-v" min="0" max="240" value="110" step="5"
+                                class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                oninput="updateApplianceSimulation()">
+                            <p class="text-[11px] text-slate-400 text-center">Slide to 220V+ to watch materials dramatically heat up and reach maximum radiant thresholds!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: SAFETY, OVERLOADING & FUSE INTERACTION LAB -->
+            <div id="tab-safety" class="tab-content hidden flex flex-col gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/50 flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-red-400 animate-pulse"></i>
+                            <h2 class="font-bold text-slate-200">Household Safety Interrupter & Overloading Lab</h2>
+                        </div>
+                        <div id="grid-status-badge" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-lg text-xs font-bold code-font">
+                            GRID STATUS: SECURE & OPERATIONAL
+                        </div>
+                    </div>
+
+                    <!-- Interactive Grid Panel -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 bg-slate-950">
+                        <!-- Left Sub-column: Physical Safety Wire Canvas Viewport -->
+                        <div class="md:col-span-7 bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center">
+                            <span class="text-xs font-semibold text-slate-400 mb-2 self-start"><i class="fa-solid fa-microchip text-blue-400 mr-1"></i> Fuse Box / MCB Active Link View</span>
+                            <div class="w-full bg-slate-950 rounded-lg p-3 border border-slate-800 flex flex-col items-center relative">
+                                <canvas id="safetyCanvas" width="400" height="150" class="w-full"></canvas>
+                                <div class="w-full flex justify-between items-center mt-3 text-xs code-font bg-slate-900 p-2 rounded border border-slate-800">
+                                    <span class="text-slate-400">Total Circuit Load:</span>
+                                    <span id="lbl-total-current" class="text-blue-400 font-bold">0.00 A / 15.00 A Max</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Control Mechanism Type Selector -->
+                            <div class="w-full mt-4 grid grid-cols-2 gap-3">
+                                <button id="btn-mechanism-fuse" onclick="setSafetyMechanism('fuse')" class="py-2 px-3 bg-slate-800 border border-amber-500/40 text-amber-300 font-medium rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                                    <i class="fa-solid fa-wire-coiled"></i> Traditional Fuse Wire
+                                </button>
+                                <button id="btn-mechanism-mcb" onclick="setSafetyMechanism('mcb')" class="py-2 px-3 bg-slate-950 border border-slate-800 text-slate-400 font-medium rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                                    <i class="fa-solid fa-toggle-on"></i> Modern MCB Switch
+                                </button>
+                            </div>
+                            <button onclick="repairSafetyLink()" class="w-full mt-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-screwdriver-wrench text-emerald-400"></i> Replace Fuse Wire / Reset MCB
+                            </button>
+                        </div>
+
+                        <!-- Right Sub-column: Appliance Load Manager (Trigger Overloading / Shorts) -->
+                        <div class="md:col-span-5 flex flex-col gap-4">
+                            <span class="text-xs font-semibold text-slate-400"><i class="fa-solid fa-house-laptop text-amber-400 mr-1"></i> Connect Home Appliances to Grid</span>
+                            
+                            <!-- Appliance Toggles -->
+                            <div class="flex flex-col gap-2">
+                                <div onclick="toggleApplianceLoad('cooker')" id="card-load-cooker" class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-800/60 group">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-950 rounded-lg text-slate-400 group-hover:text-amber-400 transition-colors">
+                                            <i class="fa-solid fa-kitchen-set text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-slate-200">Electric Cooker</h4>
+                                            <p class="text-[10px] text-slate-400">High Resistance Heating Load</p>
+                                        </div>
+                                    </div>
+                                    <span class="code-font text-xs font-bold text-slate-400" id="lbl-load-cooker">+ 8.0 A</span>
+                                </div>
+
+                                <div onclick="toggleApplianceLoad('ac')" id="card-load-ac" class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-800/60 group">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-950 rounded-lg text-slate-400 group-hover:text-blue-400 transition-colors">
+                                            <i class="fa-solid fa-snowflake text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-slate-200">Heavy Duty Air Conditioner</h4>
+                                            <p class="text-[10px] text-slate-400">Inductive Compressor Load</p>
+                                        </div>
+                                    </div>
+                                    <span class="code-font text-xs font-bold text-slate-400" id="lbl-load-ac">+ 10.0 A</span>
+                                </div>
+
+                                <div onclick="toggleApplianceLoad('bulbs')" id="card-load-bulbs" class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-800/60 group">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-950 rounded-lg text-slate-400 group-hover:text-yellow-400 transition-colors">
+                                            <i class="fa-solid fa-lightbulb text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-slate-200">Lighting Network (All Rooms)</h4>
+                                            <p class="text-[10px] text-slate-400">Standard Domestic Filament Load</p>
+                                        </div>
+                                    </div>
+                                    <span class="code-font text-xs font-bold text-slate-400" id="lbl-load-bulbs">+ 2.0 A</span>
+                                </div>
+                            </div>
+
+                            <!-- Extreme Danger: Short Circuit Trigger Wire -->
+                            <div class="border border-red-900/40 bg-gradient-to-r from-red-950/40 to-slate-900 rounded-xl p-4 flex flex-col gap-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold text-red-400 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-skull-crossbones text-xs animate-bounce"></i> Trigger Fault: Insulation Wear
+                                    </span>
+                                    <span class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded uppercase font-semibold tracking-wider">Dangerous</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 leading-relaxed">Simulate plastic insulation wearing away, causing Live (220V) and Neutral wires to instantly touch directly.</p>
+                                <button onclick="triggerShortCircuit()" class="mt-1 bg-red-700 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-xs tracking-wide shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-explosion"></i> Instantly Cause Short Circuit!
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT QUANTITATIVE SOLVER & EDUCATIONAL COMPASS PANEL (Takes 4 cols) -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            <!-- Dynamic Solver Dashboard Panel -->
+            <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl shadow-xl p-6 flex flex-col gap-5">
+                <div class="flex items-center gap-2 pb-3 border-b border-slate-800">
+                    <div class="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                        <i class="fa-solid fa-calculator text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-200 text-sm">Joule-Ohmic Law Formula Solver</h3>
+                        <p class="text-[11px] text-slate-400">Instant step-by-step mathematical proof</p>
+                    </div>
+                </div>
+
+                <!-- Variable Targeting Radio Matrix -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-semibold text-slate-400 tracking-wide uppercase">Select Target Variable to Solve For:</label>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <label class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center gap-1 cursor-pointer transition-all hover:bg-slate-800/50">
+                            <input type="radio" name="solver-target" value="H" checked onchange="changeSolverTarget()" class="accent-blue-500">
+                            <span class="font-bold text-slate-200">Heat (H)</span>
+                        </label>
+                        <label class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center gap-1 cursor-pointer transition-all hover:bg-slate-800/50">
+                            <input type="radio" name="solver-target" value="I" onchange="changeSolverTarget()" class="accent-blue-500">
+                            <span class="font-bold text-slate-200">Current (I)</span>
+                        </label>
+                        <label class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center gap-1 cursor-pointer transition-all hover:bg-slate-800/50">
+                            <input type="radio" name="solver-target" value="R" onchange="changeSolverTarget()" class="accent-blue-500">
+                            <span class="font-bold text-slate-200">Resist (R)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Reactive Form Inputs -->
+                <div class="grid grid-cols-2 gap-3" id="solver-inputs-container">
+                    <!-- Dynamic fields managed via JavaScript engine -->
+                </div>
+
+                <!-- Equation Breakdown & Proof Box -->
+                <div class="bg-slate-950 border border-slate-900 rounded-xl p-4 shadow-inner flex flex-col gap-2.5">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Algorithmic Proof Output</span>
+                    <div id="solver-formula" class="code-font text-xs font-bold text-amber-400 bg-amber-500/5 border border-amber-500/10 p-2 rounded-lg text-center">
+                        H = I² × R × t
+                    </div>
+                    <div id="solver-steps" class="text-xs text-slate-400 code-font leading-relaxed whitespace-pre-line bg-slate-950 p-1">
+                        <!-- Step solutions populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conceptual Compass (Textbook Companion Insights) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+                <h4 class="font-bold text-slate-200 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-amber-400"></i> Conceptual Framework Companion
+                </h4>
+                
+                <div class="flex flex-col gap-3.5 text-xs text-slate-400 leading-relaxed">
+                    <div class="border-l-2 border-amber-500 pl-3">
+                        <strong class="text-slate-200 block mb-0.5">Joule's Law of Heating ($H = I^2 R t$)</strong>
+                        When an electric current flows through a conducting wire with structural resistance, drifting electrons continually collide with lattice ions. This mechanical work transfers energy, increasing atomic vibration which manifests directly as heat.
+                    </div>
+
+                    <div class="border-l-2 border-yellow-500 pl-3">
+                        <strong class="text-slate-200 block mb-0.5">Why pick up iron without a shock?</strong>
+                        Iron is a premium electrical conductor. However, when resting neutrally on the ground, there is no potential difference ($\Delta V = 0$) applied across it. Without a driving electromotive force, no net charge carriers drift, meaning zero current flows through your hand!
+                    </div>
+
+                    <div class="border-l-2 border-red-500 pl-3">
+                        <strong class="text-slate-200 block mb-0.5">The Mechanics of Overloading & Fuses</strong>
+                        Connecting multiple appliances in parallel dramatically lowers equivalent structural resistance, drawing massive current from feed lines. This extreme current causes wire temperatures to skyrocket. Safety fuses utilize low-melting alloys designed to melt away safely and terminate the circuit instantly before fires ignite.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/60 bg-slate-950 px-6 py-4 text-center text-xs text-slate-500 font-medium">
+        Designed for academic instruction with physical electrodynamics modeling engines. Ready for standalone evaluation.
+    </footer>
+
+    <!-- EMBEDDED PHYSICS SIMULATION ENGINE & UI INTERACTION CONTROLLER -->
+    <script>
+        // --- GLOBAL SIMULATION STATE MANAGEMENT ---
+        let currentTab = 'conduction';
+        let isSimulating = true;
+        let simTime = 0;
+        let cumulativeHeat = 0;
+        let resistorTemp = 27.0;
+
+        // Sandbox Parameters
+        let voltage = 12;
+        let resistance = 100; // Nichrome preset initially
+        let current = 0.12;
+
+        // Electron Particle Storage & Atomic Latices
+        let electrons = [];
+        let latticeAtoms = [];
+        let canvas, ctx;
+
+        // SVG Graph History Trackers
+        let graphHistory = [];
+        const maxGraphPoints = 120;
+
+        // Tab 2 Appliance State Vectors
+        let applianceVoltage = 110;
+        let bulbTemp = 27.0;
+        let heaterTemp = 27.0;
+        let bulbCanvas, heaterCanvas;
+
+        // Tab 3 Safety State Vectors
+        let safetyMechanism = 'fuse'; // or 'mcb'
+        let isSafetyBlown = false;
+        let householdAppliances = { cooker: false, ac: false, bulbs: false };
+        let isShortCircuitActive = false;
+        let safetyCanvas;
+        let safetyWireTemp = 27.0;
+
+        // --- APPARATUS ACCELERATION INITIALIZATION ---
+        window.onload = function() {
+            // Bind core canvases
+            canvas = document.getElementById('latticeCanvas');
+            ctx = canvas.getContext('2d');
+            bulbCanvas = document.getElementById('bulbCanvas');
+            heaterCanvas = document.getElementById('heaterCanvas');
+            safetyCanvas = document.getElementById('safetyCanvas');
+
+            initLattice();
+            initApplianceCanvases();
+            updateJouleParameters();
+            changeSolverTarget();
+            
+            // Launch global loop ticking at 50 FPS (20ms)
+            setInterval(globalPhysicsEngineTick, 20);
+        };
+
+        // Switch application focus areas smoothly
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Reset tab selectors
+            ['conduction', 'appliances', 'safety'].forEach(t => {
+                document.getElementById(`btn-${t}`).className = "px-4 py-2 text-slate-400 hover:text-slate-200 rounded-lg transition-all flex items-center gap-2";
+            });
+            document.getElementById(`btn-${tabId}`).className = "tab-active px-4 py-2 rounded-lg transition-all flex items-center gap-2";
+        }
+
+        // --- TAB 1 CORE PHYSICS LOGIC ---
+        function initLattice() {
+            latticeAtoms = [];
+            electrons = [];
+            
+            // Build rigid structural atom matrix grid
+            const rows = 4;
+            const cols = 10;
+            const xSpacing = canvas.width / (cols + 1);
+            const ySpacing = canvas.height / (rows + 1);
+
+            for(let r=1; r<=rows; r++) {
+                for(let c=1; c<=cols; c++) {
+                    latticeAtoms.push({
+                        baseX: c * xSpacing,
+                        baseY: r * ySpacing,
+                        currX: c * xSpacing,
+                        currY: r * ySpacing,
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+
+            // Generate mobile charge carrying free electron cloud
+            for(let i=0; i<45; i++) {
+                electrons.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function changeMaterialPreset() {
+            const material = document.getElementById('input-material').value;
+            const desc = document.getElementById('material-desc');
+            
+            if (material === 'nichrome') {
+                resistance = 100;
+                desc.innerText = "Nichrome Alloy: Maximum scattering lattice setup (R = 100 Ω).";
+            } else if (material === 'tungsten') {
+                resistance = 45;
+                desc.innerText = "Tungsten Wire: Moderate high resistance structural profile (R = 45 Ω).";
+            } else if (material === 'iron') {
+                resistance = 10;
+                desc.innerText = "Pure Iron: Moderate conductivity layout (R = 10 Ω).";
+            } else if (material === 'copper') {
+                resistance = 1.5;
+                desc.innerText = "Copper Wire: High efficiency layout with minimal structural collisions (R = 1.5 Ω).";
+            }
+            updateJouleParameters();
+        }
+
+        function updateJouleParameters() {
+            voltage = parseFloat(document.getElementById('input-v').value);
+            document.getElementById('val-v').innerText = `${voltage} V`;
+            
+            if(resistance > 0) {
+                current = voltage / resistance;
+            } else {
+                current = 0;
+            }
+            document.getElementById('lbl-current').innerText = `${current.toFixed(2)} A`;
+            
+            // Trigger parallel synchronization with quantitative matrix panel
+            syncSolverInputs();
+        }
+
+        function toggleSimulation() {
+            isSimulating = !isSimulating;
+            document.getElementById('btn-pause-play').innerHTML = isSimulating ? 
+                `<i class="fa-solid fa-pause"></i> Pause Lab` : `<i class="fa-solid fa-play"></i> Resume Lab`;
+        }
+
+        function resetSimulation() {
+            simTime = 0;
+            cumulativeHeat = 0;
+            resistorTemp = 27.0;
+            graphHistory = [];
+            initLattice();
+            updateJouleParameters();
+        }
+
+        // --- GLOBAL MULTI-BODY ENGINE HEARTBEAT ---
+        function globalPhysicsEngineTick() {
+            if (!isSimulating) return;
+
+            // 1. ADVANCE TAB 1: JOULE QUANTITIES & ELECTRON DRIFT LATTICE
+            if (current > 0) {
+                simTime += 0.02 * 30; // 30x simulation warp speed acceleration factor
+                // Calculate incremental heat addition dH = I^2 * R * dt
+                let deltaHeat = (current * current) * resistance * (0.02 * 30);
+                cumulativeHeat += deltaHeat;
+                
+                // Simplified thermal mass physics equation: dT = dH / thermalMass capacity factor
+                resistorTemp = 27.0 + (cumulativeHeat * 0.015);
+            }
+
+            // Update user readouts on tab 1
+            document.getElementById('lbl-time').innerText = `${simTime.toFixed(1)} s`;
+            document.getElementById('lbl-heat').innerText = `${cumulativeHeat.toFixed(1)} J`;
+            document.getElementById('lbl-temp').innerText = `${resistorTemp.toFixed(1)} °C`;
+
+            // Append live SVG graph metrics
+            if (Math.random() > 0.4) {
+                graphHistory.push({ t: simTime, h: cumulativeHeat });
+                if(graphHistory.length > maxGraphPoints) graphHistory.shift();
+                renderSVGGraph();
+            }
+
+            renderLatticeCanvas();
+
+            // 2. ADVANCE TAB 2: BULBS & HEATER FILAMENTS THERMALS
+            updateApplianceThermals();
+
+            // 3. ADVANCE TAB 3: SAFETY GRID OVERLOADING ENGINE
+            updateSafetyGridEngine();
+        }
+
+        // Lattice rendering with high thermal vibration modeling
+        function renderLatticeCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate molecular vibration amplitude proportional to current localized resistor temperature
+            const thermalVibrationAmp = Math.min(18, (resistorTemp - 27.0) * 0.04);
+            // Color mapping based on hot glow levels
+            const redIntensity = Math.min(230, 30 + (resistorTemp - 27.0) * 0.4);
+            const latticeColor = `rgb(${redIntensity}, 70, 80)`;
+
+            // Draw circuit bounding boxes
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+
+            // Draw and jitter atomic positions
+            latticeAtoms.forEach(atom => {
+                atom.phase += 0.2 + (thermalVibrationAmp * 0.05);
+                atom.currX = atom.baseX + Math.sin(atom.phase) * thermalVibrationAmp;
+                atom.currY = atom.baseY + Math.cos(atom.phase) * thermalVibrationAmp;
+
+                // Glowing halo effect for high heat levels
+                if (resistorTemp > 80) {
+                    ctx.beginPath();
+                    ctx.arc(atom.currX, atom.currY, 12 + thermalVibrationAmp * 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${redIntensity}, 100, 0, 0.15)`;
+                    ctx.fill();
+                }
+
+                ctx.beginPath();
+                ctx.arc(atom.currX, atom.currY, 9, 0, Math.PI * 2);
+                ctx.fillStyle = latticeColor;
+                ctx.fill();
+                ctx.strokeStyle = '#f87171';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+
+            // Transport and draw electron drifting vectors driven by applied fields
+            electrons.forEach(electron => {
+                // Velocity driven by Voltage potential factor
+                electron.x += (0.8 + voltage * 0.18) * electron.speed;
+                
+                // Wrap around circuit bounds
+                if (electron.x > canvas.width) {
+                    electron.x = 0;
+                    electron.y = Math.random() * canvas.height;
+                }
+
+                // Electron rendering
+                ctx.beginPath();
+                ctx.arc(electron.x, electron.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#60a5fa';
+                ctx.shadowColor = '#3b82f6';
+                ctx.shadowBlur = 4;
+                ctx.fill();
+                ctx.shadowBlur = 0; // Restore context profile
+            });
+        }
+
+        // Render dynamic SVG path calculations
+        function renderSVGGraph() {
+            if (graphHistory.length === 0) return;
+            const poly = document.getElementById('heatPath');
+            
+            let maxH = Math.max(...graphHistory.map(pt => pt.h), 100);
+            let minT = graphHistory[0].t;
+            let maxT = graphHistory[graphHistory.length - 1].t;
+            let tRange = maxT - minT || 1;
+
+            let pointsString = "";
+            graphHistory.forEach(pt => {
+                // Transform raw physical metrics into structural layout coordinate points
+                let x = 40 + ((pt.t - minT) / tRange) * 640;
+                let y = 150 - (pt.h / maxH) * 130;
+                pointsString += `${x},${y} `;
+            });
+            poly.setAttribute('points', pointsString);
+        }
+
+        // --- TAB 2: COIL & BULB RENDERING SUBSYSTEMS ---
+        function initApplianceCanvases() {
+            updateApplianceSimulation();
+        }
+
+        function updateApplianceSimulation() {
+            applianceVoltage = parseFloat(document.getElementById('input-appliance-v').value);
+            document.getElementById('val-appliance-v').innerText = `${applianceVoltage} V`;
+        }
+
+        function updateApplianceThermals() {
+            // Compute equilibrium states dynamically based on Voltage inputs
+            let targetBulbTemp = 27.0 + (applianceVoltage * applianceVoltage * 0.058);
+            let targetHeaterTemp = 27.0 + (applianceVoltage * applianceVoltage * 0.016);
+
+            // Interpolate via physics smooth step coefficients
+            bulbTemp += (targetBulbTemp - bulbTemp) * 0.05;
+            heaterTemp += (targetHeaterTemp - heaterTemp) * 0.04;
+
+            document.getElementById('lbl-bulb-temp').innerText = `${Math.round(bulbTemp)} °C`;
+            document.getElementById('lbl-heater-temp').innerText = `${Math.round(heaterTemp)} °C`;
+
+            // Adjust glowing visibility thresholds
+            let bulbAlpha = Math.min(0.95, (bulbTemp - 100) / 2500);
+            document.getElementById('bulb-glow').style.backgroundColor = `rgba(253, 224, 71, ${bulbAlpha})`;
+
+            let heaterAlpha = Math.min(0.9, (heaterTemp - 60) / 900);
+            document.getElementById('heater-glow').style.backgroundColor = `rgba(239, 68, 68, ${heaterAlpha})`;
+
+            renderBulbFilament();
+            renderHeaterCoil();
+        }
+
+        function renderBulbFilament() {
+            let bCtx = bulbCanvas.getContext('2d');
+            bCtx.clearRect(0, 0, bulbCanvas.width, bulbCanvas.height);
+
+            // Draw outer glass housing geometry
+            bCtx.strokeStyle = '#475569';
+            bCtx.lineWidth = 2;
+            bCtx.beginPath();
+            bCtx.arc(110, 75, 45, 0.25 * Math.PI, 0.75 * Math.PI, true);
+            bCtx.lineTo(95, 140);
+            bCtx.lineTo(125, 140);
+            bCtx.closePath();
+            bCtx.stroke();
+
+            // Compute glowing wire dynamics
+            let wireColor = '#475569';
+            if (bulbTemp > 500) {
+                let heatFactor = Math.min(100, (bulbTemp - 500) / 2900 * 100);
+                wireColor = `hsl(${60 - heatFactor * 0.6}, 100%, ${50 + heatFactor * 0.5}%)`;
+            }
+
+            // Draw inner supporting poles and coiled filament
+            bCtx.strokeStyle = '#334155';
+            bCtx.beginPath();
+            bCtx.moveTo(95, 140); bCtx.lineTo(95, 90);
+            bCtx.moveTo(125, 140); bCtx.lineTo(125, 90);
+            bCtx.stroke();
+
+            // High intensity coiled tungsten wire drawing
+            bCtx.strokeStyle = wireColor;
+            bCtx.lineWidth = bulbTemp > 1500 ? 3 : 1.5;
+            bCtx.beginPath();
+            bCtx.moveTo(95, 90);
+            // Draw sinusoidal wave coil structure
+            for (let x = 95; x <= 125; x += 2) {
+                let y = 70 + Math.sin(x * 1.2) * 6;
+                bCtx.lineTo(x, y);
+            }
+            bCtx.lineTo(125, 90);
+            bCtx.stroke();
+            bCtx.lineWidth = 1;
+        }
+
+        function renderHeaterCoil() {
+            let hCtx = heaterCanvas.getContext('2d');
+            hCtx.clearRect(0, 0, heaterCanvas.width, heaterCanvas.height);
+
+            let coilColor = '#475569';
+            if (heaterTemp > 200) {
+                let intensity = Math.min(100, (heaterTemp - 200) / 700 * 100);
+                coilColor = `hsl(${15 - intensity * 0.15}, 100%, ${30 + intensity * 0.2}%)`;
+            }
+
+            // Draw spiral cooker geometry
+            hCtx.strokeStyle = coilColor;
+            hCtx.lineWidth = 7;
+            hCtx.lineCap = 'round';
+            hCtx.beginPath();
+            
+            // Draw an Archimedean Spiral tracking coil layout
+            let centerX = 110;
+            let centerY = 90;
+            hCtx.moveTo(centerX, centerY);
+            for (let i = 0; i < 60; i++) {
+                let angle = 0.25 * i;
+                let r = 1.3 * angle;
+                let x = centerX + r * Math.cos(angle);
+                let y = centerY + r * Math.sin(angle);
+                hCtx.lineTo(x, y);
+            }
+            hCtx.stroke();
+            hCtx.lineWidth = 1;
+        }
+
+        // --- TAB 3: SAFETY GRID & FUSE MECHANICS ---
+        function setSafetyMechanism(type) {
+            safetyMechanism = type;
+            document.getElementById('btn-mechanism-fuse').className = type === 'fuse' ? 
+                "py-2 px-3 bg-slate-800 border border-amber-500/40 text-amber-300 font-medium rounded-xl text-xs flex items-center justify-center gap-2 transition-all" : 
+                "py-2 px-3 bg-slate-950 border border-slate-800 text-slate-400 font-medium rounded-xl text-xs flex items-center justify-center gap-2 transition-all";
+            
+            document.getElementById('btn-mechanism-mcb').className = type === 'mcb' ? 
+                "py-2 px-3 bg-slate-800 border border-emerald-500/40 text-emerald-300 font-medium rounded-xl text-xs flex items-center justify-center gap-2 transition-all" : 
+                "py-2 px-3 bg-slate-950 border border-slate-800 text-slate-400 font-medium rounded-xl text-xs flex items-center justify-center gap-2 transition-all";
+            
+            repairSafetyLink();
+        }
+
+        function toggleApplianceLoad(appliance) {
+            if(isSafetyBlown) return;
+            householdAppliances[appliance] = !householdAppliances[appliance];
+            
+            let card = document.getElementById(`card-load-${appliance}`);
+            if(householdAppliances[appliance]) {
+                card.classList.remove('bg-slate-900', 'border-slate-800');
+                card.classList.add('bg-slate-800', 'border-blue-500/50', 'ring-1', 'ring-blue-500/30');
+            } else {
+                card.classList.remove('bg-slate-800', 'border-blue-500/50', 'ring-1', 'ring-blue-500/30');
+                card.classList.add('bg-slate-900', 'border-slate-800');
+            }
+        }
+
+        function triggerShortCircuit() {
+            if(isSafetyBlown) return;
+            isShortCircuitActive = true;
+        }
+
+        function repairSafetyLink() {
+            isSafetyBlown = false;
+            isShortCircuitActive = false;
+            safetyWireTemp = 27.0;
+            
+            let statusBadge = document.getElementById('grid-status-badge');
+            statusBadge.innerText = "GRID STATUS: SECURE & OPERATIONAL";
+            statusBadge.className = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-lg text-xs font-bold code-font";
+        }
+
+        function updateSafetyGridEngine() {
+            let totalCurrent = 0;
+            if (!isSafetyBlown) {
+                if (householdAppliances.cooker) totalCurrent += 8.0;
+                if (householdAppliances.ac) totalCurrent += 10.0;
+                if (householdAppliances.bulbs) totalCurrent += 2.0;
+                if (isShortCircuitActive) totalCurrent += 95.0; // Extreme surge current
+            }
+
+            document.getElementById('lbl-total-current').innerText = `${totalCurrent.toFixed(2)} A / 15.00 A Max`;
+
+            // Compute safety fuse links heating formulas
+            let targetWireTemp = 27.0 + (totalCurrent * totalCurrent * 0.4);
+            safetyWireTemp += (targetWireTemp - safetyWireTemp) * 0.15;
+
+            // Check trip or break conditions
+            if (safetyWireTemp > 180 && !isSafetyBlown) {
+                isSafetyBlown = true;
+                totalCurrent = 0;
+                let statusBadge = document.getElementById('grid-status-badge');
+                
+                if (safetyMechanism === 'fuse') {
+                    statusBadge.innerText = "GRID SHUTDOWN: FUSE WIRE MELTED!";
+                    statusBadge.className = "bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg text-xs font-bold code-font animate-bounce";
+                } else {
+                    statusBadge.innerText = "GRID SHUTDOWN: MCB AUTOMATICALLY TRIPPED!";
+                    statusBadge.className = "bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-lg text-xs font-bold code-font animate-bounce";
+                }
+
+                // Reset appliance activations for safety state compliance
+                for (let key in householdAppliances) {
+                    householdAppliances[key] = false;
+                    let card = document.getElementById(`card-load-${key}`);
+                    card.className = "bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-800/60 group";
+                }
+            }
+
+            renderSafetyCanvas(totalCurrent);
+        }
+
+        function renderSafetyCanvas(currentLoad) {
+            let sCtx = safetyCanvas.getContext('2d');
+            sCtx.clearRect(0, 0, safetyCanvas.width, safetyCanvas.height);
+
+            // Draw structural input/output terminals
+            sCtx.fillStyle = '#475569';
+            sCtx.fillRect(30, 65, 40, 20);
+            sCtx.fillRect(330, 65, 40, 20);
+
+            if (safetyMechanism === 'fuse') {
+                // Render standard cartridge link line
+                sCtx.strokeStyle = '#334155';
+                sCtx.lineWidth = 3;
+                sCtx.strokeRect(70, 50, 260, 50);
+
+                if (isSafetyBlown) {
+                    // Split melted appearance
+                    sCtx.strokeStyle = '#ef4444';
+                    sCtx.lineWidth = 2.5;
+                    sCtx.beginPath();
+                    sCtx.moveTo(70, 75); sCtx.lineTo(180, 75);
+                    sCtx.moveTo(220, 75); sCtx.lineTo(330, 75);
+                    sCtx.stroke();
+                    
+                    sCtx.fillStyle = '#f87171';
+                    sCtx.font = '10px monospace';
+                    sCtx.fillText("MELTED BREAK", 160, 115);
+                } else {
+                    // Intact link with thermal variable color map
+                    let wireColor = '#94a3b8';
+                    if(safetyWireTemp > 60) {
+                        wireColor = `rgb(239, ${Math.max(0, 200 - (safetyWireTemp-60)*2)}, 68)`;
+                    }
+                    sCtx.strokeStyle = wireColor;
+                    sCtx.lineWidth = 3.5;
+                    sCtx.beginPath();
+                    sCtx.moveTo(70, 75);
+                    sCtx.lineTo(330, 75);
+                    sCtx.stroke();
+                }
+            } else {
+                // MCB Lever presentation switch format
+                sCtx.strokeStyle = '#475569';
+                sCtx.lineWidth = 4;
+                sCtx.strokeRect(150, 30, 100, 90);
+
+                if (isSafetyBlown) {
+                    // Tripped open down orientation
+                    sCtx.fillStyle = '#ef4444';
+                    sCtx.fillRect(170, 80, 60, 30);
+                    sCtx.fillStyle = '#ffffff';
+                    sCtx.font = '10px sans-serif';
+                    sCtx.fillText("OFF / TRIP", 178, 98);
+                } else {
+                    // Operational up orientation
+                    sCtx.fillStyle = '#10b981';
+                    sCtx.fillRect(170, 40, 60, 30);
+                    sCtx.fillStyle = '#ffffff';
+                    sCtx.font = '10px sans-serif';
+                    sCtx.fillText("ON / SAFE", 178, 58);
+                }
+            }
+        }
+
+        // --- APPARATUS QUANTITATIVE ALGEBRAIC SOLVER ---
+        function changeSolverTarget() {
+            const target = document.querySelector('input[name="solver-target"]:checked').value;
+            const container = document.getElementById('solver-inputs-container');
+            
+            let html = "";
+            if (target === 'H') {
+                html = `
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[11px] text-slate-400">Current (I) [A]</label>
+                        <input type="number" id="sol-val-I" value="2.0" step="0.1" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[11px] text-slate-400">Resistance (R) [Ω]</label>
+                        <input type="number" id="sol-val-R" value="10" step="1" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>
+                    <div class="flex flex-col gap-1 col-span-2">
+                        <label class="text-[11px] text-slate-400">Time Duration (t) [s]</label>
+                        <input type="number" id="sol-val-t" value="5.0" step="0.5" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>`;
+                document.getElementById('solver-formula').innerText = "H = I² × R × t (Joule's Law)";
+            } else if (target === 'I') {
+                html = `
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[11px] text-slate-400">Heat Energy (H) [J]</label>
+                        <input type="number" id="sol-val-H" value="200" step="10" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[11px] text-slate-400">Resistance (R) [Ω]</label>
+                        <input type="number" id="sol-val-R" value="10" step="1" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>
+                    <div class="flex flex-col gap-1 col-span-2">
+                        <label class="text-[11px] text-slate-400">Time Duration (t) [s]</label>
+                        <input type="number" id="sol-val-t" value="5.0" step="0.5" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>`;
+                document.getElementById('solver-formula').innerText = "I = √(H / (R × t))";
+            } else if (target === 'R') {
+                html = `
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[11px] text-slate-400">Heat Energy (H) [J]</label>
+                        <input type="number" id="sol-val-H" value="200" step="10" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[11px] text-slate-400">Current (I) [A]</label>
+                        <input type="number" id="sol-val-I" value="2.0" step="0.1" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>
+                    <div class="flex flex-col gap-1 col-span-2">
+                        <label class="text-[11px] text-slate-400">Time Duration (t) [s]</label>
+                        <input type="number" id="sol-val-t" value="5.0" step="0.5" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 code-font outline-none" oninput="solvePhysicsEquation()">
+                    </div>`;
+                document.getElementById('solver-formula').innerText = "R = H / (I² × t)";
+            }
+
+            container.innerHTML = html;
+            solvePhysicsEquation();
+        }
+
+        // Parallel update linkage with sandbox states
+        function syncSolverInputs() {
+            const target = document.querySelector('input[name="solver-target"]:checked').value;
+            if (target === 'H') {
+                if(document.getElementById('sol-val-I')) document.getElementById('sol-val-I').value = current.toFixed(2);
+                if(document.getElementById('sol-val-R')) document.getElementById('sol-val-R').value = resistance;
+                solvePhysicsEquation();
+            }
+        }
+
+        function solvePhysicsEquation() {
+            const target = document.querySelector('input[name="solver-target"]:checked').value;
+            const stepsBlock = document.getElementById('solver-steps');
+
+            try {
+                if (target === 'H') {
+                    let I = parseFloat(document.getElementById('sol-val-I').value) || 0;
+                    let R = parseFloat(document.getElementById('sol-val-R').value) || 0;
+                    let t = parseFloat(document.getElementById('sol-val-t').value) || 0;
+                    
+                    let result = I * I * R * t;
+                    stepsBlock.innerText = `1. Given: I = ${I} A, R = ${R} Ω, t = ${t} s\n2. Formula: H = I² × R × t\n3. Substit: H = (${I})² × ${R} × ${t}\n4. Eval: H = ${I*I} × ${R * t}\nResult: H = ${result.toFixed(2)} Joules`;
+                } else if (target === 'I') {
+                    let H = parseFloat(document.getElementById('sol-val-H').value) || 0;
+                    let R = parseFloat(document.getElementById('sol-val-R').value) || 0;
+                    let t = parseFloat(document.getElementById('sol-val-t').value) || 0;
+                    
+                    if(R * t === 0) { stepsBlock.innerText = "Error: Division by zero."; return; }
+                    let result = Math.sqrt(H / (R * t));
+                    stepsBlock.innerText = `1. Given: H = ${H} J, R = ${R} Ω, t = ${t} s\n2. Formula: I = √(H / (R × t))\n3. Substit: I = √(${H} / (${R} × ${t}))\n4. Eval: I = √(${H} / ${R * t})\nResult: I = ${result.toFixed(3)} Amperes`;
+                } else if (target === 'R') {
+                    let H = parseFloat(document.getElementById('sol-val-H').value) || 0;
+                    let I = parseFloat(document.getElementById('sol-val-I').value) || 0;
+                    let t = parseFloat(document.getElementById('sol-val-t').value) || 0;
+                    
+                    if(I * t === 0) { stepsBlock.innerText = "Error: Division by zero."; return; }
+                    let result = H / (I * I * t);
+                    stepsBlock.innerText = `1. Given: H = ${H} J, I = ${I} A, t = ${t} s\n2. Formula: R = H / (I² × t)\n3. Substit: R = ${H} / (${I}² × ${t})\n4. Eval: R = ${H} / (${I*I * t})\nResult: R = ${result.toFixed(2)} Ohms (Ω)`;
+                }
+            } catch (err) {
+                stepsBlock.innerText = "Awaiting complete data inputs...";
+            }
+        }
+    </script>
+</body>
+</html>
