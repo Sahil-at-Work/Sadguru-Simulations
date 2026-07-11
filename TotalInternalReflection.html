@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiSim - Total Internal Reflection & Rainbow Lab</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (Loaded via CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        /* Glowing neon animations */
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.6)); }
+            50% { filter: drop-shadow(0 0 12px rgba(59, 130, 246, 1)); }
+        }
+        .glowing-beam {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-100 flex flex-col overflow-hidden">
+
+    <!-- Navigation / Header Bar -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0 shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-500/20">
+                <i data-lucide="zap" class="w-6 h-6 text-yellow-300 fill-yellow-300"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                    OptiSim <span class="text-xs bg-slate-800 text-slate-400 font-medium px-2 py-0.5 rounded ml-2 border border-slate-700">Lab Suite v2.0</span>
+                </h1>
+                <p class="text-xs text-slate-400">Total Internal Reflection, Dispersion & Optics Simulator</p>
+            </div>
+        </div>
+
+        <!-- Custom Mode Switcher / Tabs -->
+        <nav class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
+            <button onclick="switchTab('sandbox')" id="tab-sandbox" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out bg-blue-600 text-white shadow-md">
+                <i data-lucide="sliders" class="w-4 h-4"></i>
+                TIR Sandbox
+            </button>
+            <button onclick="switchTab('rainbow')" id="tab-rainbow" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out text-slate-400 hover:text-white">
+                <i data-lucide="cloud-rain" class="w-4 h-4"></i>
+                Rainbow Droplet
+            </button>
+            <button onclick="switchTab('maze')" id="tab-maze" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out text-slate-400 hover:text-white">
+                <i data-lucide="activity" class="w-4 h-4"></i>
+                Fiber Optic Maze
+            </button>
+            <button onclick="switchTab('library')" id="tab-library" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out text-slate-400 hover:text-white">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                Optics Library
+            </button>
+        </nav>
+    </header>
+
+    <!-- Safe Notification Alert system (No native alerts allowed!) -->
+    <div id="toast-container" class="fixed top-24 right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Main Content Container (Flex Fill) -->
+    <main class="flex-1 overflow-hidden relative">
+
+        <!-- TAB 1: TIR SANDBOX -->
+        <div id="panel-sandbox" class="h-full flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+            
+            <!-- Control Column -->
+            <div class="w-full lg:w-96 bg-slate-900/60 p-6 overflow-y-auto shrink-0 flex flex-col justify-between gap-6">
+                <div class="space-y-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-blue-400 bg-blue-950/50 px-2 py-1 rounded border border-blue-900/40">Step 1: Choose Materials</span>
+                        <h3 class="text-lg font-bold mt-3">Refractive Indices</h3>
+                        <p class="text-xs text-slate-400 mt-1">Light travels from Medium 1 (Bottom, Denser) to Medium 2 (Top, Rarer).</p>
+                    </div>
+
+                    <!-- Medium Preset Selector -->
+                    <div class="space-y-3">
+                        <label class="text-sm font-semibold text-slate-300 block">Preset Media Scenarios</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setPresets(1.50, 1.00, 'Glass to Air')" class="p-2 text-xs bg-slate-800 border border-slate-700 rounded-lg text-left hover:bg-slate-700/50 hover:border-blue-500 transition">
+                                <span class="font-bold text-slate-200 block">Glass → Air</span>
+                                <span class="text-slate-400">n₁ = 1.50, n₂ = 1.00</span>
+                            </button>
+                            <button onclick="setPresets(1.33, 1.00, 'Water to Air')" class="p-2 text-xs bg-slate-800 border border-slate-700 rounded-lg text-left hover:bg-slate-700/50 hover:border-blue-500 transition">
+                                <span class="font-bold text-slate-200 block">Water → Air</span>
+                                <span class="text-slate-400">n₁ = 1.33, n₂ = 1.00</span>
+                            </button>
+                            <button onclick="setPresets(2.42, 1.00, 'Diamond to Air')" class="p-2 text-xs bg-slate-800 border border-slate-700 rounded-lg text-left hover:bg-slate-700/50 hover:border-blue-500 transition">
+                                <span class="font-bold text-slate-200 block">Diamond → Air</span>
+                                <span class="text-slate-400">n₁ = 2.42, n₂ = 1.00</span>
+                            </button>
+                            <button onclick="setPresets(1.50, 1.33, 'Glass to Water')" class="p-2 text-xs bg-slate-800 border border-slate-700 rounded-lg text-left hover:bg-slate-700/50 hover:border-blue-500 transition">
+                                <span class="font-bold text-slate-200 block">Glass → Water</span>
+                                <span class="text-slate-400">n₁ = 1.50, n₂ = 1.33</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Manual Controls for Indices -->
+                    <div class="space-y-4 pt-2 border-t border-slate-800/80">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-semibold text-slate-300">Medium 1 - Denser (n₁)</span>
+                                <span id="val-n1" class="text-xs code-font bg-slate-950 px-2 py-0.5 rounded text-blue-400">1.50</span>
+                            </div>
+                            <input id="slider-n1" type="range" min="1.0" max="2.6" step="0.01" value="1.50" oninput="updateIndicesFromSliders()" class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-semibold text-slate-300">Medium 2 - Rarer (n₂)</span>
+                                <span id="val-n2" class="text-xs code-font bg-slate-950 px-2 py-0.5 rounded text-blue-400">1.00</span>
+                            </div>
+                            <input id="slider-n2" type="range" min="1.0" max="2.6" step="0.01" value="1.00" oninput="updateIndicesFromSliders()" class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Angle Control Section -->
+                    <div class="pt-4 border-t border-slate-800/80 space-y-4">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-950/50 px-2 py-1 rounded border border-emerald-900/40">Step 2: Adjust Light Direction</span>
+                            <h3 class="text-lg font-bold mt-3">Angle of Incidence</h3>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-semibold text-slate-300">Incident Angle (θᵢ)</span>
+                                <span id="val-theta" class="text-xs code-font bg-slate-950 px-2 py-0.5 rounded text-emerald-400">35.0°</span>
+                            </div>
+                            <input id="slider-theta" type="range" min="0" max="90" step="0.5" value="35.0" oninput="updateAngleFromSlider()" class="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Visual Laser Color Selector -->
+                        <div>
+                            <span class="text-xs font-semibold text-slate-300 block mb-2">Laser Color (Wavelength)</span>
+                            <div class="flex gap-2">
+                                <button onclick="setLaserColor('#ef4444', this)" class="w-7 h-7 rounded-full bg-red-500 border-2 border-slate-900 hover:scale-110 active:scale-95 transition shadow-lg shadow-red-500/20"></button>
+                                <button onclick="setLaserColor('#22c55e', this)" class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-white hover:scale-110 active:scale-95 transition shadow-lg shadow-emerald-500/20" id="default-laser-btn"></button>
+                                <button onclick="setLaserColor('#3b82f6', this)" class="w-7 h-7 rounded-full bg-blue-500 border-2 border-slate-900 hover:scale-110 active:scale-95 transition shadow-lg shadow-blue-500/20"></button>
+                                <button onclick="setLaserColor('#a855f7', this)" class="w-7 h-7 rounded-full bg-purple-500 border-2 border-slate-900 hover:scale-110 active:scale-95 transition shadow-lg shadow-purple-500/20"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Math HUD -->
+                <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 space-y-3">
+                    <span class="text-xs font-bold tracking-wider text-slate-400 block uppercase">Telemetry & calculations</span>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Critical Angle (θ_crit):</span>
+                        <span id="hud-tc" class="font-bold text-indigo-400 code-font">41.8°</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Refraction Angle (θᵣ):</span>
+                        <span id="hud-tr" class="font-bold text-amber-400 code-font">59.4°</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Phenomenon:</span>
+                        <span id="hud-status" class="px-2 py-0.5 font-bold rounded text-[10px] bg-indigo-950/60 border border-indigo-900/60 text-indigo-400">Refraction</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Canvas -->
+            <div class="flex-1 relative flex flex-col min-h-0">
+                <!-- Sandbox Canvas Box -->
+                <div class="flex-1 relative bg-[#070a13] select-none" id="canvas-container">
+                    <canvas id="sandbox-canvas" class="absolute inset-0 w-full h-full block"></canvas>
+                    
+                    <!-- Floating Smart Lab Tips (Dynamic educational assistance) -->
+                    <div class="absolute top-4 left-4 bg-slate-900/90 border border-slate-800 p-4 rounded-xl max-w-sm pointer-events-none shadow-xl">
+                        <h4 class="text-xs font-bold text-blue-400 tracking-wider uppercase mb-1 flex items-center gap-1.5">
+                            <i data-lucide="info" class="w-3.5 h-3.5"></i> Live Interactive Feedback
+                        </h4>
+                        <div id="sim-tip" class="text-xs text-slate-300 leading-relaxed">
+                            Drag the incident ray directly with your mouse/finger inside the water (bottom) to play with light!
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Sandbox Explanation Strip -->
+                <div class="bg-slate-900/40 p-4 border-t border-slate-800/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-slate-800 text-slate-300 px-2 py-1 rounded font-mono">Snell's Law</span>
+                        <span class="text-slate-300 font-serif">n₁ sin(θ₁) = n₂ sin(θ₂)</span>
+                    </div>
+                    <div class="text-slate-400 max-w-xl">
+                        At the boundary, note the faint, dimmer reflected beam. In nature, light entering a rarer medium *always* undergoes both refraction AND partial reflection, until you pass the critical angle!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RAINBOW DROPLET -->
+        <div id="panel-rainbow" class="hidden h-full flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+            <!-- Controls Container -->
+            <div class="w-full lg:w-96 bg-slate-900/60 p-6 overflow-y-auto shrink-0 flex flex-col justify-between gap-6">
+                <div class="space-y-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-violet-400 bg-violet-950/50 px-2 py-1 rounded border border-violet-900/40">Nature's Prism</span>
+                        <h3 class="text-lg font-bold mt-3">Rainbow Physics</h3>
+                        <p class="text-xs text-slate-400 mt-1">Simulate a sunlight beam hitting an individual raindrop to see refraction, dispersion, and internal reflection create a rainbow.</p>
+                    </div>
+
+                    <!-- Impact Parameter Slider -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-semibold text-slate-300">Sunlight Impact Height</span>
+                            <span id="val-rainbow-height" class="text-xs code-font bg-slate-950 px-2 py-0.5 rounded text-amber-400">y = 0.60 R</span>
+                        </div>
+                        <input id="slider-rainbow-height" type="range" min="0.10" max="0.95" step="0.01" value="0.60" oninput="drawRainbowSimulation()" class="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-[10px] text-slate-500 mt-1">Height determines where light strikes the drop. Notice how the exiting rainbow angle adjusts.</p>
+                    </div>
+
+                    <!-- Light Spectrum Options -->
+                    <div class="space-y-2">
+                        <span class="text-xs font-semibold text-slate-300 block">Wavelengths Visualized</span>
+                        <div class="space-y-2 text-xs bg-slate-950/50 p-3 rounded-lg border border-slate-850">
+                            <div class="flex justify-between items-center">
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Red Light</span>
+                                <span class="text-slate-400 code-font">n ≈ 1.331</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span> Violet Light</span>
+                                <span class="text-slate-400 code-font">n ≈ 1.344</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Drop Process -->
+                    <div class="space-y-3">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">The 3-Step Process:</span>
+                        <ol class="space-y-2 text-xs text-slate-300 pl-4 list-decimal">
+                            <li><strong class="text-blue-300">Refraction + Dispersion:</strong> White light hits the droplet; red and violet separate as they bend into the water.</li>
+                            <li><strong class="text-purple-300">Internal Reflection:</strong> The light beams strike the back boundary at an angle larger than the critical angle, bouncing back inside.</li>
+                            <li><strong class="text-pink-300">Exiting Refraction:</strong> The beams emerge from the bottom left, bending further apart to form the classic rainbow colors at 40°-42°.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Live Droplet Statistics Panel -->
+                <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 space-y-3 text-xs">
+                    <span class="text-xs font-bold tracking-wider text-slate-400 block uppercase">Droplet Metrics</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Red Exit Angle:</span>
+                        <span id="hud-red-angle" class="font-bold text-red-400 code-font">42.1°</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Violet Exit Angle:</span>
+                        <span id="hud-violet-angle" class="font-bold text-purple-400 code-font">40.3°</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Angular Spread:</span>
+                        <span id="hud-spread-angle" class="font-bold text-emerald-400 code-font">1.8°</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Canvas -->
+            <div class="flex-1 relative flex flex-col min-h-0">
+                <div class="flex-1 relative bg-[#070a13]" id="rainbow-canvas-container">
+                    <canvas id="rainbow-canvas" class="absolute inset-0 w-full h-full block"></canvas>
+                </div>
+                <!-- Bottom Strip explaining the simulation -->
+                <div class="bg-slate-900/40 p-4 border-t border-slate-800/80 text-xs flex justify-between items-center">
+                    <span class="text-slate-400 flex items-center gap-1.5"><i data-lucide="cloud" class="w-4 h-4 text-sky-400"></i> Nature in Action</span>
+                    <span class="text-slate-300 max-w-lg text-right">Adjust the height to find the ideal impact zone. Notice how dispersion is relatively small, but is clearly responsible for rainbow banding!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: FIBER OPTIC MAZE (THE GAME) -->
+        <div id="panel-maze" class="hidden h-full flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+            <!-- Game Sidebar HUD -->
+            <div class="w-full lg:w-96 bg-slate-900/60 p-6 overflow-y-auto shrink-0 flex flex-col justify-between gap-6">
+                <div class="space-y-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-rose-400 bg-rose-950/50 px-2 py-1 rounded border border-rose-900/40">Lab Mission</span>
+                        <h3 class="text-lg font-bold mt-3">Fiber Optic Laser Challenge</h3>
+                        <p class="text-xs text-slate-400 mt-1">Rotate the connected core glass segments. Keep the light beam inside the core using Total Internal Reflection! If the bend is too sharp, the light leaks out and fails.</p>
+                    </div>
+
+                    <!-- Level Selector -->
+                    <div>
+                        <span class="text-xs font-semibold text-slate-300 block mb-2">Select Mission Level</span>
+                        <div class="flex gap-2">
+                            <button onclick="startMazeLevel(1)" id="btn-lvl-1" class="flex-1 py-2 text-xs font-bold bg-slate-800 border-2 border-blue-500 text-white rounded-lg transition hover:bg-slate-700">Gentle Curve</button>
+                            <button onclick="startMazeLevel(2)" id="btn-lvl-2" class="flex-1 py-2 text-xs font-bold bg-slate-800 border border-slate-750 text-slate-300 rounded-lg transition hover:bg-slate-700">Double Turn</button>
+                            <button onclick="startMazeLevel(3)" id="btn-lvl-3" class="flex-1 py-2 text-xs font-bold bg-slate-800 border border-slate-750 text-slate-300 rounded-lg transition hover:bg-slate-700">S-Curve Maze</button>
+                        </div>
+                    </div>
+
+                    <!-- Controls Dashboard -->
+                    <div class="space-y-4 pt-4 border-t border-slate-800">
+                        <span class="text-xs font-semibold text-slate-300 block">Joint Angle Adjustments</span>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs text-slate-400">Hinge Segment A Angle</span>
+                                    <span id="val-joint-1" class="text-xs font-bold code-font text-blue-400">0°</span>
+                                </div>
+                                <input id="slider-joint-1" type="range" min="-35" max="35" step="1" value="0" oninput="onHingeSlide()" class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs text-slate-400">Hinge Segment B Angle</span>
+                                    <span id="val-joint-2" class="text-xs font-bold code-font text-blue-400">0°</span>
+                                </div>
+                                <input id="slider-joint-2" type="range" min="-35" max="35" step="1" value="0" oninput="onHingeSlide()" class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs text-slate-400">Hinge Segment C Angle</span>
+                                    <span id="val-joint-3" class="text-xs font-bold code-font text-blue-400">0°</span>
+                                </div>
+                                <input id="slider-joint-3" type="range" min="-35" max="35" step="1" value="0" oninput="onHingeSlide()" class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Win / Fail Live Status Box -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-850">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-yellow-400 animate-ping" id="game-status-glow"></div>
+                            <div>
+                                <span class="text-xs text-slate-400 uppercase tracking-widest block font-bold">Signal Delivery Status</span>
+                                <span id="game-status-text" class="text-sm font-extrabold text-yellow-400">Awaiting Signal...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <button onclick="resetMazeLevel()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Reset Current Level
+                    </button>
+                </div>
+            </div>
+
+            <!-- Game Board Canvas -->
+            <div class="flex-1 relative flex flex-col min-h-0">
+                <div class="flex-1 relative bg-[#06080e]" id="maze-canvas-container">
+                    <canvas id="maze-canvas" class="absolute inset-0 w-full h-full block"></canvas>
+                    
+                    <!-- Real-time HUD stats of the Fiber Game -->
+                    <div class="absolute top-4 left-4 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-4 text-xs font-semibold">
+                        <span class="text-slate-400 flex items-center gap-1.5"><i data-lucide="zap" class="w-4 h-4 text-yellow-400"></i> Signal Intensity: <span id="game-intensity" class="text-slate-100 code-font">100%</span></span>
+                        <span class="text-slate-800">|</span>
+                        <span class="text-slate-400 flex items-center gap-1.5"><i data-lucide="circle-dot" class="w-4 h-4 text-emerald-400"></i> Critical Angle Limit: <span class="text-slate-150 code-font">41.8°</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: EDUCATIONAL LIBRARY -->
+        <div id="panel-library" class="hidden h-full overflow-y-auto bg-[#070a13] p-8">
+            <div class="max-w-4xl mx-auto space-y-12">
+                <!-- Section 1 -->
+                <div class="space-y-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-400 bg-blue-950 px-2.5 py-1 rounded border border-blue-900/50">Curriculum Insight</span>
+                    <h2 class="text-3xl font-extrabold text-white">Partial vs. Total Internal Reflection</h2>
+                    <p class="text-slate-300 leading-relaxed">
+                        When light waves travel from an optically <strong>denser medium</strong> (such as water or glass with a higher refractive index, $n_1$) to an optically <strong>rarer medium</strong> (like air with a lower refractive index, $n_2$), the physical boundary behaves like a gateway. 
+                    </p>
+                    <p class="text-slate-300 leading-relaxed">
+                        Because light travels faster in the rarer medium, the light ray bends <strong>away from the normal</strong> line (the perpendicular line to the boundary). Mathematically, this means the angle of refraction $r$ is always larger than the angle of incidence $i$.
+                    </p>
+
+                    <!-- Two column graphic layout with beautiful css design -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                        <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2">
+                            <span class="text-xs font-bold text-amber-400 uppercase tracking-widest block">Phase A: Partial Reflection</span>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                At small incident angles $i$, a major portion of the light refracts out into the rarer medium. However, a small portion of the wave is always reflected straight back into the denser medium. This is known as <strong>partial internal reflection</strong>.
+                            </p>
+                        </div>
+                        <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2">
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest block">Phase B: Total Internal Reflection (TIR)</span>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                As you increase the incident angle, the refraction angle eventually hits $90^\circ$—meaning the light skims perfectly along the surface boundary. This angle of incidence is called the <strong>Critical Angle</strong> ($i_c$). If the angle of incidence is made even larger, the refracted ray cannot exist, and 100% of the light gets reflected back inside.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="border-t border-slate-800 pt-8 space-y-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-purple-400 bg-purple-950 px-2.5 py-1 rounded border border-purple-900/50">Nature's Phenomenon</span>
+                    <h2 class="text-3xl font-extrabold text-white">How Rainbows Form</h2>
+                    <p class="text-slate-300 leading-relaxed">
+                        A rainbow is not a physical object in a fixed location; rather, it is an optical phenomenon. It requires three distinct stages of physics to happen within billions of suspended rain droplets:
+                    </p>
+                    <div class="space-y-3 bg-slate-950 p-6 rounded-2xl border border-slate-800">
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-400 font-bold flex items-center justify-center shrink-0">1</div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">Refraction and Dispersion</h4>
+                                <p class="text-xs text-slate-400 mt-1">Sunlight enters the top half of the spherical drop. Going from air to water, it bends. Because different wavelengths of light experience slightly different refractive indices (violet bends more than red), they split apart—a process called dispersion.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 pt-3 border-t border-slate-800/60">
+                            <div class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-400 font-bold flex items-center justify-center shrink-0">2</div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">Internal Reflection</h4>
+                                <p class="text-xs text-slate-400 mt-1">The split light beams strike the internal back wall of the water droplet. Due to the droplet's curve, these beams strike at angles larger than the critical angle of water ($\approx 48.6^\circ$). This leads to a beautiful total internal reflection, redirecting the light forward and down.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 pt-3 border-t border-slate-800/60">
+                            <div class="w-8 h-8 rounded-full bg-purple-500/10 text-purple-400 font-bold flex items-center justify-center shrink-0">3</div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">Second Refraction & Emergence</h4>
+                                <p class="text-xs text-slate-400 mt-1">The dispersed rays exit the droplet through the lower hemisphere. Bending once again as they enter air, they emerge focused in a narrow cone centered around 40° (violet) and 42° (red) relative to the incoming sunlight.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3 -->
+                <div class="border-t border-slate-800 pt-8 pb-12 space-y-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-yellow-400 bg-yellow-950 px-2.5 py-1 rounded border border-yellow-900/50">Scientific Legacy</span>
+                    <h2 class="text-3xl font-extrabold text-white">Dr. C.V. Raman & Light Scattering</h2>
+                    <p class="text-slate-300 leading-relaxed">
+                        To truly understand light is to appreciate the legacy of India's preeminent experimental physicist, <strong>Dr. C.V. Raman</strong>. Winning the Nobel Prize in Physics in 1930 for discovering that when light traverses a transparent material, some of the deflected light changes wavelength (known as the <strong>Raman Effect</strong>), he pioneered our modern molecular understanding of materials.
+                    </p>
+                    <div class="bg-slate-900/40 border border-indigo-950 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-bold text-indigo-300">"Why is the Sky Blue?"</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Dr. Raman was famously inspired to research optics while on a ship voyage across the Mediterranean Sea, looking at the mesmerizing, deep blue waters. His scientific curiosity questioned the prevailing theory of the time and led him to prove that both the sky's and sea's colors are primarily due to the molecular scattering of sunlight by particles and molecules, rather than simple reflection!
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                        <div class="p-4 bg-slate-950 rounded-xl border border-slate-850">
+                            <span class="text-xs text-slate-500 block">Recommended Reading 1</span>
+                            <span class="text-xs font-bold text-slate-200 mt-1 block">"Why the Sky is Blue"</span>
+                            <span class="text-[10px] text-slate-400">Dr. C.V. Raman Talks About Science</span>
+                        </div>
+                        <div class="p-4 bg-slate-950 rounded-xl border border-slate-850">
+                            <span class="text-xs text-slate-500 block">Recommended Reading 2</span>
+                            <span class="text-xs font-bold text-slate-200 mt-1 block">"Optics: Principles & Applications"</span>
+                            <span class="text-[10px] text-slate-400">K.K. Sharma</span>
+                        </div>
+                        <div class="p-4 bg-slate-950 rounded-xl border border-slate-850">
+                            <span class="text-xs text-slate-500 block">Recommended Reading 3</span>
+                            <span class="text-xs font-bold text-slate-200 mt-1 block">"Theoretical Concepts in Physics"</span>
+                            <span class="text-[10px] text-slate-400">M.S. Longair</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JAVASCRIPT SIMULATOR ENGINE -->
+    <script>
+        // Global variables
+        let activeTab = 'sandbox';
+        let laserColor = '#22c55e'; // default emerald neon
+
+        // SANDBOX PARAMETERS
+        let n1 = 1.50; // glass
+        let n2 = 1.00; // air
+        let incidentAngleDeg = 35.0; 
+        let criticalAngleDeg = 0.0;
+        let isDraggingSandbox = false;
+
+        // RAINBOW PARAMETERS
+        let rainbowHeightFactor = 0.60; // impact height
+
+        // GAME MAZE PARAMETERS
+        let currentLevel = 1;
+        let gameScore = 100;
+        let gameCompleted = false;
+        let hingeA = 0; // segment 1 angle
+        let hingeB = 0; // segment 2 angle
+        let hingeC = 0; // segment 3 angle
+        
+        // Define canvas variables
+        let sandboxCanvas, sandboxCtx;
+        let rainbowCanvas, rainbowCtx;
+        let mazeCanvas, mazeCtx;
+
+        // On window load
+        window.onload = function() {
+            // Setup Lucide icons
+            lucide.createIcons();
+
+            // Setup canvases
+            sandboxCanvas = document.getElementById('sandbox-canvas');
+            sandboxCtx = sandboxCanvas.getContext('2d');
+            
+            rainbowCanvas = document.getElementById('rainbow-canvas');
+            rainbowCtx = rainbowCanvas.getContext('2d');
+
+            mazeCanvas = document.getElementById('maze-canvas');
+            mazeCtx = mazeCanvas.getContext('2d');
+
+            // Default laser color setup
+            setLaserColor('#22c55e');
+
+            // Calculate critical angle
+            recalcCriticalAngle();
+
+            // Set event listeners for Sandbox Canvas interaction
+            setupSandboxInteractions();
+            
+            // Handle Window resize events to keep simulator responsive
+            window.addEventListener('resize', handleResize);
+
+            // Initial Draw Loops
+            handleResize();
+        };
+
+        // Handle responsive resizing of all elements
+        function handleResize() {
+            // Resize sandbox
+            const container1 = document.getElementById('canvas-container');
+            sandboxCanvas.width = container1.clientWidth;
+            sandboxCanvas.height = container1.clientHeight;
+            drawSandboxSimulation();
+
+            // Resize rainbow
+            const container2 = document.getElementById('rainbow-canvas-container');
+            rainbowCanvas.width = container2.clientWidth;
+            rainbowCanvas.height = container2.clientHeight;
+            drawRainbowSimulation();
+
+            // Resize game canvas
+            const container3 = document.getElementById('maze-canvas-container');
+            mazeCanvas.width = container3.clientWidth;
+            mazeCanvas.height = container3.clientHeight;
+            drawMazeSimulation();
+        }
+
+        // Tab selection logic
+        function switchTab(tabId) {
+            activeTab = tabId;
+            
+            // Hide all panels
+            document.getElementById('panel-sandbox').classList.add('hidden');
+            document.getElementById('panel-rainbow').classList.add('hidden');
+            document.getElementById('panel-maze').classList.add('hidden');
+            document.getElementById('panel-library').classList.add('hidden');
+
+            // Deactivate all tab styling
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.className = "tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out text-slate-400 hover:text-white";
+            });
+
+            // Activate chosen tab panel & style
+            if (tabId === 'sandbox') {
+                document.getElementById('panel-sandbox').classList.remove('hidden');
+                document.getElementById('tab-sandbox').className = "tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out bg-blue-600 text-white shadow-md shadow-blue-500/20";
+                setTimeout(handleResize, 50);
+            } else if (tabId === 'rainbow') {
+                document.getElementById('panel-rainbow').classList.remove('hidden');
+                document.getElementById('tab-rainbow').className = "tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out bg-violet-600 text-white shadow-md shadow-violet-500/20";
+                setTimeout(handleResize, 50);
+            } else if (tabId === 'maze') {
+                document.getElementById('panel-maze').classList.remove('hidden');
+                document.getElementById('tab-maze').className = "tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out bg-rose-600 text-white shadow-md shadow-rose-500/20";
+                startMazeLevel(currentLevel);
+            } else if (tabId === 'library') {
+                document.getElementById('panel-library').classList.remove('hidden');
+                document.getElementById('tab-library').className = "tab-btn px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition duration-150 ease-in-out bg-indigo-600 text-white shadow-md shadow-indigo-500/20";
+            }
+        }
+
+        // Custom Notification Engine without using blocked standard alerts
+        function triggerNotification(title, message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // Styling based on alert outcome
+            const bgClass = type === 'success' ? 'bg-emerald-900/90 border-emerald-500' : 
+                            type === 'error' ? 'bg-red-950/95 border-red-500' : 'bg-slate-900 border-blue-500';
+            const iconColor = type === 'success' ? 'text-emerald-400' : 
+                              type === 'error' ? 'text-red-400' : 'text-blue-400';
+            const icon = type === 'success' ? 'check-circle' : 
+                         type === 'error' ? 'alert-triangle' : 'info';
+
+            toast.className = `flex gap-3 p-4 rounded-xl border ${bgClass} shadow-xl text-xs pointer-events-auto transition-all transform duration-300 opacity-0 translate-y-2`;
+            
+            toast.innerHTML = `
+                <div class="${iconColor} shrink-0 mt-0.5">
+                    <i data-lucide="${icon}" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h5 class="font-extrabold text-white text-xs">${title}</h5>
+                    <p class="text-[11px] text-slate-300 mt-0.5">${message}</p>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Trigger Animation
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+            }, 50);
+
+            // Hide/Destroy Toast after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        // ==========================================
+        // MODULE 1: TIR SANDBOX LOGIC & RENDERING
+        // ==========================================
+        function setLaserColor(hex, elem) {
+            laserColor = hex;
+            // Update UI highlight selector borders
+            const colorButtons = document.querySelectorAll('[onclick^="setLaserColor"]');
+            colorButtons.forEach(btn => {
+                btn.style.borderColor = "#0f172a"; // Reset to slate border
+            });
+            
+            // Highlight selected element safely
+            let targetBtn = elem;
+            if (!targetBtn) {
+                // Find matching button if called programmatically during load
+                targetBtn = document.querySelector(`[onclick*="'${hex}'"]`) || document.getElementById('default-laser-btn');
+            }
+            
+            if (targetBtn) {
+                targetBtn.style.borderColor = "#ffffff";
+            }
+            
+            drawSandboxSimulation();
+            drawMazeSimulation();
+        }
+
+        function setPresets(presetN1, presetN2, labelName) {
+            n1 = presetN1;
+            n2 = presetN2;
+            document.getElementById('slider-n1').value = n1;
+            document.getElementById('slider-n2').value = n2;
+            
+            // Check boundary rule (denser must be greater than rarer for normal TIR)
+            if (n1 <= n2) {
+                // Adjust automatically to make simulation fun and correct
+                n2 = n1 - 0.2;
+                if (n2 < 1.0) n2 = 1.0;
+                document.getElementById('slider-n2').value = n2.toFixed(2);
+                triggerNotification("Material Adjustment", "TIR only happens when light goes from denser to rarer. Medium 2 was automatically reduced!", "info");
+            }
+
+            recalcCriticalAngle();
+            drawSandboxSimulation();
+            triggerNotification("Preset Loaded", `Configured ${labelName} boundary scenario.`);
+        }
+
+        function updateIndicesFromSliders() {
+            n1 = parseFloat(document.getElementById('slider-n1').value);
+            n2 = parseFloat(document.getElementById('slider-n2').value);
+
+            if (n1 <= n2) {
+                document.getElementById('slider-n2').value = (n1 - 0.05).toFixed(2);
+                n2 = n1 - 0.05;
+                if (n2 < 1.0) n2 = 1.0;
+            }
+
+            recalcCriticalAngle();
+            drawSandboxSimulation();
+        }
+
+        function updateAngleFromSlider() {
+            incidentAngleDeg = parseFloat(document.getElementById('slider-theta').value);
+            drawSandboxSimulation();
+        }
+
+        function recalcCriticalAngle() {
+            // Critical angle is defined only if n1 > n2
+            if (n1 > n2) {
+                criticalAngleDeg = (Math.asin(n2 / n1) * 180) / Math.PI;
+                document.getElementById('hud-tc').innerText = criticalAngleDeg.toFixed(1) + "°";
+            } else {
+                criticalAngleDeg = 0;
+                document.getElementById('hud-tc').innerText = "N/A";
+            }
+            document.getElementById('val-n1').innerText = n1.toFixed(2);
+            document.getElementById('val-n2').innerText = n2.toFixed(2);
+        }
+
+        // Setup mouse drag on sandbox
+        function setupSandboxInteractions() {
+            function getAngleFromEvent(e) {
+                const rect = sandboxCanvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                const centerX = sandboxCanvas.width / 2;
+                const centerY = sandboxCanvas.height / 2;
+                
+                // Angle calculation relative to bottom vertical normal line (since light travels upwards)
+                const dx = x - centerX;
+                const dy = y - centerY;
+                
+                // Only register if clicking inside bottom denser half (dy > 0)
+                if (dy > 0) {
+                    let rad = Math.atan2(dx, dy); // angle from positive y-axis downward
+                    let deg = (rad * 180) / Math.PI;
+                    // Clamp between 0 and 89
+                    deg = Math.max(0, Math.min(89, Math.abs(deg)));
+                    return deg;
+                }
+                return null;
+            }
+
+            function startDrag(e) {
+                const deg = getAngleFromEvent(e);
+                if (deg !== null) {
+                    isDraggingSandbox = true;
+                    incidentAngleDeg = deg;
+                    document.getElementById('slider-theta').value = deg.toFixed(1);
+                    drawSandboxSimulation();
+                }
+            }
+
+            function drag(e) {
+                if (!isDraggingSandbox) return;
+                const deg = getAngleFromEvent(e);
+                if (deg !== null) {
+                    incidentAngleDeg = deg;
+                    document.getElementById('slider-theta').value = deg.toFixed(1);
+                    drawSandboxSimulation();
+                }
+            }
+
+            function stopDrag() {
+                isDraggingSandbox = false;
+            }
+
+            sandboxCanvas.addEventListener('mousedown', startDrag);
+            sandboxCanvas.addEventListener('mousemove', drag);
+            sandboxCanvas.addEventListener('mouseup', stopDrag);
+            sandboxCanvas.addEventListener('mouseleave', stopDrag);
+
+            // Mobile/Tablet Touch support
+            sandboxCanvas.addEventListener('touchstart', startDrag);
+            sandboxCanvas.addEventListener('touchmove', drag);
+            sandboxCanvas.addEventListener('touchend', stopDrag);
+        }
+
+        function drawSandboxSimulation() {
+            if (!sandboxCanvas || !sandboxCtx) return;
+
+            const w = sandboxCanvas.width;
+            const h = sandboxCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // Clear Canvas
+            sandboxCtx.clearRect(0, 0, w, h);
+
+            // 1. Draw Medium Backgrounds
+            // Top Half: Medium 2 (Rarer)
+            sandboxCtx.fillStyle = '#0a0f1d';
+            sandboxCtx.fillRect(0, 0, w, cy);
+
+            // Bottom Half: Medium 1 (Denser) - tinted blue/glass color based on density index value
+            const densityOpacity = Math.min(0.4, (n1 - 1.0) / 2.0);
+            sandboxCtx.fillStyle = `rgba(37, 99, 235, ${0.1 + densityOpacity})`;
+            sandboxCtx.fillRect(0, cy, w, cy);
+
+            // 2. Draw Decorative Grid Lines
+            sandboxCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            sandboxCtx.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x < w; x += gridSize) {
+                sandboxCtx.beginPath();
+                sandboxCtx.moveTo(x, 0);
+                sandboxCtx.lineTo(x, h);
+                sandboxCtx.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                sandboxCtx.beginPath();
+                sandboxCtx.moveTo(0, y);
+                sandboxCtx.lineTo(w, y);
+                sandboxCtx.stroke();
+            }
+
+            // 3. Draw Boundary Interface line
+            sandboxCtx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+            sandboxCtx.lineWidth = 3;
+            sandboxCtx.beginPath();
+            sandboxCtx.moveTo(0, cy);
+            sandboxCtx.lineTo(w, cy);
+            sandboxCtx.stroke();
+
+            // 4. Draw Normal Axis Line (y-axis)
+            sandboxCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            sandboxCtx.lineWidth = 1.5;
+            sandboxCtx.setLineDash([6, 6]);
+            sandboxCtx.beginPath();
+            sandboxCtx.moveTo(cx, 10);
+            sandboxCtx.lineTo(cx, h - 10);
+            sandboxCtx.stroke();
+            sandboxCtx.setLineDash([]); // clear dash
+
+            // 5. Text Labels on Mediums
+            sandboxCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            sandboxCtx.font = 'bold 12px "Inter", sans-serif';
+            sandboxCtx.fillText(`MEDIUM 2 (Rarer) — n₂ = ${n2.toFixed(2)}`, 20, 30);
+            sandboxCtx.fillText(`MEDIUM 1 (Denser) — n₁ = ${n1.toFixed(2)}`, 20, cy + 35);
+
+            // Update DOM text inputs
+            document.getElementById('val-theta').innerText = incidentAngleDeg.toFixed(1) + "°";
+
+            // Light calculations
+            const angleRad = (incidentAngleDeg * Math.PI) / 180;
+            const rayLen = Math.min(w, h) * 0.45; // ray length indicator
+
+            // Beam endpoints
+            // Incident laser coming from bottom-left or bottom-right towards center (cx, cy)
+            // Let's draw it coming from bottom-left to center:
+            const incidentX = cx - rayLen * Math.sin(angleRad);
+            const incidentY = cy + rayLen * Math.cos(angleRad);
+
+            // Math physics checking: Snell's Law
+            const sinIncident = Math.sin(angleRad);
+            const sinRefracted = (n1 / n2) * sinIncident;
+
+            let isTIR = false;
+            let refractionRad = 0;
+            let reflectionIntensity = 0.1; // Default faint partial reflection
+            let transmissionIntensity = 0.9;
+
+            // Physics calculations: Fresnel equations to determine the precise opacity of rays
+            if (sinRefracted > 1.0) {
+                isTIR = true;
+                reflectionIntensity = 1.0; // Total reflection
+                transmissionIntensity = 0.0;
+            } else {
+                refractionRad = Math.asin(sinRefracted);
+                
+                // Fresnel Reflection Coefficient (using simple standard average of polarized coefficients)
+                const cosI = Math.cos(angleRad);
+                const cosT = Math.cos(refractionRad);
+                const rp = (n1 * cosT - n2 * cosI) / (n1 * cosT + n2 * cosI);
+                const rs = (n1 * cosI - n2 * cosT) / (n1 * cosI + n2 * cosT);
+                reflectionIntensity = (rp * rp + rs * rs) / 2;
+                transmissionIntensity = 1 - reflectionIntensity;
+            }
+
+            // Draw Critical Angle Sector Guide
+            if (n1 > n2 && criticalAngleDeg > 0) {
+                const critRad = (criticalAngleDeg * Math.PI) / 180;
+                sandboxCtx.fillStyle = 'rgba(99, 102, 241, 0.06)';
+                sandboxCtx.beginPath();
+                sandboxCtx.moveTo(cx, cy);
+                sandboxCtx.arc(cx, cy, rayLen * 0.7, Math.PI / 2 - critRad, Math.PI / 2 + critRad, false);
+                sandboxCtx.closePath();
+                sandboxCtx.fill();
+
+                // Draw Critical Angle Radial Line markers on bottom half
+                sandboxCtx.strokeStyle = 'rgba(99, 102, 241, 0.2)';
+                sandboxCtx.lineWidth = 1;
+                // Left crit boundary
+                sandboxCtx.beginPath();
+                sandboxCtx.moveTo(cx, cy);
+                sandboxCtx.lineTo(cx - rayLen * 0.8 * Math.sin(critRad), cy + rayLen * 0.8 * Math.cos(critRad));
+                sandboxCtx.stroke();
+                // Right crit boundary
+                sandboxCtx.beginPath();
+                sandboxCtx.moveTo(cx, cy);
+                sandboxCtx.lineTo(cx + rayLen * 0.8 * Math.sin(critRad), cy + rayLen * 0.8 * Math.cos(critRad));
+                sandboxCtx.stroke();
+            }
+
+            // Update UI telemetry data
+            if (isTIR) {
+                document.getElementById('hud-tr').innerText = "None (TIR)";
+                document.getElementById('hud-status').innerText = "TOTAL INTERNAL REFLECTION";
+                document.getElementById('hud-status').className = "px-2 py-0.5 font-bold rounded text-[10px] bg-emerald-950/80 border border-emerald-900 text-emerald-400";
+                document.getElementById('sim-tip').innerHTML = "🔥 <strong>Total Internal Reflection reached!</strong> The incident angle is larger than the Critical Angle (" + criticalAngleDeg.toFixed(1) + "°). All energy remains inside the glass!";
+            } else {
+                const refDeg = (refractionRad * 180) / Math.PI;
+                document.getElementById('hud-tr').innerText = refDeg.toFixed(1) + "°";
+                document.getElementById('hud-status').innerText = "PARTIAL REFLECTION";
+                document.getElementById('hud-status').className = "px-2 py-0.5 font-bold rounded text-[10px] bg-blue-950/80 border border-blue-900 text-blue-400";
+                document.getElementById('sim-tip').innerHTML = "💡 <strong>Partial Reflection Mode:</strong> Notice the faint green reflection line. Part of the light energy leaks into the air, and a small portion bounces back.";
+            }
+
+            // 6. Draw Incident Beam
+            sandboxCtx.shadowBlur = 12;
+            sandboxCtx.shadowColor = laserColor;
+            
+            sandboxCtx.strokeStyle = laserColor;
+            sandboxCtx.lineWidth = 4;
+            sandboxCtx.beginPath();
+            sandboxCtx.moveTo(incidentX, incidentY);
+            sandboxCtx.lineTo(cx, cy);
+            sandboxCtx.stroke();
+
+            // 7. Draw Reflected Beam (goes out top right coordinates inside bottom medium)
+            const reflectedX = cx + rayLen * Math.sin(angleRad);
+            const reflectedY = cy + rayLen * Math.cos(angleRad);
+            
+            // Opacity proportional to Fresnel reflectivity
+            sandboxCtx.strokeStyle = laserColor;
+            sandboxCtx.globalAlpha = reflectionIntensity;
+            sandboxCtx.lineWidth = isTIR ? 4 : 2; // thicker if total reflection
+            sandboxCtx.beginPath();
+            sandboxCtx.moveTo(cx, cy);
+            sandboxCtx.lineTo(reflectedX, reflectedY);
+            sandboxCtx.stroke();
+            sandboxCtx.globalAlpha = 1.0; // restore alpha
+
+            // 8. Draw Refracted Beam (goes up into rarer medium, if not TIR)
+            if (!isTIR) {
+                const refractedX = cx + rayLen * Math.sin(refractionRad);
+                const refractedY = cy - rayLen * Math.cos(refractionRad);
+
+                sandboxCtx.strokeStyle = laserColor;
+                sandboxCtx.lineWidth = 4;
+                sandboxCtx.globalAlpha = transmissionIntensity;
+                sandboxCtx.beginPath();
+                sandboxCtx.moveTo(cx, cy);
+                sandboxCtx.lineTo(refractedX, refractedY);
+                sandboxCtx.stroke();
+                sandboxCtx.globalAlpha = 1.0; // restore
+            }
+
+            // 9. Draw interactive draggable handle arrow on the bottom
+            sandboxCtx.shadowBlur = 0; // reset
+            sandboxCtx.fillStyle = '#ffffff';
+            sandboxCtx.strokeStyle = '#1e293b';
+            sandboxCtx.lineWidth = 2;
+            sandboxCtx.beginPath();
+            sandboxCtx.arc(incidentX, incidentY, 8, 0, 2 * Math.PI);
+            sandboxCtx.fill();
+            sandboxCtx.stroke();
+
+            // Draw simple angular labels near center
+            sandboxCtx.font = '10px "Fira Code", monospace';
+            sandboxCtx.fillStyle = '#94a3b8';
+            sandboxCtx.fillText("θᵢ = " + incidentAngleDeg.toFixed(1) + "°", cx - 40, cy + 50);
+
+            if (!isTIR) {
+                const refDeg = (refractionRad * 180) / Math.PI;
+                sandboxCtx.fillText("θᵣ = " + refDeg.toFixed(1) + "°", cx + 25, cy - 40);
+            }
+        }
+
+
+        // ==========================================
+        // MODULE 2: RAINBOW WATER DROPLET LOGIC
+        // ==========================================
+        function drawRainbowSimulation() {
+            if (!rainbowCanvas || !rainbowCtx) return;
+
+            const w = rainbowCanvas.width;
+            const h = rainbowCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const r = Math.min(w, h) * 0.35; // radius of raindrop
+
+            // Fetch height parameter from slider
+            rainbowHeightFactor = parseFloat(document.getElementById('slider-rainbow-height').value);
+            document.getElementById('val-rainbow-height').innerText = `y = ${rainbowHeightFactor.toFixed(2)} R`;
+
+            // Clear Background
+            rainbowCtx.clearRect(0, 0, w, h);
+            
+            // Dark grid background
+            rainbowCtx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+            rainbowCtx.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x < w; x += gridSize) {
+                rainbowCtx.beginPath();
+                rainbowCtx.moveTo(x, 0);
+                rainbowCtx.lineTo(x, h);
+                rainbowCtx.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                rainbowCtx.beginPath();
+                rainbowCtx.moveTo(0, y);
+                rainbowCtx.lineTo(w, y);
+                rainbowCtx.stroke();
+            }
+
+            // 1. Draw water droplet circle (Large in the center)
+            rainbowCtx.fillStyle = 'rgba(30, 58, 138, 0.15)'; // light glass watercolor
+            rainbowCtx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+            rainbowCtx.lineWidth = 3;
+            rainbowCtx.beginPath();
+            rainbowCtx.arc(cx, cy, r, 0, 2 * Math.PI);
+            rainbowCtx.fill();
+            rainbowCtx.stroke();
+
+            // 2. Draw incoming horizontal white light beam from the left
+            const incomingY = cy - r * rainbowHeightFactor;
+            const incomingStartX = 20;
+
+            // Geometry calculations for horizontal line intersecting with circle
+            // Circle formula: (x - cx)^2 + (y - cy)^2 = r^2
+            // Since horizontal line is y = incomingY
+            // (x - cx)^2 = r^2 - (incomingY - cy)^2
+            const dy = incomingY - cy;
+            const dx = Math.sqrt(r*r - dy*dy);
+            const entryX = cx - dx; // Entry coordinate on left rim of circle
+            const entryY = incomingY;
+
+            // Draw Incoming Solar Light Beam
+            rainbowCtx.strokeStyle = '#f8fafc'; // white light
+            rainbowCtx.lineWidth = 3.5;
+            rainbowCtx.shadowBlur = 4;
+            rainbowCtx.shadowColor = '#ffffff';
+            rainbowCtx.beginPath();
+            rainbowCtx.moveTo(incomingStartX, incomingY);
+            rainbowCtx.lineTo(entryX, entryY);
+            rainbowCtx.stroke();
+            rainbowCtx.shadowBlur = 0; // reset
+
+            // Draw sun label
+            rainbowCtx.fillStyle = 'rgba(255,255,255,0.7)';
+            rainbowCtx.font = 'bold 10px "Inter", sans-serif';
+            rainbowCtx.fillText("Incoming Sunlight", incomingStartX, incomingY - 8);
+
+            // =====================================
+            // PHYSICAL DISPERSION CALCULATIONS
+            // =====================================
+            // Red vs. Violet refractive index inside rain water
+            const nWaterRed = 1.331;
+            const nWaterViolet = 1.344;
+
+            // Angle of incidence at entry point relative to circular normal vector
+            // The surface normal at (entryX, entryY) is along the vector from center to point:
+            const normalX = (entryX - cx) / r;
+            const normalY = (entryY - cy) / r;
+            const angleNormalRad = Math.atan2(entryY - cy, entryX - cx); // Direction of normal pointing outwards
+
+            // Incident ray is strictly horizontal (pointing right, so direction is 0)
+            // The angle of incidence θ_i is the angle between incident ray vector (1,0) and inverted normal (-normalX, -normalY)
+            const thetaI = Math.PI - Math.abs(angleNormalRad); // Angle relative to radius vector
+
+            // Snell's Law Refractions
+            const sinRefRed = Math.sin(thetaI) / nWaterRed;
+            const thetaRefRed = Math.asin(sinRefRed); // refraction angle inside for red
+
+            const sinRefViolet = Math.sin(thetaI) / nWaterViolet;
+            const thetaRefViolet = Math.asin(sinRefViolet); // refraction angle inside for violet
+
+            // Helper function to trace individual colored ray through droplet
+            function traceColorRay(thetaR, nIndex, strokeColor) {
+                // Vector angle of refracted beam inside droplet
+                // Starting from entry point, looking inward, standard bending
+                // Refracted direction = normal direction + PI - refraction angle (opposite sign depending on top/bottom)
+                const rayAngle = angleNormalRad + Math.PI + thetaR; 
+
+                // Intersection of this ray inside the circle
+                // It goes from (entryX, entryY) at direction (rayAngle)
+                // Since chord of a circle from angle has length: 2 * R * cos(theta_r)
+                const chordLen = 2 * r * Math.cos(thetaR);
+                const backReflectX = entryX + chordLen * Math.cos(rayAngle);
+                const backReflectY = entryY + chordLen * Math.sin(rayAngle);
+
+                // 1. Draw Refracted dispersed ray inside
+                rainbowCtx.strokeStyle = strokeColor;
+                rainbowCtx.lineWidth = 2.5;
+                rainbowCtx.beginPath();
+                rainbowCtx.moveTo(entryX, entryY);
+                rainbowCtx.lineTo(backReflectX, backReflectY);
+                rainbowCtx.stroke();
+
+                // 2. Internal Reflection at back wall
+                // Angle of incidence at back wall is also exactly thetaR (symmetric chord geometry!)
+                // Reflection bounces inside. The new reflection ray angle:
+                const reflectRayAngle = rayAngle + Math.PI - 2 * thetaR;
+                const exitX = backReflectX + chordLen * Math.cos(reflectRayAngle);
+                const exitY = backReflectY + chordLen * Math.sin(reflectRayAngle);
+
+                // Draw inside reflected beam
+                rainbowCtx.strokeStyle = strokeColor;
+                rainbowCtx.beginPath();
+                rainbowCtx.moveTo(backReflectX, backReflectY);
+                rainbowCtx.lineTo(exitX, exitY);
+                rainbowCtx.stroke();
+
+                // 3. Emergence Refraction into Air
+                // Angle of incidence is thetaR. Angle of refraction out of water is thetaI!
+                // Emerging ray angle direction relative to circle:
+                const normalExitRad = Math.atan2(exitY - cy, exitX - cx);
+                const exitRefAngle = normalExitRad - Math.PI + thetaI; // refract away from normal
+
+                const outX = exitX + 250 * Math.cos(exitRefAngle);
+                const outY = exitY + 250 * Math.sin(exitRefAngle);
+
+                // Draw Emerging dispersed ray
+                rainbowCtx.shadowBlur = 8;
+                rainbowCtx.shadowColor = strokeColor;
+                rainbowCtx.strokeStyle = strokeColor;
+                rainbowCtx.beginPath();
+                rainbowCtx.moveTo(exitX, exitY);
+                rainbowCtx.lineTo(outX, outY);
+                rainbowCtx.stroke();
+                rainbowCtx.shadowBlur = 0; // reset
+
+                // Return angle of exit relative to horizontal incoming sun beam (0 degrees)
+                // Express angle between (1,0) and the exit vector direction (outX - exitX, outY - exitY)
+                let exitAngleDeg = (Math.atan2(outY - exitY, outX - exitX) * 180) / Math.PI;
+                // normalize relative to sun source
+                exitAngleDeg = 180 - Math.abs(exitAngleDeg);
+                return exitAngleDeg;
+            }
+
+            // Trace both colors
+            const redExitAngle = traceColorRay(thetaRefRed, nWaterRed, '#ef4444');
+            const violetExitAngle = traceColorRay(thetaRefViolet, nWaterViolet, '#a855f7');
+
+            // Update Rainbow Telemetry DOM
+            document.getElementById('hud-red-angle').innerText = redExitAngle.toFixed(1) + "°";
+            document.getElementById('hud-violet-angle').innerText = violetExitAngle.toFixed(1) + "°";
+            document.getElementById('hud-spread-angle').innerText = Math.abs(redExitAngle - violetExitAngle).toFixed(1) + "°";
+        }
+
+
+        // ==========================================
+        // MODULE 3: FIBER OPTIC GAME (THE GAME)
+        // ==========================================
+        function startMazeLevel(lvl) {
+            currentLevel = lvl;
+            
+            // Highlight Level Buttons
+            document.getElementById('btn-lvl-1').className = "flex-1 py-2 text-xs font-bold bg-slate-800 border border-slate-750 text-slate-300 rounded-lg transition hover:bg-slate-700";
+            document.getElementById('btn-lvl-2').className = "flex-1 py-2 text-xs font-bold bg-slate-800 border border-slate-750 text-slate-300 rounded-lg transition hover:bg-slate-700";
+            document.getElementById('btn-lvl-3').className = "flex-1 py-2 text-xs font-bold bg-slate-800 border border-slate-750 text-slate-300 rounded-lg transition hover:bg-slate-700";
+            
+            document.getElementById('btn-lvl-' + lvl).className = "flex-1 py-2 text-xs font-bold bg-slate-800 border-2 border-rose-500 text-white rounded-lg transition hover:bg-slate-700";
+
+            // Initialize hinge angles based on level complexity
+            if (lvl === 1) {
+                // Easy: needs slight adjustment to avoid leaking
+                hingeA = 25;
+                hingeB = -15;
+                hingeC = 10;
+                triggerNotification("Level 1 Loaded", "Guide the laser to the receiver target. Watch out for leakage angles!");
+            } else if (lvl === 2) {
+                hingeA = -30;
+                hingeB = 30;
+                hingeC = -20;
+                triggerNotification("Level 2 Loaded", "A tighter double bend. Be precise with indices!");
+            } else if (lvl === 3) {
+                hingeA = 35;
+                hingeB = -35;
+                hingeC = 35;
+                triggerNotification("Level 3 Loaded", "Extreme S-Curve. Light must stay trapped!");
+            }
+
+            // Sync Sliders
+            document.getElementById('slider-joint-1').value = hingeA;
+            document.getElementById('slider-joint-2').value = hingeB;
+            document.getElementById('slider-joint-3').value = hingeC;
+
+            onHingeSlide();
+        }
+
+        function onHingeSlide() {
+            hingeA = parseInt(document.getElementById('slider-joint-1').value);
+            hingeB = parseInt(document.getElementById('slider-joint-2').value);
+            hingeC = parseInt(document.getElementById('slider-joint-3').value);
+
+            document.getElementById('val-joint-1').innerText = hingeA + "°";
+            document.getElementById('val-joint-2').innerText = hingeB + "°";
+            document.getElementById('val-joint-3').innerText = hingeC + "°";
+
+            drawMazeSimulation();
+        }
+
+        function resetMazeLevel() {
+            startMazeLevel(currentLevel);
+        }
+
+        function drawMazeSimulation() {
+            if (!mazeCanvas || !mazeCtx) return;
+
+            const w = mazeCanvas.width;
+            const h = mazeCanvas.height;
+
+            mazeCtx.clearRect(0, 0, w, h);
+
+            // Dark space grid background
+            mazeCtx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+            mazeCtx.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x < w; x += gridSize) {
+                mazeCtx.beginPath();
+                mazeCtx.moveTo(x, 0);
+                mazeCtx.lineTo(x, h);
+                mazeCtx.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                mazeCtx.beginPath();
+                mazeCtx.moveTo(0, y);
+                mazeCtx.lineTo(w, y);
+                mazeCtx.stroke();
+            }
+
+            // Draw Source (Left side laser gun emitter)
+            const sourceX = 40;
+            const sourceY = h / 2;
+            
+            // Draw Target receiver on right side
+            let targetY = h / 2;
+            if (currentLevel === 2) targetY = h / 2 + 100;
+            if (currentLevel === 3) targetY = h / 2 - 50;
+            const targetX = w - 60;
+
+            // Draw Target Receiver Ring
+            mazeCtx.shadowBlur = 10;
+            mazeCtx.shadowColor = '#10b981';
+            mazeCtx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+            mazeCtx.strokeStyle = '#10b981';
+            mazeCtx.lineWidth = 3;
+            mazeCtx.beginPath();
+            mazeCtx.arc(targetX, targetY, 20, 0, 2 * Math.PI);
+            mazeCtx.fill();
+            mazeCtx.stroke();
+            mazeCtx.shadowBlur = 0;
+
+            // Target Text
+            mazeCtx.fillStyle = '#10b981';
+            mazeCtx.font = 'bold 10px "Inter", sans-serif';
+            mazeCtx.fillText("RECEIVER", targetX - 25, targetY - 26);
+
+            // ===============================================
+            // GENERATING HINGED FIBER OPTIC SEGMENT LINES
+            // ===============================================
+            // We have 3 hinged segments representing a hollow glass lightguide
+            // Each segment starts from previous joint.
+            // Let's model each as a polygon box.
+            const segLength = (w - 150) / 4; // split horizontal width
+            const segThickness = 55; // thickness of glass fiber core
+
+            // Joint coordinates
+            const pt0 = { x: sourceX, y: h / 2 };
+            
+            // Segment 1 (directly horizontal, connected to laser emitter)
+            const angle1 = (hingeA * Math.PI) / 180;
+            const pt1 = {
+                x: pt0.x + segLength * Math.cos(angle1),
+                y: pt0.y + segLength * Math.sin(angle1)
+            };
+
+            // Segment 2
+            const angle2 = angle1 + (hingeB * Math.PI) / 180;
+            const pt2 = {
+                x: pt1.x + segLength * Math.cos(angle2),
+                y: pt1.y + segLength * Math.sin(angle2)
+            };
+
+            // Segment 3
+            const angle3 = angle2 + (hingeC * Math.PI) / 180;
+            const pt3 = {
+                x: pt2.x + segLength * Math.cos(angle3),
+                y: pt2.y + segLength * Math.sin(angle3)
+            };
+
+            // Segment 4 (Terminating end piece)
+            // It automatically guides towards target horizontally
+            const targetAngle = Math.atan2(targetY - pt3.y, targetX - pt3.x);
+            const pt4 = {
+                x: targetX,
+                y: targetY
+            };
+
+            // Put points inside array
+            const joints = [pt0, pt1, pt2, pt3, pt4];
+            const angles = [angle1, angle2, angle3, targetAngle];
+
+            // 1. Render Glass Core boundary cylinders
+            mazeCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            mazeCtx.fillStyle = 'rgba(59, 130, 246, 0.04)'; // faint transparent blue glass body
+            
+            for (let i = 0; i < joints.length - 1; i++) {
+                const pStart = joints[i];
+                const pEnd = joints[i+1];
+                const ang = angles[i];
+
+                // Calculate parallel boundaries for the tube
+                const dx = Math.sin(ang) * (segThickness / 2);
+                const dy = -Math.cos(ang) * (segThickness / 2);
+
+                mazeCtx.beginPath();
+                mazeCtx.moveTo(pStart.x + dx, pStart.y + dy); // top left
+                mazeCtx.lineTo(pEnd.x + dx, pEnd.y + dy);     // top right
+                mazeCtx.lineTo(pEnd.x - dx, pEnd.y - dy);     // bottom right
+                mazeCtx.lineTo(pStart.x - dx, pStart.y - dy); // bottom left
+                mazeCtx.closePath();
+                mazeCtx.fill();
+                
+                // Draw cladding interface (outer borders of fiber)
+                mazeCtx.strokeStyle = 'rgba(99, 102, 241, 0.3)';
+                mazeCtx.lineWidth = 2;
+                
+                // Top border
+                mazeCtx.beginPath();
+                mazeCtx.moveTo(pStart.x + dx, pStart.y + dy);
+                mazeCtx.lineTo(pEnd.x + dx, pEnd.y + dy);
+                mazeCtx.stroke();
+
+                // Bottom border
+                mazeCtx.beginPath();
+                mazeCtx.moveTo(pStart.x - dx, pStart.y - dy);
+                mazeCtx.lineTo(pEnd.x - dx, pEnd.y - dy);
+                mazeCtx.stroke();
+            }
+
+            // ==========================================
+            // LASER LIGHT PATH PROPAGATION TRACING
+            // ==========================================
+            let laserPath = [{ x: pt0.x, y: pt0.y }];
+            let curX = pt0.x;
+            let curY = pt0.y;
+            let currentBeamAngle = 0; // Starts traveling horizontal east
+            let segmentIndex = 0;
+            let signalIntensity = 1.0;
+            let didLeak = false;
+
+            // Simple ray tracing along inside boundary walls of each segment
+            // To make this game beautiful, educational and fast:
+            // We follow the laser entering segment by segment, checking the relative angle difference at boundary.
+            for (let i = 0; i < joints.length - 1; i++) {
+                const segAng = angles[i];
+                // Difference between incoming laser beam direction and the segment axis angle:
+                const angleDiff = Math.abs(currentBeamAngle - segAng);
+                
+                // If angle diff relative to normal is smaller than the critical angle limit,
+                // light cannot be trapped by total internal reflection and escapes!
+                // Critical angle for glass(1.50) to air cladding(1.0) is approx 41.8 degrees.
+                // Incident angle relative to wall is (90 - angleDiffDeg).
+                const angleDiffDeg = (angleDiff * 180) / Math.PI;
+                const incidentAngleOnWall = 90 - angleDiffDeg;
+
+                if (incidentAngleOnWall < 41.8) {
+                    // Fail state: light leaks out!
+                    didLeak = true;
+                    signalIntensity = Math.max(0, 1.0 - (41.8 - incidentAngleOnWall) / 10);
+                }
+
+                // Add next step coordinate path
+                const nextPt = joints[i+1];
+                laserPath.push({ x: nextPt.x, y: nextPt.y });
+
+                // Light continues inside along next segment direction
+                currentBeamAngle = segAng;
+                if (signalIntensity <= 0.1) break;
+            }
+
+            // Draw Laser Beam inside
+            mazeCtx.shadowBlur = 15;
+            mazeCtx.shadowColor = laserColor;
+            mazeCtx.lineWidth = 4 * signalIntensity;
+            mazeCtx.strokeStyle = laserColor;
+            
+            mazeCtx.beginPath();
+            mazeCtx.moveTo(laserPath[0].x, laserPath[0].y);
+            for (let i = 1; i < laserPath.length; i++) {
+                mazeCtx.lineTo(laserPath[i].x, laserPath[i].y);
+            }
+            mazeCtx.stroke();
+            mazeCtx.shadowBlur = 0; // reset
+
+            // If leak occurred, draw leaking/escaping rays out into space
+            if (didLeak) {
+                // Draw red warning escape indicators on the bent joint
+                const leakIndex = Math.min(laserPath.length - 1, 2);
+                const leakPt = laserPath[leakIndex];
+                
+                mazeCtx.shadowBlur = 10;
+                mazeCtx.shadowColor = '#ef4444';
+                mazeCtx.strokeStyle = '#ef4444';
+                mazeCtx.lineWidth = 1.5;
+                mazeCtx.setLineDash([3, 3]);
+
+                // Draw escaped rays bending outwards
+                mazeCtx.beginPath();
+                mazeCtx.moveTo(leakPt.x, leakPt.y);
+                mazeCtx.lineTo(leakPt.x + 40, leakPt.y - 40);
+                mazeCtx.moveTo(leakPt.x, leakPt.y);
+                mazeCtx.lineTo(leakPt.x + 30, leakPt.y + 50);
+                mazeCtx.stroke();
+                
+                mazeCtx.setLineDash([]); // reset
+                mazeCtx.fillStyle = '#ef4444';
+                mazeCtx.font = 'bold 9px "Fira Code", monospace';
+                mazeCtx.fillText("⚠️ LIGHT LEAKAGE: i < i_crit", leakPt.x - 40, leakPt.y - 15);
+            }
+
+            // Update Signal telemetry HUD text in sidebar
+            const scorePercent = Math.round(signalIntensity * 100);
+            document.getElementById('game-intensity').innerText = scorePercent + "%";
+
+            const statusText = document.getElementById('game-status-text');
+            const statusGlow = document.getElementById('game-status-glow');
+
+            if (scorePercent >= 85) {
+                statusText.innerText = "EXCELLENT TRANSMISSION! 🚀";
+                statusText.className = "text-sm font-extrabold text-emerald-400";
+                statusGlow.className = "w-3 h-3 rounded-full bg-emerald-400 animate-pulse";
+            } else if (scorePercent > 20) {
+                statusText.innerText = "WARNING: WEAK SIGNAL ⚠️";
+                statusText.className = "text-sm font-extrabold text-amber-400";
+                statusGlow.className = "w-3 h-3 rounded-full bg-amber-400 animate-ping";
+            } else {
+                statusText.innerText = "CRITICAL: SIGNAL LOST ❌";
+                statusText.className = "text-sm font-extrabold text-red-500";
+                statusGlow.className = "w-3 h-3 rounded-full bg-red-500";
+            }
+
+            // Draw Emitter Source laser box
+            mazeCtx.fillStyle = '#1e293b';
+            mazeCtx.strokeStyle = '#475569';
+            mazeCtx.lineWidth = 2;
+            mazeCtx.beginPath();
+            mazeCtx.rect(sourceX - 30, sourceY - 15, 30, 30);
+            mazeCtx.fill();
+            mazeCtx.stroke();
+            
+            // Neon red power indicator on laser box
+            mazeCtx.fillStyle = laserColor;
+            mazeCtx.beginPath();
+            mazeCtx.arc(sourceX - 15, sourceY, 4, 0, 2*Math.PI);
+            mazeCtx.fill();
+        }
+    </script>
+</body>
+</html>
