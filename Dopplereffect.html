@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doppler Effect: Interactive Physics Explorer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons for Premium Interface -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter for elegant readability -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Tailwind configuration for scientific themes -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        science: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        /* Custom scrollbars for lab aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0ea5e9;
+        }
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
+        }
+        .glow-btn:hover {
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-science-500 selection:text-white">
+
+    <!-- NAVIGATION BAR -->
+    <nav class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-cyan-500 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-cyan-500/10">
+                    <i class="fa-solid fa-wave-square text-white text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase font-extrabold tracking-widest text-cyan-400">Interactive Classroom</span>
+                    <h1 class="text-xl font-bold text-white tracking-tight">Doppler Wave Explorer</h1>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2 md:gap-4 text-sm font-medium">
+                <a href="#playground" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Interactive Lab</a>
+                <a href="#math-derivation" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">The Math</a>
+                <a href="#solved-examples" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Case Studies</a>
+                <a href="#doppler-quiz" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition bg-slate-800 border border-slate-700 hover:border-cyan-500/50">Doppler Challenge</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN BODY WRAPPER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 space-y-12">
+
+        <!-- INTRODUCTION & HISTORY -->
+        <header class="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl p-6 border border-slate-800 glow-effect mt-4">
+            <div class="lg:col-span-8 flex flex-col justify-center space-y-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 text-cyan-400 rounded-full text-xs font-semibold w-fit">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                    Now Exploring: Physics of Waves
+                </div>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white leading-tight">
+                    Do you notice the pitch drop as a speeding train whistling past leaves you?
+                </h2>
+                <p class="text-slate-400 leading-relaxed text-base md:text-lg">
+                    This auditory curiosity is the <strong class="text-cyan-400 font-semibold">Doppler Effect</strong>, identified by Austrian physicist <span class="underline decoration-cyan-500 underline-offset-4 font-medium text-slate-200">Christian Doppler</span> in 1842. When a wave source and an observer move relative to each other, the observed wave frequency changes. It is a fundamental property of all wave phenomena—including sound, light, and radio!
+                </p>
+                <div class="flex flex-wrap gap-4 pt-2">
+                    <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/60 flex items-center gap-3">
+                        <i class="fa-solid fa-volume-high text-cyan-400 text-lg"></i>
+                        <span class="text-xs text-slate-300 font-medium">Relative compression of wavefronts raises pitch.</span>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/60 flex items-center gap-3">
+                        <i class="fa-solid fa-wind text-indigo-400 text-lg"></i>
+                        <span class="text-xs text-slate-300 font-medium">Wind alters sound wave propagation speed!</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-4 bg-slate-900/60 border border-slate-800 rounded-xl p-5 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none"></div>
+                <!-- Interactive Christian Doppler graphic -->
+                <div class="w-28 h-28 rounded-full bg-slate-800 border-2 border-cyan-500/30 flex items-center justify-center mb-4 relative shadow-inner overflow-hidden">
+                    <span class="text-4xl">👨‍🔬</span>
+                    <div class="absolute bottom-0 bg-cyan-950/80 w-full text-[10px] text-cyan-300 py-0.5 tracking-wider font-mono">1803-1853</div>
+                </div>
+                <h3 class="font-bold text-lg text-slate-100">Christian Doppler</h3>
+                <p class="text-xs text-slate-400 mt-1 max-w-[240px]">
+                    "The color of stars and pitch of whistles depend entirely upon their relative velocity toward or away from us."
+                </p>
+                <div class="mt-4 flex gap-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-900/40 text-cyan-400 border border-cyan-500/20">Sound Waves</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-900/40 text-indigo-400 border border-indigo-500/20">Light Redshift</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- PLAYGROUND SECTION: CANVAS & DUAL SIMULATION ENGINE -->
+        <section id="playground" class="scroll-mt-24 space-y-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                        <span class="text-cyan-400 bg-cyan-500/10 p-1.5 rounded-lg text-sm">LAB 1</span> 
+                        The Real-time Doppler Playground
+                    </h3>
+                    <p class="text-slate-400 text-sm">Manipulate values, toggle audio, and observe the spatial waves compressing.</p>
+                </div>
+                
+                <!-- Quick controls / Sound master toggle -->
+                <button id="master-sound-btn" onclick="togglePlaygroundAudio()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl flex items-center gap-2 transition font-medium text-sm shadow-lg shadow-rose-600/10 hover:shadow-rose-600/20 glow-btn">
+                    <i id="sound-btn-icon" class="fa-solid fa-volume-xmark"></i>
+                    <span id="sound-btn-text">Enable Sandbox Sound</span>
+                </button>
+            </div>
+
+            <!-- GRID: CONTROLS & CANVAS -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- LEFT PANEL: THE SLIDERS & MATH SUMMARY -->
+                <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-6">
+                    <h4 class="text-sm font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-cyan-400"></i> Medium & Motion Controls
+                    </h4>
+
+                    <!-- SLIDER: EMITTED FREQUENCY -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Emitted Frequency (<span class="font-mono text-cyan-400">n₀</span>)</span>
+                            <span class="text-cyan-400 font-mono" id="val-n0">500 Hz</span>
+                        </div>
+                        <input type="range" id="input-n0" min="200" max="1000" step="10" value="500" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+                    </div>
+
+                    <!-- SLIDER: SPEED OF SOUND -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Speed of Sound (<span class="font-mono text-emerald-400">v</span>)</span>
+                            <span class="text-emerald-400 font-mono" id="val-v">340 m/s</span>
+                        </div>
+                        <input type="range" id="input-v" min="200" max="600" step="10" value="340" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400">
+                    </div>
+
+                    <!-- SLIDER: SOURCE VELOCITY -->
+                    <div class="space-y-2">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center justify-between text-xs font-semibold">
+                                <span class="text-slate-300">Source Velocity (<span class="font-mono text-rose-400">v_s</span>)</span>
+                                <span class="text-rose-400 font-mono" id="val-vs">120 m/s</span>
+                            </div>
+                            <div class="flex items-center gap-4 mt-1">
+                                <label class="inline-flex items-center text-xs text-slate-400 cursor-pointer">
+                                    <input type="radio" name="dir-vs" value="towards" checked class="text-cyan-500 focus:ring-cyan-500 bg-slate-800 border-slate-700 mr-1.5"> Approaching
+                                </label>
+                                <label class="inline-flex items-center text-xs text-slate-400 cursor-pointer">
+                                    <input type="radio" name="dir-vs" value="receding" class="text-cyan-500 focus:ring-cyan-500 bg-slate-800 border-slate-700 mr-1.5"> Receding
+                                </label>
+                            </div>
+                        </div>
+                        <input type="range" id="input-vs" min="0" max="300" step="5" value="120" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-400">
+                    </div>
+
+                    <!-- SLIDER: LISTENER VELOCITY -->
+                    <div class="space-y-2">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center justify-between text-xs font-semibold">
+                                <span class="text-slate-300">Listener Velocity (<span class="font-mono text-blue-400">v_L</span>)</span>
+                                <span class="text-blue-400 font-mono" id="val-vl">60 m/s</span>
+                            </div>
+                            <div class="flex items-center gap-4 mt-1">
+                                <label class="inline-flex items-center text-xs text-slate-400 cursor-pointer">
+                                    <input type="radio" name="dir-vl" value="towards" checked class="text-cyan-500 focus:ring-cyan-500 bg-slate-800 border-slate-700 mr-1.5"> Approaching
+                                </label>
+                                <label class="inline-flex items-center text-xs text-slate-400 cursor-pointer">
+                                    <input type="radio" name="dir-vl" value="receding" class="text-cyan-500 focus:ring-cyan-500 bg-slate-800 border-slate-700 mr-1.5"> Receding
+                                </label>
+                            </div>
+                        </div>
+                        <input type="range" id="input-vl" min="0" max="300" step="5" value="60" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-400">
+                    </div>
+
+                    <!-- SLIDER: WIND VELOCITY -->
+                    <div class="space-y-2">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center justify-between text-xs font-semibold">
+                                <span class="text-slate-300">Wind Speed & Dir (<span class="font-mono text-purple-400">v_w</span>)</span>
+                                <span class="text-purple-400 font-mono" id="val-vw">0 m/s</span>
+                            </div>
+                            <div class="flex items-center gap-4 mt-1">
+                                <label class="inline-flex items-center text-xs text-slate-400 cursor-pointer">
+                                    <input type="radio" name="dir-vw" value="with-sound" checked class="text-cyan-500 focus:ring-cyan-500 bg-slate-800 border-slate-700 mr-1.5"> With Sound (Left-Right)
+                                </label>
+                                <label class="inline-flex items-center text-xs text-slate-400 cursor-pointer">
+                                    <input type="radio" name="dir-vw" value="against-sound" class="text-cyan-500 focus:ring-cyan-500 bg-slate-800 border-slate-700 mr-1.5"> Against (Right-Left)
+                                </label>
+                            </div>
+                        </div>
+                        <input type="range" id="input-vw" min="0" max="150" step="5" value="0" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-400">
+                    </div>
+
+                    <!-- INTERACTIVE LIVE METRICS DISPLAY -->
+                    <div class="bg-slate-950 rounded-xl p-4 border border-slate-800 space-y-3">
+                        <h5 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Dynamic Shifts</h5>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-center">
+                                <span class="block text-[10px] text-slate-400 font-semibold uppercase">Source Freq</span>
+                                <span class="text-lg font-bold text-cyan-400" id="live-n0-disp">500 Hz</span>
+                            </div>
+                            <div class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-center">
+                                <span class="block text-[10px] text-slate-400 font-semibold uppercase">Observed Freq</span>
+                                <span class="text-lg font-bold text-yellow-400" id="live-n-disp">750 Hz</span>
+                            </div>
+                        </div>
+                        
+                        <div id="sonic-boom-alert" class="hidden p-2.5 bg-rose-950/50 border border-rose-500/30 rounded-lg text-center text-xs text-rose-300 font-medium flex items-center justify-center gap-2 animate-bounce">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Sonic Boom! Source exceeds wave speed.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: INTERACTIVE CANVAS SIMULATOR -->
+                <div class="lg:col-span-8 flex flex-col gap-4">
+                    <div class="bg-slate-950 border border-slate-850 rounded-2xl p-4 relative flex flex-col glow-effect">
+                        
+                        <!-- Top Canvas Info overlay -->
+                        <div class="flex items-center justify-between text-xs text-slate-400 mb-3 px-1">
+                            <div class="flex items-center gap-4">
+                                <span class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 bg-red-500 rounded-full inline-block"></span> Source
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 bg-blue-500 rounded-full inline-block"></span> Listener
+                                </span>
+                                <span id="wind-visual-indicator" class="flex items-center gap-1.5 text-purple-400">
+                                    <i class="fa-solid fa-wind"></i> Wind: 0 m/s
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="resetSimulation()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 hover:text-white rounded border border-slate-700 transition">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- CANVAS WRAPPER -->
+                        <div class="w-full overflow-hidden border border-slate-800 bg-slate-950 rounded-xl relative" style="height: 380px;">
+                            <canvas id="doppler-canvas" class="block w-full h-full"></canvas>
+                            
+                            <!-- Side-by-side Sound Generator Toggles -->
+                            <div class="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 justify-between pointer-events-auto bg-slate-900/95 backdrop-blur-sm p-3 rounded-xl border border-slate-800 shadow-xl">
+                                <div class="flex items-center gap-1">
+                                    <button id="toggle-source-sound" onclick="toggleOscillator('source')" class="px-3 py-1.5 bg-slate-800 hover:bg-cyan-950 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                                        <i class="fa-solid fa-volume-mute text-rose-500"></i> Listen Emitted
+                                    </button>
+                                    <button id="toggle-listener-sound" onclick="toggleOscillator('listener')" class="px-3 py-1.5 bg-slate-800 hover:bg-yellow-950 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                                        <i class="fa-solid fa-volume-mute text-rose-500"></i> Listen Observed
+                                    </button>
+                                </div>
+                                <div class="text-[10px] text-slate-400 max-w-[280px] flex items-center">
+                                    🔊 Toggle to hear side-by-side pitch differences. Adjust volume safely!
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Canvas legend / explanation -->
+                        <div class="mt-3 bg-slate-900/40 border border-slate-800/80 rounded-xl p-3 text-xs leading-relaxed text-slate-300">
+                            💡 <strong class="text-cyan-400">Educator Tip:</strong> Notice how the circular sound wavefronts bunch up (closer wavelengths, higher pitch) in front of the moving red source, and stretch apart (longer wavelengths, lower pitch) behind it! If you enable wind, watch how the wavefront centers drift over time with the air flow.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: MATHEMATICAL DERIVATION & EQUATION EXPLORER -->
+        <section id="math-derivation" class="scroll-mt-24 space-y-6">
+            <div class="border-t border-slate-800/80 pt-8">
+                <h3 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-indigo-400 bg-indigo-500/10 p-1.5 rounded-lg text-sm">THE MATH</span> 
+                    The Doppler Equation & Derivations
+                </h3>
+                <p class="text-slate-400 text-sm">Understanding the classical formulation step-by-step.</p>
+            </div>
+
+            <!-- TABBED SYSTEM FOR DERIVATIONS -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- FORMULA BOX & THREE CASES -->
+                <div class="lg:col-span-8 space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+                        <h4 class="font-bold text-lg text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-indigo-400"></i> General Formulation
+                        </h4>
+                        
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            When both the source and the observer (listener) are moving in the medium (with an optional wind influence), the observed frequency <span class="font-mono text-cyan-400">n</span> is calculated from emitted frequency <span class="font-mono text-indigo-400">n₀</span> using:
+                        </p>
+
+                        <!-- Big formula card -->
+                        <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 text-center relative overflow-hidden flex flex-col items-center justify-center">
+                            <div class="text-[10px] text-slate-400 absolute top-2 left-3 font-mono">GENERAL DOPPLER FORMULA (with wind)</div>
+                            
+                            <!-- Custom HTML/CSS beautiful math notation -->
+                            <div class="flex items-center gap-3 py-4 select-all">
+                                <span class="text-3xl font-mono text-yellow-400">n</span>
+                                <span class="text-2xl text-slate-500">=</span>
+                                <span class="text-3xl font-mono text-cyan-400">n₀</span>
+                                <span class="text-3xl text-slate-400">·</span>
+                                <div class="flex flex-col items-center">
+                                    <span class="text-xl md:text-2xl font-mono text-emerald-400 px-4 pb-1">v &plusmn; v_w &plusmn; v_L</span>
+                                    <div class="h-0.5 bg-slate-600 w-full rounded"></div>
+                                    <span class="text-xl md:text-2xl font-mono text-rose-400 px-4 pt-1">v &plusmn; v_w &mp; v_s</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SCENARIOS EXPLORER ACCORDION -->
+                        <div class="space-y-3 pt-2">
+                            <h5 class="text-xs font-extrabold uppercase text-slate-400 tracking-wider">The Three Core Conditions</h5>
+                            
+                            <!-- Case 1 -->
+                            <div class="border border-slate-800 bg-slate-950/40 rounded-xl p-4 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-bold text-slate-200">1) Source Moving & Listener Stationary (v_L = 0)</span>
+                                    <span class="text-xs font-mono bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded">v_L = 0</span>
+                                </div>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    When source moves towards listener with $v_s$ (relative approach), wavefronts compress:
+                                    <span class="block font-mono text-cyan-300 mt-1 bg-slate-900/60 p-2 rounded text-center">n = n₀ · [v / (v - v_s)]</span>
+                                    If moving away (recede): <span class="block font-mono text-cyan-300 mt-1 bg-slate-900/60 p-2 rounded text-center">n = n₀ · [v / (v + v_s)]</span>
+                                </p>
+                            </div>
+
+                            <!-- Case 2 -->
+                            <div class="border border-slate-800 bg-slate-950/40 rounded-xl p-4 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-bold text-slate-200">2) Listener Moving & Source Stationary (v_s = 0)</span>
+                                    <span class="text-xs font-mono bg-indigo-950 text-indigo-400 border border-indigo-800 px-2 py-0.5 rounded">v_s = 0</span>
+                                </div>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    When listener moves towards stationary source (approaching), they cross more wavefronts per second:
+                                    <span class="block font-mono text-indigo-300 mt-1 bg-slate-900/60 p-2 rounded text-center">n = n₀ · [(v + v_L) / v]</span>
+                                    If listener is receding (away): <span class="block font-mono text-indigo-300 mt-1 bg-slate-900/60 p-2 rounded text-center">n = n₀ · [(v - v_L) / v]</span>
+                                </p>
+                            </div>
+
+                            <!-- Case 3 -->
+                            <div class="border border-slate-800 bg-slate-950/40 rounded-xl p-4 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-bold text-slate-200">3) Both Source & Listener are Moving</span>
+                                    <span class="text-xs font-mono bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded">Both Motion</span>
+                                </div>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    Decide signs independently! Consider each element's movement as if the other were at rest. Upper signs in numerator and denominator represent approach; lower signs represent recede.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: DYNAMIC STEPS CALCULATOR -->
+                <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <h4 class="text-sm font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-code-branch text-emerald-400"></i> Real-time Evaluation Trace
+                    </h4>
+                    <p class="text-xs text-slate-400">Watch the simulator's active coefficients render using current control inputs:</p>
+
+                    <div id="math-trace-container" class="space-y-3 font-mono text-xs bg-slate-950 p-4 rounded-xl border border-slate-850">
+                        <div class="flex justify-between border-b border-slate-800/80 pb-1.5 text-slate-400">
+                            <span>Variable</span>
+                            <span>Value</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-cyan-400">n₀ (Emitted)</span>
+                            <span id="trace-n0">500 Hz</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-emerald-400">v (Speed sound)</span>
+                            <span id="trace-v">340 m/s</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-purple-400">v_w (Wind speed)</span>
+                            <span id="trace-vw">0 m/s</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-rose-400">v_s (Source)</span>
+                            <span id="trace-vs">120 m/s (Appr)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-blue-400">v_L (Listener)</span>
+                            <span id="trace-vl">60 m/s (Appr)</span>
+                        </div>
+
+                        <!-- Calculation breakdown -->
+                        <div class="pt-3 border-t border-slate-800 space-y-2 text-slate-300">
+                            <div class="text-[10px] text-slate-500 uppercase font-semibold">Formula evaluation:</div>
+                            <div class="bg-slate-900 p-2 rounded text-center text-sm font-bold text-yellow-400 border border-slate-800">
+                                <span id="trace-calc-eq">500 * (340 + 60) / (340 - 120)</span>
+                            </div>
+                            <div class="flex justify-between text-xs pt-1">
+                                <span class="text-slate-400">Numerator (Effective v_L)</span>
+                                <span class="text-emerald-300" id="trace-num-val">400</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Denominator (Effective v_s)</span>
+                                <span class="text-rose-300" id="trace-den-val">220</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-semibold text-slate-100 pt-1.5 border-t border-slate-800/60">
+                                <span>Observed Frequency</span>
+                                <span class="text-yellow-400 text-sm" id="trace-final">909.09 Hz</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: GAMIFIED INTERACTIVE CASE STUDY LABS -->
+        <section id="solved-examples" class="scroll-mt-24 space-y-6">
+            <div class="border-t border-slate-800/80 pt-8">
+                <h3 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-emerald-400 bg-emerald-500/10 p-1.5 rounded-lg text-sm">CASE STUDIES</span> 
+                    Interactive Text-Book Lab Challenges
+                </h3>
+                <p class="text-slate-400 text-sm">Step inside dynamic textbook problems and explore component projections & echoes.</p>
+            </div>
+
+            <!-- LAB TABS HEADER -->
+            <div class="flex border-b border-slate-800">
+                <button onclick="switchLabTab('tab-rocket')" id="btn-tab-rocket" class="px-5 py-3 text-sm font-bold border-b-2 border-cyan-500 text-cyan-400 bg-slate-900/50 rounded-t-lg flex items-center gap-2 transition">
+                    <i class="fa-solid fa-rocket"></i> Example 8.6: Rocket Echo Mission
+                </button>
+                <button onclick="switchLabTab('tab-bat')" id="btn-tab-bat" class="px-5 py-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/30 rounded-t-lg flex items-center gap-2 transition">
+                    <i class="fa-solid fa-bat"></i> Example 8.7: Bat & Car Vector Projection
+                </button>
+            </div>
+
+            <!-- TAB 1 CONTENT: ROCKET ECHO CHALLENGE -->
+            <div id="tab-rocket-content" class="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 glow-effect">
+                <div class="lg:col-span-4 space-y-4">
+                    <span class="text-xs uppercase font-bold text-cyan-400 tracking-wider">Physics Challenge 1</span>
+                    <h4 class="text-xl font-bold text-white">The Rocket Echo Mission</h4>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        A rocket speed $v_s = 220\text{ m/s}$ travels towards a stationary target. It emits a wave of frequency $n_0 = 1200\text{ Hz}$. Some sound reaches the target and gets reflected back to the rocket as an echo. 
+                    </p>
+                    <p class="text-slate-400 text-xs leading-relaxed font-semibold">
+                        Goal: Calculate (1) frequency detected by target, and (2) frequency of echo detected by rocket! (Speed of sound = $330\text{ m/s}$).
+                    </p>
+
+                    <!-- User input modifiers for custom exploration -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-3 text-xs">
+                        <div class="font-bold text-slate-300">Play with the parameters:</div>
+                        
+                        <div>
+                            <label class="flex justify-between mb-1">
+                                <span>Rocket Speed ($v_s$)</span>
+                                <span class="font-mono text-cyan-400" id="val-rocket-vs">220 m/s</span>
+                            </label>
+                            <input type="range" id="input-rocket-vs" min="100" max="300" value="220" oninput="updateRocketLab()" class="w-full accent-cyan-400">
+                        </div>
+
+                        <div>
+                            <label class="flex justify-between mb-1">
+                                <span>Emitted Freq ($n_0$)</span>
+                                <span class="font-mono text-cyan-400" id="val-rocket-n0">1200 Hz</span>
+                            </label>
+                            <input type="range" id="input-rocket-n0" min="500" max="2000" step="50" value="1200" oninput="updateRocketLab()" class="w-full accent-cyan-400">
+                        </div>
+
+                        <button onclick="triggerRocketAnimation()" class="w-full py-2 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-lg font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/10">
+                            <i class="fa-solid fa-play"></i> Trigger Acoustic Wave Animation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 flex flex-col gap-4">
+                    <!-- Animation box -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl relative p-3 flex flex-col items-center justify-center" style="height: 250px;">
+                        <canvas id="rocket-canvas" class="w-full h-full rounded-lg bg-slate-950"></canvas>
+                        <div class="absolute top-3 left-3 px-2 py-0.5 bg-slate-900/90 text-[10px] text-slate-400 font-mono rounded">
+                            Interactive Velocity Diagram
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Answer Key / Steps breakdown -->
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+                            <div class="text-[10px] text-cyan-400 font-bold uppercase">1. FREQUENCY AT STATIONARY TARGET</div>
+                            <p class="text-slate-400 leading-relaxed text-[11px]">
+                                Target acts as stationary listener. Source (Rocket) is approaching:
+                            </p>
+                            <div class="bg-slate-900 p-2 rounded text-center text-slate-200">
+                                n = n₀ · [v / (v - v_s)]
+                            </div>
+                            <div class="flex justify-between text-slate-400 pt-1">
+                                <span>Substitution:</span>
+                                <span class="text-slate-200" id="rocket-sub-1">1200 * [330 / (330 - 220)]</span>
+                            </div>
+                            <div class="flex justify-between font-bold text-cyan-300">
+                                <span>Answer:</span>
+                                <span id="rocket-ans-1">3600 Hz</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+                            <div class="text-[10px] text-indigo-400 font-bold uppercase">2. FREQUENCY OF ECHO AT ROCKET</div>
+                            <p class="text-slate-400 leading-relaxed text-[11px]">
+                                Target becomes a new stationary source reflecting $n_{target}$. Rocket is listener approaching:
+                            </p>
+                            <div class="bg-slate-900 p-2 rounded text-center text-slate-200">
+                                n' = n_target · [(v + v_L) / v]
+                            </div>
+                            <div class="flex justify-between text-slate-400 pt-1">
+                                <span>Substitution:</span>
+                                <span class="text-slate-200" id="rocket-sub-2">3600 * [(330 + 220) / 330]</span>
+                            </div>
+                            <div class="flex justify-between font-bold text-indigo-300">
+                                <span>Answer:</span>
+                                <span id="rocket-ans-2">6000 Hz</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2 CONTENT: BAT & CAR VECTOR PROJECTION -->
+            <div id="tab-bat-content" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 glow-effect">
+                <div class="lg:col-span-4 space-y-4">
+                    <span class="text-xs uppercase font-bold text-cyan-400 tracking-wider">Physics Challenge 2</span>
+                    <h4 class="text-xl font-bold text-white">The Bat & Car Vector Lab</h4>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        A bat flying at velocity $V_B$ is followed by a car driving at velocity $V_C$. But they aren't on the same line! They have offset directions. 
+                    </p>
+                    <p class="text-slate-400 text-xs leading-relaxed text-indigo-300 font-medium">
+                        🔑 <strong class="text-yellow-400">Core Rule:</strong> If velocity vectors are not on the same straight line, we must project their components along the immediate line joining them to evaluate Doppler shift!
+                    </p>
+
+                    <!-- Controls for the Bat Example -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 text-xs">
+                        <div class="font-bold text-slate-300">Adjust Speeds & Angles:</div>
+                        
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>Car Speed ($v_c$)</span>
+                                <span class="font-mono text-cyan-400" id="val-bat-vc">50 m/s</span>
+                            </div>
+                            <input type="range" id="input-bat-vc" min="10" max="100" value="50" oninput="updateBatLab()" class="w-full accent-cyan-400">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>Car Offset Angle (θ_c)</span>
+                                <span class="font-mono text-cyan-400" id="val-bat-ac">53°</span>
+                            </div>
+                            <input type="range" id="input-bat-ac" min="0" max="90" value="53" oninput="updateBatLab()" class="w-full accent-indigo-400">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>Bat Speed ($v_B$)</span>
+                                <span class="font-mono text-cyan-400" id="val-bat-vb">12.5 m/s</span>
+                            </div>
+                            <input type="range" id="input-bat-vb" min="5" max="40" step="0.5" value="12.5" oninput="updateBatLab()" class="w-full accent-cyan-400">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>Bat Offset Angle (θ_B)</span>
+                                <span class="font-mono text-cyan-400" id="val-bat-ab">37°</span>
+                            </div>
+                            <input type="range" id="input-bat-ab" min="0" max="90" value="37" oninput="updateBatLab()" class="w-full accent-indigo-400">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 flex flex-col gap-4">
+                    <!-- Dynamic Component Projection Canvas -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl relative p-3 flex flex-col items-center justify-center" style="height: 250px;">
+                        <canvas id="bat-canvas" class="w-full h-full rounded-lg bg-slate-950"></canvas>
+                        <div class="absolute top-3 left-3 px-2 py-0.5 bg-slate-900/90 text-[10px] text-slate-400 font-mono rounded">
+                            Interactive Vector Projection
+                        </div>
+                    </div>
+
+                    <!-- Step-by-step vector breakdown -->
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-850 space-y-3 text-xs font-mono">
+                        <h5 class="text-xs font-extrabold uppercase text-slate-300 tracking-wider">Dynamic Vector Projections:</h5>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                <span class="text-cyan-400 font-bold block mb-1">🚙 Car Component along line of sight:</span>
+                                <span class="text-[11px] text-slate-400">V_c_line = V_c · cos(θ_c)</span>
+                                <div class="text-sm font-bold text-slate-200 mt-1" id="bat-car-comp-calc">
+                                    50 · cos(53°) ≈ 30.00 m/s
+                                </div>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                <span class="text-emerald-400 font-bold block mb-1">🦇 Bat Component along line of sight:</span>
+                                <span class="text-[11px] text-slate-400">V_B_line = V_B · cos(θ_B)</span>
+                                <div class="text-sm font-bold text-slate-200 mt-1" id="bat-bat-comp-calc">
+                                    12.5 · cos(37°) ≈ 10.00 m/s
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-300 space-y-2">
+                            <span class="text-indigo-400 font-bold block">🚨 Step 1: Bat transmits ultrasonic sound (n₀ = 36 kHz) to Car</span>
+                            <p class="text-[11px] text-slate-400">
+                                Source (Bat) is receding (denominator gets $+$). Listener (Car) is approaching (numerator gets $+$):
+                            </p>
+                            <div class="bg-slate-900 p-2 rounded text-center text-slate-200 font-bold text-sm">
+                                <span id="bat-target-formula">n = 36000 * [(350 + 30) / (350 + 10)] = 38000 Hz</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMPARISON CARD: SOUND VS LIGHT DOPPLER -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 glow-effect space-y-6">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-cyan-400"></i> Sound vs. Light: Key Differences
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                
+                <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-850 space-y-2">
+                    <h4 class="font-bold text-cyan-400">Who is in motion?</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        In <strong class="text-slate-300">Sound</strong>, it is absolutely crucial to distinguish whether the source or listener is moving, because wave speed depends strictly on the physical medium. In <strong class="text-slate-300">Light</strong>, because its speed is absolute ($c$), only the relative velocity between both particles matters.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-850 space-y-2">
+                    <h4 class="font-bold text-indigo-400">Wind Effects</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Wind shifts the entire medium carrying sound waves. Hence, wind velocity ($v_w$) must be added or subtracted to the velocity of sound waves. Light waves propagate through empty vacuum; no material wind medium exists to alter its velocity.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-850 space-y-2">
+                    <h4 class="font-bold text-emerald-400">Relativity Shifts</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Classical Doppler formulations perfectly model sound waves. However, for high-speed light waves (approaching $c$), Einstein's relativistic effects (time dilation) must be applied, resulting in different math for Light!
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: GAMIFIED CHALLENGE QUIZ -->
+        <section id="doppler-quiz" class="scroll-mt-24 space-y-6">
+            <div class="border-t border-slate-800/80 pt-8">
+                <h3 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-rose-400 bg-rose-500/10 p-1.5 rounded-lg text-sm">QUIZ</span> 
+                    The Doppler Challenge
+                </h3>
+                <p class="text-slate-400 text-sm">Reinforce your learning. Answer these conceptual and numerical problems to earn mastery points!</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- LEFT SIDE: PROGRESS & QUESTION CONTAINER -->
+                <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+                    
+                    <!-- Progress Bar Header -->
+                    <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
+                        <span>Question <span id="quiz-question-num" class="text-cyan-400 font-bold">1</span> of 5</span>
+                        <span>Quiz Progress: <span id="quiz-score-num" class="text-emerald-400 font-bold">0</span>/5 Points</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2">
+                        <div id="quiz-progress-bar" class="bg-cyan-500 h-2 rounded-full transition-all duration-300" style="width: 20%;"></div>
+                    </div>
+
+                    <!-- Question Text Block -->
+                    <div class="space-y-2">
+                        <span id="quiz-tag" class="px-2 py-0.5 bg-cyan-900/40 text-cyan-400 border border-cyan-500/20 text-[10px] font-mono rounded">Conceptual</span>
+                        <h4 id="quiz-question-text" class="text-lg font-semibold text-slate-100">
+                            If both source and listener are moving in the same direction with exactly the same speed ($|v_L| = |v_s|$), what is the observed frequency shift?
+                        </h4>
+                    </div>
+
+                    <!-- Choices Group -->
+                    <div id="quiz-choices-container" class="space-y-3">
+                        <!-- Choices injected via JS -->
+                    </div>
+
+                    <!-- Navigation / Feedback panel -->
+                    <div id="quiz-feedback-panel" class="hidden p-4 rounded-xl border transition-all duration-200">
+                        <div class="flex items-start gap-3">
+                            <span id="quiz-feedback-icon" class="text-lg"></span>
+                            <div class="space-y-1">
+                                <span id="quiz-feedback-title" class="font-bold text-sm block"></span>
+                                <p id="quiz-feedback-desc" class="text-xs text-slate-400 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <button id="quiz-explain-btn" onclick="toggleQuizExplanation()" class="hidden text-xs text-slate-400 hover:text-cyan-400 transition">
+                            <i class="fa-solid fa-circle-question mr-1"></i> Toggle explanation
+                        </button>
+                        <button id="quiz-action-btn" onclick="submitQuizAnswer()" class="ml-auto px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-sm transition tracking-wide shadow-lg shadow-cyan-600/10">
+                            Check Answer <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT SIDE: STATS & TROPHY PANEL -->
+                <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 text-center flex flex-col items-center justify-center space-y-4">
+                    <div class="w-16 h-16 rounded-full bg-slate-800 border-2 border-yellow-500/30 flex items-center justify-center relative shadow-inner">
+                        <span class="text-3xl text-yellow-400 animate-bounce">🏆</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-100">Doppler Mastery Badge</h4>
+                        <p class="text-xs text-slate-400 mt-1">Answer questions correctly to lock in your score and unlock advanced metrics!</p>
+                    </div>
+                    
+                    <div class="w-full bg-slate-950 p-4 rounded-xl border border-slate-800 grid grid-cols-2 gap-2 text-xs font-mono">
+                        <div class="text-center p-2 bg-slate-900 border border-slate-850 rounded-lg">
+                            <span class="block text-[10px] text-slate-400 uppercase">Correct</span>
+                            <span class="text-sm font-bold text-emerald-400" id="stat-correct">0</span>
+                        </div>
+                        <div class="text-center p-2 bg-slate-900 border border-slate-850 rounded-lg">
+                            <span class="block text-[10px] text-slate-400 uppercase">Streak</span>
+                            <span class="text-sm font-bold text-amber-400" id="stat-streak">0</span>
+                        </div>
+                    </div>
+
+                    <button onclick="resetQuiz()" class="text-xs text-slate-400 hover:text-slate-200 underline">
+                        Restart Doppler Challenge
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-850 mt-16 py-8 px-4 text-center text-xs text-slate-500 space-y-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>Designed for Physics Classrooms & Wave Labs. Licensed under CC BY-NC 4.0.</p>
+            <div class="flex gap-4">
+                <a href="#" class="hover:text-cyan-400 transition">Interactive Labs</a>
+                <a href="#" class="hover:text-cyan-400 transition">Syllabus Guide</a>
+                <a href="#" class="hover:text-cyan-400 transition">Christian Doppler Archives</a>
+            </div>
+        </div>
+        <p class="font-mono text-[10px] text-slate-600">© 2026 Doppler Wave Simulator Core. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // GLOBALS & PHYSICS SIMULATION STATE
+        const canvas = document.getElementById('doppler-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Physics parameters linked directly with DOM input controls
+        let n0 = 500;        // Source emitted frequency
+        let v = 340;         // Medium wave speed (sound)
+        let vs = 120;        // Source velocity
+        let vl = 60;         // Listener velocity
+        let vw = 0;          // Wind velocity
+
+        let dirVs = "towards";    // towards | receding
+        let dirVl = "towards";    // towards | receding
+        let dirVw = "with-sound"; // with-sound | against-sound
+
+        // Animation tracking states
+        let sourceX = 120;
+        let sourceY = 190;
+        let listenerX = 600;
+        let listenerY = 190;
+
+        let waves = [];      // Holds active circular wavefronts on screen
+        let lastWaveTime = 0;
+        let animationFrameId = null;
+
+        // Custom Sound Generator using standard Web Audio API
+        let audioContext = null;
+        let isMasterSoundOn = false;
+
+        // Node instances for sound simulation
+        let sourceSynthNode = null;
+        let listenerSynthNode = null;
+        let sourceSynthGain = null;
+        let listenerSynthGain = null;
+
+        // Track listener interaction sounds
+        let isSourceSynthPlaying = false;
+        let isListenerSynthPlaying = false;
+
+        // Resize Canvas dynamically keeping aspect ratio
+        function resizeCanvas() {
+            const rect = canvas.parentNode.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            // Center listener in vertical plane of coordinate scale
+            listenerY = canvas.height / 2;
+            sourceY = canvas.height / 2;
+            listenerX = canvas.width * 0.75;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Initialize Slider inputs on start
+        function initInputs() {
+            // Slider listeners
+            document.getElementById('input-n0').addEventListener('input', (e) => {
+                n0 = parseInt(e.target.value);
+                document.getElementById('val-n0').textContent = n0 + " Hz";
+                updateCalculations();
+            });
+            document.getElementById('input-v').addEventListener('input', (e) => {
+                v = parseInt(e.target.value);
+                document.getElementById('val-v').textContent = v + " m/s";
+                updateCalculations();
+            });
+            document.getElementById('input-vs').addEventListener('input', (e) => {
+                vs = parseInt(e.target.value);
+                document.getElementById('val-vs').textContent = vs + " m/s";
+                updateCalculations();
+            });
+            document.getElementById('input-vl').addEventListener('input', (e) => {
+                vl = parseInt(e.target.value);
+                document.getElementById('val-vl').textContent = vl + " m/s";
+                updateCalculations();
+            });
+            document.getElementById('input-vw').addEventListener('input', (e) => {
+                vw = parseInt(e.target.value);
+                document.getElementById('val-vw').textContent = vw + " m/s";
+                document.getElementById('wind-visual-indicator').innerHTML = `<i class="fa-solid fa-wind"></i> Wind: ${vw} m/s`;
+                updateCalculations();
+            });
+
+            // Radio directions listener
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const vsDirActive = document.querySelector('input[name="dir-vs"]:checked');
+                    if(vsDirActive) dirVs = vsDirActive.value;
+
+                    const vlDirActive = document.querySelector('input[name="dir-vl"]:checked');
+                    if(vlDirActive) dirVl = vlDirActive.value;
+
+                    const vwDirActive = document.querySelector('input[name="dir-vw"]:checked');
+                    if(vwDirActive) dirVw = vwDirActive.value;
+
+                    updateCalculations();
+                });
+            });
+
+            // Trigger visual computations instantly
+            updateCalculations();
+        }
+
+        // Reset simulation to fresh classroom defaults
+        function resetSimulation() {
+            document.getElementById('input-n0').value = 500;
+            document.getElementById('input-v').value = 340;
+            document.getElementById('input-vs').value = 120;
+            document.getElementById('input-vl').value = 60;
+            document.getElementById('input-vw').value = 0;
+            
+            // Re-trigger defaults
+            n0 = 500; v = 340; vs = 120; vl = 60; vw = 0;
+            dirVs = "towards"; dirVl = "towards"; dirVw = "with-sound";
+            
+            document.getElementById('val-n0').textContent = "500 Hz";
+            document.getElementById('val-v').textContent = "340 m/s";
+            document.getElementById('val-vs').textContent = "120 m/s";
+            document.getElementById('val-vl').textContent = "60 m/s";
+            document.getElementById('val-vw').textContent = "0 m/s";
+
+            waves = [];
+            sourceX = 120;
+
+            updateCalculations();
+        }
+
+        // CORE PHYSICS DOPPLER CALCULATOR
+        function calculateDoppler() {
+            // Apply proper signs based on Approach & Recede selection
+            // Formula n = n0 * (v +- vw +- vl) / (v +- vw -+ vs)
+            
+            // Effective Wind influence on sound speed
+            // Wind from source to listener matches direction of propagation (+ sign)
+            let effective_vw = (dirVw === "with-sound") ? vw : -vw;
+            let medium_speed = v + effective_vw;
+
+            // Numerator signs: listener towards (+) or away (-)
+            let listener_term = (dirVl === "towards") ? vl : -vl;
+            let numerator = medium_speed + listener_term;
+
+            // Denominator signs: source towards (-) or away (+)
+            let source_term = (dirVs === "towards") ? -vs : vs;
+            let denominator = medium_speed + source_term;
+
+            // Prevent dividing by zero or getting negative sound waves
+            if (denominator <= 0) {
+                denominator = 0.1; // Clamp to avoid infinity
+            }
+
+            let final_n = n0 * (numerator / denominator);
+            return {
+                observedFrequency: Math.max(1, Math.round(final_n * 100) / 100),
+                numeratorValue: numerator,
+                denominatorValue: denominator,
+                effectiveVw: effective_vw
+            };
+        }
+
+        function updateCalculations() {
+            const results = calculateDoppler();
+            
+            // Update live metrics on HUD UI
+            document.getElementById('live-n0-disp').textContent = n0 + " Hz";
+            document.getElementById('live-n-disp').textContent = Math.round(results.observedFrequency) + " Hz";
+
+            // Trigger sonic boom alert if source is hypersonic
+            if (vs >= (v + results.effectiveVw) && dirVs === "towards") {
+                document.getElementById('sonic-boom-alert').classList.remove('hidden');
+            } else {
+                document.getElementById('sonic-boom-alert').classList.add('hidden');
+            }
+
+            // Update Real-time trace step block
+            document.getElementById('trace-n0').textContent = n0 + " Hz";
+            document.getElementById('trace-v').textContent = v + " m/s";
+            document.getElementById('trace-vw').textContent = vw + " m/s (" + (dirVw === "with-sound" ? "With" : "Against") + ")";
+            document.getElementById('trace-vs').textContent = vs + " m/s (" + (dirVs === "towards" ? "Approach" : "Recede") + ")";
+            document.getElementById('trace-vl').textContent = vl + " m/s (" + (dirVl === "towards" ? "Approach" : "Recede") + ")";
+
+            // Calculate formatted math expressions
+            const signNum = (dirVl === "towards") ? "+" : "-";
+            const signDen = (dirVs === "towards") ? "-" : "+";
+            const signWind = (dirVw === "with-sound") ? "+" : "-";
+
+            document.getElementById('trace-calc-eq').innerHTML = 
+                `${n0} · <span class="text-emerald-400">(${v} ${signWind} ${vw} ${signNum} ${vl})</span> / <span class="text-rose-400">(${v} ${signWind} ${vw} ${signDen} ${vs})</span>`;
+            
+            document.getElementById('trace-num-val').textContent = results.numeratorValue;
+            document.getElementById('trace-den-val').textContent = results.denominatorValue;
+            document.getElementById('trace-final').textContent = results.observedFrequency + " Hz";
+
+            // Dynamically alter audio frequencies in real-time
+            updateAudioFrequencies(n0, results.observedFrequency);
+        }
+
+        // SYNTHESIS & WEB AUDIO LOGIC
+        function initAudio() {
+            if (audioContext) return;
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Emitted sound path setup (Synthesized tone generator)
+                sourceSynthGain = audioContext.createGain();
+                sourceSynthGain.gain.setValueAtTime(0, audioContext.currentTime); // default silent
+                sourceSynthGain.connect(audioContext.destination);
+
+                // Observed sound path setup
+                listenerSynthGain = audioContext.createGain();
+                listenerSynthGain.gain.setValueAtTime(0, audioContext.currentTime); // default silent
+                listenerSynthGain.connect(audioContext.destination);
+
+            } catch(e) {
+                console.error("Web Audio API not supported", e);
+            }
+        }
+
+        function togglePlaygroundAudio() {
+            initAudio();
+            
+            const btn = document.getElementById('master-sound-btn');
+            const icon = document.getElementById('sound-btn-icon');
+            const txt = document.getElementById('sound-btn-text');
+
+            if (!isMasterSoundOn) {
+                // Resume Context in case of browser click security gates
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                isMasterSoundOn = true;
+                btn.classList.replace('bg-rose-600', 'bg-emerald-600');
+                btn.classList.replace('hover:bg-rose-500', 'hover:bg-emerald-500');
+                icon.classList.replace('fa-volume-xmark', 'fa-volume-high');
+                txt.textContent = "Sandbox Sound Active!";
+            } else {
+                isMasterSoundOn = false;
+                btn.classList.replace('bg-emerald-600', 'bg-rose-600');
+                btn.classList.replace('hover:bg-emerald-500', 'hover:bg-rose-500');
+                icon.classList.replace('fa-volume-high', 'fa-volume-xmark');
+                txt.textContent = "Enable Sandbox Sound";
+                
+                // Force quiet
+                if (sourceSynthGain) sourceSynthGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
+                if (listenerSynthGain) listenerSynthGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
+
+                isSourceSynthPlaying = false;
+                isListenerSynthPlaying = false;
+
+                document.getElementById('toggle-source-sound').innerHTML = `<i class="fa-solid fa-volume-mute text-rose-500"></i> Listen Emitted`;
+                document.getElementById('toggle-listener-sound').innerHTML = `<i class="fa-solid fa-volume-mute text-rose-500"></i> Listen Observed`;
+            }
+        }
+
+        function toggleOscillator(nodeType) {
+            if (!isMasterSoundOn) {
+                // Flash alert modal
+                alertPopup("Please click 'Enable Sandbox Sound' first to authorize audio context creation in your browser!", "info");
+                return;
+            }
+
+            if (nodeType === 'source') {
+                if (!isSourceSynthPlaying) {
+                    // Create and start Oscillator node if silent
+                    sourceSynthNode = audioContext.createOscillator();
+                    sourceSynthNode.type = 'sine';
+                    sourceSynthNode.frequency.setValueAtTime(n0, audioContext.currentTime);
+                    sourceSynthNode.connect(sourceSynthGain);
+                    sourceSynthNode.start();
+                    
+                    // Ramp volume slowly for protection (Max safely limited to 0.05)
+                    sourceSynthGain.gain.setTargetAtTime(0.05, audioContext.currentTime, 0.1);
+                    isSourceSynthPlaying = true;
+                    document.getElementById('toggle-source-sound').innerHTML = `<i class="fa-solid fa-volume-up text-emerald-400"></i> Mute Emitted`;
+                } else {
+                    sourceSynthGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
+                    setTimeout(() => {
+                        if (sourceSynthNode && isSourceSynthPlaying === false) sourceSynthNode.stop();
+                    }, 200);
+                    isSourceSynthPlaying = false;
+                    document.getElementById('toggle-source-sound').innerHTML = `<i class="fa-solid fa-volume-mute text-rose-500"></i> Listen Emitted`;
+                }
+            } else if (nodeType === 'listener') {
+                if (!isListenerSynthPlaying) {
+                    listenerSynthNode = audioContext.createOscillator();
+                    listenerSynthNode.type = 'sine';
+                    
+                    const res = calculateDoppler();
+                    listenerSynthNode.frequency.setValueAtTime(res.observedFrequency, audioContext.currentTime);
+                    listenerSynthNode.connect(listenerSynthGain);
+                    listenerSynthNode.start();
+
+                    // Safely ramp observed frequency
+                    listenerSynthGain.gain.setTargetAtTime(0.05, audioContext.currentTime, 0.1);
+                    isListenerSynthPlaying = true;
+                    document.getElementById('toggle-listener-sound').innerHTML = `<i class="fa-solid fa-volume-up text-emerald-400"></i> Mute Observed`;
+                } else {
+                    listenerSynthGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
+                    setTimeout(() => {
+                        if (listenerSynthNode && isListenerSynthPlaying === false) listenerSynthNode.stop();
+                    }, 200);
+                    isListenerSynthPlaying = false;
+                    document.getElementById('toggle-listener-sound').innerHTML = `<i class="fa-solid fa-volume-mute text-rose-500"></i> Listen Observed`;
+                }
+            }
+        }
+
+        function updateAudioFrequencies(emitted, observed) {
+            if (!audioContext || !isMasterSoundOn) return;
+            
+            if (isSourceSynthPlaying && sourceSynthNode) {
+                sourceSynthNode.frequency.setTargetAtTime(emitted, audioContext.currentTime, 0.1);
+            }
+            if (isListenerSynthPlaying && listenerSynthNode) {
+                // Ensure frequency is positive to avoid invalid values
+                let safetyFreq = Math.max(10, observed);
+                listenerSynthNode.frequency.setTargetAtTime(safetyFreq, audioContext.currentTime, 0.1);
+            }
+        }
+
+        // CANVAS ANIMATION & WAVEFRONT SIMULATOR
+        function animatePlayground() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background wave grids
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            for (let j = 0; j < canvas.height; j += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, j);
+                ctx.lineTo(canvas.width, j);
+                ctx.stroke();
+            }
+
+            const physicsResults = calculateDoppler();
+
+            // Emit fresh wavefront periodically (scaled by emitted frequency n0)
+            const now = Date.now();
+            const emitInterval = Math.max(150, 1000 * (150 / n0)); // Clamp visually appealing frequency
+            if (now - lastWaveTime > emitInterval) {
+                waves.push({
+                    x: sourceX,
+                    y: sourceY,
+                    radius: 0,
+                    opacity: 0.8
+                });
+                lastWaveTime = now;
+            }
+
+            // Draw and expand active wave ripples
+            const speedSoundScaled = (v / 150) * 1.8; // Normalized scaling factor
+            const effectiveWindScaled = (physicsResults.effectiveVw / 150) * 1.8;
+
+            ctx.lineWidth = 1.8;
+            for (let k = waves.length - 1; k >= 0; k--) {
+                const wave = waves[k];
+                
+                // Drift wave center strictly because of physical wind influence
+                wave.x += effectiveWindScaled;
+                wave.radius += speedSoundScaled;
+                wave.opacity -= 0.0035; // gradually dissipate
+
+                if (wave.opacity <= 0 || wave.radius > Math.max(canvas.width, canvas.height)) {
+                    waves.splice(k, 1);
+                    continue;
+                }
+
+                // Check collision/crest crossing with Listener
+                const distanceToListener = Math.hypot(wave.x - listenerX, wave.y - listenerY);
+                let hitRatio = Math.abs(wave.radius - distanceToListener);
+                
+                // If wavefront meets the listener, draw a tiny bright highlight pulse!
+                if (hitRatio < 2.5) {
+                    ctx.strokeStyle = `rgba(234, 179, 8, ${wave.opacity * 1.2})`;
+                    ctx.beginPath();
+                    ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Flare at listener
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.arc(listenerX, listenerY, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.strokeStyle = `rgba(14, 165, 233, ${wave.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            // Move the Source horizontally based on vs speed
+            const speedSourceScaled = (vs / 150) * 0.9;
+            if (dirVs === "towards") {
+                sourceX += speedSourceScaled;
+                if (sourceX > canvas.width) sourceX = 0; // Wrap around for looping classroom flow
+            } else {
+                sourceX -= speedSourceScaled;
+                if (sourceX < 0) sourceX = canvas.width;
+            }
+
+            // Move the Listener horizontally based on vl speed
+            const speedListenerScaled = (vl / 150) * 0.9;
+            if (dirVl === "towards") {
+                listenerX -= speedListenerScaled;
+                if (listenerX < 0) listenerX = canvas.width;
+            } else {
+                listenerX += speedListenerScaled;
+                if (listenerX > canvas.width) listenerX = 0;
+            }
+
+            // Draw Wind flow vector lines if wind is alive
+            if (vw > 0) {
+                ctx.fillStyle = 'rgba(168, 85, 247, 0.15)';
+                ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
+                ctx.lineWidth = 1;
+                const windStep = (dirVw === "with-sound") ? 1 : -1;
+                for (let i = 0; i < 5; i++) {
+                    const yPos = (canvas.height / 5) * i + 30;
+                    const xOffset = (Date.now() / 15 * windStep) % 60;
+                    ctx.beginPath();
+                    ctx.moveTo(40 + xOffset, yPos);
+                    ctx.lineTo(80 + xOffset, yPos);
+                    ctx.stroke();
+                }
+            }
+
+            // Draw Source node (Red engine with pulsing waves)
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ef4444';
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(sourceX, sourceY, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label for source
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 10px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText("🔊 Source", sourceX, sourceY - 18);
+
+            // Draw Listener node (Blue node)
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#3b82f6';
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(listenerX, listenerY, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label for listener
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 10px Inter';
+            ctx.fillText("👂 Listener", listenerX, listenerY - 18);
+
+            animationFrameId = requestAnimationFrame(animatePlayground);
+        }
+
+        // CASE STUDY LABS TAB SYSTEM
+        function switchLabTab(tabId) {
+            document.getElementById('btn-tab-rocket').className = "px-5 py-3 text-sm font-bold border-b-2 transition flex items-center gap-2 " + 
+                (tabId === 'tab-rocket' ? 'border-cyan-500 text-cyan-400 bg-slate-900/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/30');
+            document.getElementById('btn-tab-bat').className = "px-5 py-3 text-sm font-bold border-b-2 transition flex items-center gap-2 " + 
+                (tabId === 'tab-bat' ? 'border-cyan-500 text-cyan-400 bg-slate-900/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/30');
+
+            if (tabId === 'tab-rocket') {
+                document.getElementById('tab-rocket-content').classList.remove('hidden');
+                document.getElementById('tab-bat-content').classList.add('hidden');
+                initRocketLab();
+            } else {
+                document.getElementById('tab-rocket-content').classList.add('hidden');
+                document.getElementById('tab-bat-content').classList.remove('hidden');
+                initBatLab();
+            }
+        }
+
+        // ROCKET ECHO CHALLENGE SYSTEM
+        let rocketCanvas, rCtx;
+        let rocketX = 50;
+        let targetX = 550;
+        let rocketAnimActive = false;
+        let rocketWaves = [];
+
+        function initRocketLab() {
+            rocketCanvas = document.getElementById('rocket-canvas');
+            if(!rocketCanvas) return;
+            rCtx = rocketCanvas.getContext('2d');
+            rocketCanvas.width = rocketCanvas.parentNode.clientWidth;
+            rocketCanvas.height = 250;
+            targetX = rocketCanvas.width - 100;
+            updateRocketLab();
+            drawRocketStatic();
+        }
+
+        function updateRocketLab() {
+            const vs_r = parseInt(document.getElementById('input-rocket-vs').value);
+            const n0_r = parseInt(document.getElementById('input-rocket-n0').value);
+            document.getElementById('val-rocket-vs').textContent = vs_r + " m/s";
+            document.getElementById('val-rocket-n0').textContent = n0_r + " Hz";
+
+            // Calculation for Rocket Echo Textbook problem: Example 8.6
+            // v = 330 m/s
+            let v_sound = 330;
+            let n_target = Math.round(n0_r * (v_sound / (v_sound - vs_r)));
+            let n_echo = Math.round(n_target * ((v_sound + vs_r) / v_sound));
+
+            // Substitutions formatting
+            document.getElementById('rocket-sub-1').textContent = `${n0_r} · [330 / (330 - ${vs_r})]`;
+            document.getElementById('rocket-ans-1').textContent = n_target + " Hz";
+            
+            document.getElementById('rocket-sub-2').textContent = `${n_target} · [(330 + ${vs_r}) / 330]`;
+            document.getElementById('rocket-ans-2').textContent = n_echo + " Hz";
+        }
+
+        function drawRocketStatic() {
+            rCtx.clearRect(0, 0, rocketCanvas.width, rocketCanvas.height);
+            
+            // Draw Target (Stationary building/grid)
+            rCtx.fillStyle = '#475569';
+            rCtx.fillRect(targetX, 80, 25, 90);
+            rCtx.fillStyle = '#ef4444';
+            rCtx.beginPath();
+            rCtx.arc(targetX + 12, 80, 6, 0, Math.PI*2);
+            rCtx.fill();
+            rCtx.fillStyle = '#f8fafc';
+            rCtx.font = 'bold 10px monospace';
+            rCtx.fillText("🎯 Target", targetX - 10, 65);
+
+            // Draw Rocket
+            rCtx.fillStyle = '#0284c7';
+            rCtx.fillRect(rocketX, 110, 45, 20);
+            rCtx.fillStyle = '#38bdf8';
+            rCtx.beginPath();
+            rCtx.moveTo(rocketX + 45, 110);
+            rCtx.lineTo(rocketX + 60, 120);
+            rCtx.lineTo(rocketX + 45, 130);
+            rCtx.fill();
+            
+            // Jet fire tail
+            rCtx.fillStyle = '#f97316';
+            rCtx.beginPath();
+            rCtx.moveTo(rocketX, 112);
+            rCtx.lineTo(rocketX - 12, 120);
+            rCtx.lineTo(rocketX, 128);
+            rCtx.fill();
+
+            rCtx.fillStyle = '#f8fafc';
+            rCtx.fillText("🚀 Rocket", rocketX - 5, 95);
+        }
+
+        function triggerRocketAnimation() {
+            if(rocketAnimActive) return;
+            rocketAnimActive = true;
+            rocketX = 50;
+            rocketWaves = [];
+            let frameCount = 0;
+
+            function playRocketFrame() {
+                rCtx.clearRect(0, 0, rocketCanvas.width, rocketCanvas.height);
+                
+                // Draw targets
+                rCtx.fillStyle = '#475569';
+                rCtx.fillRect(targetX, 80, 25, 90);
+                rCtx.fillStyle = '#38bdf8';
+                rCtx.beginPath();
+                rCtx.arc(targetX + 12, 80, 6, 0, Math.PI*2);
+                rCtx.fill();
+                rCtx.fillStyle = '#f8fafc';
+                rCtx.font = 'bold 10px monospace';
+                rCtx.fillText("🎯 Target", targetX - 10, 65);
+
+                // Emitting waves
+                if(frameCount % 15 === 0 && rocketX < targetX - 50) {
+                    rocketWaves.push({
+                        x: rocketX + 50,
+                        y: 120,
+                        radius: 0,
+                        type: 'forward' // forward wavefront
+                    });
+                }
+
+                // Wave update
+                for(let i = rocketWaves.length - 1; i >= 0; i--) {
+                    let w = rocketWaves[i];
+                    w.radius += 3.5;
+
+                    // Wave reaches target: turn into echo back-wave
+                    if(w.x + w.radius >= targetX && w.type === 'forward') {
+                        w.type = 'echo';
+                        w.x = targetX; // reflect from target
+                        w.radius = 0;
+                    }
+
+                    rCtx.beginPath();
+                    if(w.type === 'forward') {
+                        rCtx.strokeStyle = 'rgba(14, 165, 233, 0.4)';
+                        rCtx.arc(w.x, w.y, w.radius, -Math.PI/3, Math.PI/3);
+                    } else {
+                        // Reflecting echo wave
+                        rCtx.strokeStyle = 'rgba(236, 72, 153, 0.6)';
+                        rCtx.arc(w.x, w.y, w.radius, Math.PI * 0.7, Math.PI * 1.3);
+                    }
+                    rCtx.stroke();
+
+                    if(w.type === 'echo' && w.x - w.radius <= rocketX + 60 && w.radius > 20) {
+                        // Echo hits rocket! Create visual indicator flash
+                        rCtx.fillStyle = 'rgba(236, 72, 153, 0.3)';
+                        rCtx.beginPath();
+                        rCtx.arc(rocketX + 30, 120, 25, 0, Math.PI*2);
+                        rCtx.fill();
+                    }
+
+                    if(w.radius > 600) {
+                        rocketWaves.splice(i, 1);
+                    }
+                }
+
+                // Draw Rocket
+                rCtx.fillStyle = '#0284c7';
+                rCtx.fillRect(rocketX, 110, 45, 20);
+                rCtx.fillStyle = '#38bdf8';
+                rCtx.beginPath();
+                rCtx.moveTo(rocketX + 45, 110);
+                rCtx.lineTo(rocketX + 60, 120);
+                rCtx.lineTo(rocketX + 45, 130);
+                rCtx.fill();
+
+                rCtx.fillStyle = '#f97316';
+                rCtx.beginPath();
+                rCtx.moveTo(rocketX, 112);
+                rCtx.lineTo(rocketX - 12 - (frameCount % 4), 120);
+                rCtx.lineTo(rocketX, 128);
+                rCtx.fill();
+
+                rCtx.fillStyle = '#f8fafc';
+                rCtx.fillText("🚀 Rocket", rocketX - 5, 95);
+
+                rocketX += 1.8; // move rocket
+                frameCount++;
+
+                if(rocketX < targetX - 50) {
+                    requestAnimationFrame(playRocketFrame);
+                } else {
+                    rocketAnimActive = false;
+                    drawRocketStatic();
+                }
+            }
+            playRocketFrame();
+        }
+
+        // BAT & CAR VECTOR LAB
+        let batCanvas, bCtx;
+        function initBatLab() {
+            batCanvas = document.getElementById('bat-canvas');
+            if(!batCanvas) return;
+            bCtx = batCanvas.getContext('2d');
+            batCanvas.width = batCanvas.parentNode.clientWidth;
+            batCanvas.height = 250;
+            updateBatLab();
+        }
+
+        function updateBatLab() {
+            if(!bCtx) return;
+
+            const vc = parseFloat(document.getElementById('input-bat-vc').value);
+            const ac_deg = parseFloat(document.getElementById('input-bat-ac').value);
+            const vb = parseFloat(document.getElementById('input-bat-vb').value);
+            const ab_deg = parseFloat(document.getElementById('input-bat-ab').value);
+
+            document.getElementById('val-bat-vc').textContent = vc + " m/s";
+            document.getElementById('val-bat-ac').textContent = ac_deg + "°";
+            document.getElementById('val-bat-vb').textContent = vb + " m/s";
+            document.getElementById('val-bat-ab').textContent = ab_deg + "°";
+
+            // Convert angles to radians
+            const theta_c = ac_deg * Math.PI / 180;
+            const theta_b = ab_deg * Math.PI / 180;
+
+            // Projection components V * cos(theta)
+            const vc_line = vc * Math.cos(theta_c);
+            const vb_line = vb * Math.cos(theta_b);
+
+            document.getElementById('bat-car-comp-calc').textContent = `${vc} · cos(${ac_deg}°) ≈ ${vc_line.toFixed(2)} m/s`;
+            document.getElementById('bat-bat-comp-calc').textContent = `${vb} · cos(${ab_deg}°) ≈ ${vb_line.toFixed(2)} m/s`;
+
+            // Calculate shift
+            // Car (listener) approaching Bat with vc_line (v_L = +vc_line)
+            // Bat (source) receding from Car with vb_line (v_s = +vb_line)
+            let v_sound = 350;
+            let n0_bat = 36000; // 36 kHz
+            let n_car = n0_bat * ((v_sound + vc_line) / (v_sound + vb_line));
+
+            document.getElementById('bat-target-formula').textContent = 
+                `n = 36000 · [ (350 + ${vc_line.toFixed(1)}) / (350 + ${vb_line.toFixed(1)}) ] = ${Math.round(n_car)} Hz (${(n_car/1000).toFixed(2)} kHz)`;
+
+            drawBatVectors(ac_deg, ab_deg);
+        }
+
+        function drawBatVectors(angleCar, angleBat) {
+            bCtx.clearRect(0, 0, batCanvas.width, batCanvas.height);
+
+            const batX = batCanvas.width * 0.25;
+            const batY = batCanvas.height * 0.55;
+            const carX = batCanvas.width * 0.75;
+            const carY = batCanvas.height * 0.55;
+
+            // Draw line joining them
+            bCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            bCtx.setLineDash([5, 5]);
+            bCtx.lineWidth = 1.5;
+            bCtx.beginPath();
+            bCtx.moveTo(batX, batY);
+            bCtx.lineTo(carX, carY);
+            bCtx.stroke();
+            bCtx.setLineDash([]);
+
+            // Draw Bat
+            bCtx.fillStyle = '#6366f1';
+            bCtx.beginPath();
+            bCtx.arc(batX, batY, 10, 0, Math.PI*2);
+            bCtx.fill();
+            bCtx.fillStyle = '#fff';
+            bCtx.font = 'bold 11px Inter';
+            bCtx.fillText("🦇 Bat", batX - 15, batY - 18);
+
+            // Draw Bat Velocity vector (Receding, angle offset downwards/leftwards)
+            const bRad = (180 + angleBat) * Math.PI / 180;
+            const bVx = batX + Math.cos(bRad) * 70;
+            const bVy = batY + Math.sin(bRad) * 70;
+
+            drawVectorArrow(batX, batY, bVx, bVy, '#ef4444', "V_Bat");
+
+            // Draw Car
+            bCtx.fillStyle = '#10b981';
+            bCtx.beginPath();
+            bCtx.arc(carX, carY, 10, 0, Math.PI*2);
+            bCtx.fill();
+            bCtx.fillStyle = '#fff';
+            bCtx.fillText("🚙 Car", carX - 15, carY - 18);
+
+            // Draw Car Velocity vector (Approaching, angle offset upwards/leftwards)
+            const cRad = (180 - angleCar) * Math.PI / 180;
+            const cVx = carX + Math.cos(cRad) * 70;
+            const cVy = carY + Math.sin(cRad) * 70;
+
+            drawVectorArrow(carX, carY, cVx, cVy, '#38bdf8', "V_Car");
+        }
+
+        function drawVectorArrow(fromx, fromy, tox, toy, color, label) {
+            bCtx.strokeStyle = color;
+            bCtx.fillStyle = color;
+            bCtx.lineWidth = 2.5;
+            
+            bCtx.beginPath();
+            bCtx.moveTo(fromx, fromy);
+            bCtx.lineTo(tox, toy);
+            bCtx.stroke();
+
+            // Arrowhead
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            bCtx.beginPath();
+            bCtx.moveTo(tox, toy);
+            bCtx.lineTo(tox - 8 * Math.cos(angle - Math.PI / 6), toy - 8 * Math.sin(angle - Math.PI / 6));
+            bCtx.lineTo(tox - 8 * Math.cos(angle + Math.PI / 6), toy - 8 * Math.sin(angle + Math.PI / 6));
+            bCtx.fill();
+
+            // Label vector
+            bCtx.fillStyle = '#cbd5e1';
+            bCtx.font = 'italic 10px Inter';
+            bCtx.fillText(label, tox + 5, toy);
+        }
+
+        // INTERACTIVE DOPPLER QUIZ CONTROLLER
+        const quizQuestions = [
+            {
+                tag: "Conceptual",
+                question: "If both source and listener are moving in the same direction with exactly the same speed ($|v_L| = |v_s|$), what is the observed frequency shift?",
+                choices: [
+                    "Observed frequency increases, causing high pitch.",
+                    "Observed frequency decreases, causing low pitch.",
+                    "There is no shift ($n = n₀$) because there is no relative motion.",
+                    "It depends completely on wind direction."
+                ],
+                correctIndex: 2,
+                explain: "Case (I): When both are moving at the same speed in the same direction, there is no relative approach or recede. Thus, the observed frequency remains exactly identical to the emitted frequency ($n = n_0$)."
+            },
+            {
+                tag: "Calculation",
+                question: "A rocket moving at 220 m/s towards a target emits 1200 Hz. If sound speed is 330 m/s, what frequency reaches the target?",
+                choices: [
+                    "2400 Hz",
+                    "3600 Hz",
+                    "1800 Hz",
+                    "6000 Hz"
+                ],
+                correctIndex: 1,
+                explain: "Target is stationary ($v_L = 0$). Approaching source formula: $n = n_0 [v / (v - v_s)] = 1200 [330 / (330 - 220)] = 1200 [330 / 110] = 3600\\text{ Hz}$."
+            },
+            {
+                tag: "Light vs Sound",
+                question: "Why is knowing exactly 'who is in motion' essential to model Doppler shifts in sound waves but not in light waves?",
+                choices: [
+                    "Because light speed is absolute ($c$) and doesn't rely on an elastic physical medium.",
+                    "Because sound waves are electromagnetic.",
+                    "Because light waves can be blown by the wind.",
+                    "Sound waves do not experience classic relative approach."
+                ],
+                correctIndex: 0,
+                explain: "Because light's speed is absolute in all reference frames, who is in motion does not matter—only their relative velocity. For sound, waves travel relative to the air medium, making absolute velocities relative to the medium critical."
+            },
+            {
+                tag: "Wind Physics",
+                question: "How does wind blowing in the opposite direction of sound wave travel affect the observed Doppler shift?",
+                choices: [
+                    "It has absolutely no impact on final frequencies.",
+                    "It behaves as if the speed of sound $v$ is replaced by ($v - v_w$).",
+                    "It multiplies the emitted frequency by two.",
+                    "It alters light propagation velocity."
+                ],
+                correctIndex: 1,
+                explain: "When wind opposes the propagation direction of sound, it slows down the wavefront propagation speed. Hence, in all equations, $v$ is algebraically replaced by ($v - v_w$)."
+            },
+            {
+                tag: "Conceptual",
+                question: "If the velocity of the source is not along the same line joining it to the listener, what mathematical component must we choose?",
+                choices: [
+                    "The component along the perpendicular bisector.",
+                    "The component along the line joining them ($V \\cos \\theta$).",
+                    "We ignore the angle and use absolute speed.",
+                    "We take the tangent of the offset vector."
+                ],
+                correctIndex: 1,
+                explain: "Section 8.9.4 (E): If velocities are not along the same direct line, their respective components along the line joining them ($V \\cos \\theta$) should be chosen for longitudinal Doppler calculations."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let hasAnsweredCurrent = false;
+
+        function renderQuizQuestion() {
+            hasAnsweredCurrent = false;
+            const q = quizQuestions[currentQuestionIndex];
+            
+            // UI elements
+            document.getElementById('quiz-question-num').textContent = currentQuestionIndex + 1;
+            document.getElementById('quiz-progress-bar').style.width = ((currentQuestionIndex + 1) / quizQuestions.length * 100) + "%";
+            document.getElementById('quiz-tag').textContent = q.tag;
+            document.getElementById('quiz-question-text').innerHTML = q.question;
+            
+            const container = document.getElementById('quiz-choices-container');
+            container.innerHTML = "";
+
+            q.choices.forEach((choice, index) => {
+                const choiceBtn = document.createElement('button');
+                choiceBtn.className = "w-full text-left p-4 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 rounded-xl text-xs sm:text-sm font-medium transition duration-150 flex items-center justify-between";
+                choiceBtn.innerHTML = `<span>${choice}</span> <span class="w-5 h-5 rounded-full border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-mono">${String.fromCharCode(65 + index)}</span>`;
+                choiceBtn.onclick = () => selectChoice(index, choiceBtn);
+                container.appendChild(choiceBtn);
+            });
+
+            // Reset feedbacks
+            document.getElementById('quiz-feedback-panel').classList.add('hidden');
+            document.getElementById('quiz-explain-btn').classList.add('hidden');
+            document.getElementById('quiz-action-btn').innerHTML = `Check Answer <i class="fa-solid fa-chevron-right ml-1"></i>`;
+        }
+
+        let selectedChoiceIndex = -1;
+        function selectChoice(index, btnNode) {
+            if(hasAnsweredCurrent) return;
+            selectedChoiceIndex = index;
+            
+            // Highlight select border
+            const children = document.getElementById('quiz-choices-container').children;
+            for(let i=0; i<children.length; i++) {
+                children[i].className = "w-full text-left p-4 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 rounded-xl text-xs sm:text-sm font-medium transition duration-150 flex items-center justify-between";
+            }
+            btnNode.className = "w-full text-left p-4 bg-cyan-950/40 border border-cyan-500 rounded-xl text-xs sm:text-sm font-medium transition duration-150 flex items-center justify-between shadow-lg shadow-cyan-500/5";
+        }
+
+        function submitQuizAnswer() {
+            if (selectedChoiceIndex === -1) {
+                alertPopup("Please select an answer choice before checking!", "warning");
+                return;
+            }
+
+            const q = quizQuestions[currentQuestionIndex];
+
+            if (!hasAnsweredCurrent) {
+                // Evaluate answer
+                hasAnsweredCurrent = true;
+                const panel = document.getElementById('quiz-feedback-panel');
+                const pTitle = document.getElementById('quiz-feedback-title');
+                const pDesc = document.getElementById('quiz-feedback-desc');
+                const pIcon = document.getElementById('quiz-feedback-icon');
+
+                panel.classList.remove('hidden');
+                document.getElementById('quiz-explain-btn').classList.remove('hidden');
+
+                if (selectedChoiceIndex === q.correctIndex) {
+                    score++;
+                    streak++;
+                    panel.className = "p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20";
+                    pTitle.textContent = "Correct! Nice Job.";
+                    pTitle.className = "font-bold text-sm text-emerald-400 block";
+                    pIcon.innerHTML = "🏆";
+                    pDesc.textContent = q.explain;
+                } else {
+                    streak = 0;
+                    panel.className = "p-4 rounded-xl border border-rose-500/30 bg-rose-950/20";
+                    pTitle.textContent = "Incorrect Formulation!";
+                    pTitle.className = "font-bold text-sm text-rose-400 block";
+                    pIcon.innerHTML = "❌";
+                    pDesc.textContent = "Review: The correct choice is option " + String.fromCharCode(65 + q.correctIndex) + ". Let's inspect the formulas!";
+                }
+
+                // Update Stats panels
+                document.getElementById('stat-correct').textContent = score;
+                document.getElementById('stat-streak').textContent = streak;
+                document.getElementById('quiz-score-num').textContent = score;
+
+                // Toggle action button text
+                if (currentQuestionIndex < quizQuestions.length - 1) {
+                    document.getElementById('quiz-action-btn').innerHTML = `Next Question <i class="fa-solid fa-arrow-right ml-1"></i>`;
+                } else {
+                    document.getElementById('quiz-action-btn').innerHTML = `View Final Score <i class="fa-solid fa-flag-checkered ml-1"></i>`;
+                }
+            } else {
+                // Move to next question or complete quiz
+                if (currentQuestionIndex < quizQuestions.length - 1) {
+                    currentQuestionIndex++;
+                    selectedChoiceIndex = -1;
+                    renderQuizQuestion();
+                } else {
+                    // Complete quiz
+                    alertPopup(`🎉 Challenge Complete! You scored ${score} out of 5. Perfect for classroom preparation!`, "success");
+                    resetQuiz();
+                }
+            }
+        }
+
+        function toggleQuizExplanation() {
+            const q = quizQuestions[currentQuestionIndex];
+            alertPopup(`Explanation breakdown: ${q.explain}`, "info");
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            streak = 0;
+            selectedChoiceIndex = -1;
+            document.getElementById('stat-correct').textContent = "0";
+            document.getElementById('stat-streak').textContent = "0";
+            document.getElementById('quiz-score-num').textContent = "0";
+            renderQuizQuestion();
+        }
+
+        // CUSTOM NOTIFICATION TOAST POPUP (Replacement for native alert blocks)
+        function alertPopup(message, type = "info") {
+            const colors = {
+                info: "bg-cyan-950 border-cyan-500 text-cyan-200",
+                success: "bg-emerald-950 border-emerald-500 text-emerald-200",
+                warning: "bg-amber-950 border-amber-500 text-amber-200"
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-5 right-5 px-5 py-4 rounded-xl border shadow-2xl transition duration-300 transform translate-y-0 z-50 flex items-center gap-3 ${colors[type] || colors.info}`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-lg"></i> <span class="text-xs font-semibold">${message}</span>`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // WINDOW INITIAL ONLOAD GATE
+        window.onload = function () {
+            initInputs();
+            initRocketLab();
+            initBatLab();
+            resetQuiz();
+            
+            // Fire up core simulation render loop
+            animatePlayground();
+        }
+    </script>
+</body>
+</html>
