@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Labs: Refraction Adventure</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0B0F19',
+                            panel: '#161D30',
+                            accent: '#3B82F6',
+                            laser: '#10B981',
+                            laserRed: '#EF4444',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .heading-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Custom glow effects */
+        .laser-glow {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+        }
+        .panel-glow {
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3B82F6;
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Header Navigation -->
+    <header class="bg-brand-panel border-b border-slate-800 sticky top-0 z-50 px-4 py-3 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-900/40 animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="heading-font text-xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                        Lumina Labs
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Refraction Explorer & virtual sandbox</p>
+                </div>
+            </div>
+
+            <!-- Tab Switcher -->
+            <nav class="flex flex-wrap bg-slate-900 p-1.5 rounded-xl border border-slate-800 gap-1">
+                <button onclick="switchTab('sandbox')" id="tab-sandbox" class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 bg-blue-600 text-white">
+                    🔬 Sandbox
+                </button>
+                <button onclick="switchTab('activities')" id="tab-activities" class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    ✏️ Book Labs
+                </button>
+                <button onclick="switchTab('dispersion')" id="tab-dispersion" class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    🌈 Rainbow Maker
+                </button>
+                <button onclick="switchTab('challenge')" id="tab-challenge" class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    🎯 Target Quest
+                </button>
+                <button onclick="switchTab('quiz')" id="tab-quiz" class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    🧠 Quiz
+                </button>
+            </nav>
+
+            <!-- Sound toggle -->
+            <div class="flex items-center gap-3">
+                <button id="audio-toggle" onclick="toggleAudio()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Toggle Sound FX">
+                    <svg id="sound-on-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                    <svg id="sound-off-icon" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zm14.54-.121l-3.536-3.536m0 0L13 7.803m3.536 3.535L20 7.803m-3.536 3.535L13 14.879" />
+                    </svg>
+                </button>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded bg-slate-800 text-emerald-400 border border-slate-700">v2.5 Ready</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 gap-6">
+
+        <!-- TAB 1: PHYSICS SANDBOX -->
+        <section id="pane-sandbox" class="tab-pane grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left Controls Box -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <div class="bg-brand-panel p-5 rounded-2xl panel-glow">
+                    <h2 class="heading-font text-lg font-bold text-white mb-1 flex items-center gap-2">
+                        <span>🧪 Refraction Sandbox</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mb-4">Bend light beams through different media blocks. Play with densities!</p>
+
+                    <!-- Medium 1 Control -->
+                    <div class="mb-4 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                        <label class="block text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">Medium 1 (Top)</label>
+                        <select id="m1-select" onchange="setMediumPreset(1, this.value)" class="w-full bg-slate-800 border border-slate-700 text-sm rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-white outline-none">
+                            <option value="1.00">Air (n = 1.00)</option>
+                            <option value="1.33" selected>Water (n = 1.33)</option>
+                            <option value="1.50">Glass (n = 1.50)</option>
+                            <option value="2.42">Diamond (n = 2.42)</option>
+                        </select>
+                        <div class="mt-3">
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Refractive Index (n₁)</span>
+                                <span id="n1-val" class="font-bold text-blue-400">1.33</span>
+                            </div>
+                            <input type="range" id="n1-slider" min="1.0" max="3.0" step="0.01" value="1.33" oninput="updateRefractionFromSliders()" class="w-full accent-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Medium 2 Control -->
+                    <div class="mb-4 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                        <label class="block text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">Medium 2 (Bottom)</label>
+                        <select id="m2-select" onchange="setMediumPreset(2, this.value)" class="w-full bg-slate-800 border border-slate-700 text-sm rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 text-white outline-none">
+                            <option value="1.00">Air (n = 1.00)</option>
+                            <option value="1.33">Water (n = 1.33)</option>
+                            <option value="1.50" selected>Glass (n = 1.50)</option>
+                            <option value="2.42">Diamond (n = 2.42)</option>
+                        </select>
+                        <div class="mt-3">
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Refractive Index (n₂)</span>
+                                <span id="n2-val" class="font-bold text-emerald-400">1.50</span>
+                            </div>
+                            <input type="range" id="n2-slider" min="1.0" max="3.0" step="0.01" value="1.50" oninput="updateRefractionFromSliders()" class="w-full accent-emerald-500">
+                        </div>
+                    </div>
+
+                    <!-- Light Beam Angle Control -->
+                    <div class="mb-4 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs font-semibold text-slate-300 uppercase mb-2">
+                            <span>Incident Light Angle</span>
+                            <span id="angle-val" class="text-amber-400 font-bold">45°</span>
+                        </div>
+                        <input type="range" id="angle-slider" min="0" max="89" value="45" oninput="updateRefractionFromSliders()" class="w-full accent-amber-500">
+                        <p class="text-[10px] text-slate-500 mt-1">Measured from the perpendicular normal line.</p>
+                    </div>
+
+                    <!-- Quick toggles -->
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer p-1">
+                            <input type="checkbox" id="show-normal-toggle" checked onchange="drawSandbox()" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0">
+                            <span>Show Normal Perpendicular Line</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer p-1">
+                            <input type="checkbox" id="show-protractor-toggle" checked onchange="drawSandbox()" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0">
+                            <span>Display Protractor Helper Grid</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Snell's Law Calculator Live Display -->
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col gap-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Snell's Law Solver</h3>
+                    <div class="bg-brand-panel p-3 rounded-xl border border-slate-800">
+                        <div class="text-center font-mono py-1.5 px-3 bg-slate-950 text-amber-300 rounded text-sm mb-2">
+                            n₁ · sin(θ₁) = n₂ · sin(θ₂)
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-slate-950 p-2 rounded">
+                                <span class="text-slate-500 block">Incident (Left)</span>
+                                <span id="math-incident" class="font-semibold text-slate-200">1.33 × sin(45°)</span>
+                            </div>
+                            <div class="bg-slate-950 p-2 rounded">
+                                <span class="text-slate-500 block">Refracted (Right)</span>
+                                <span id="math-refracted" class="font-semibold text-slate-200">1.50 × sin(38.8°)</span>
+                            </div>
+                        </div>
+                        <div id="tir-warning" class="hidden mt-2 p-2 bg-red-900/40 border border-red-500 text-red-200 rounded text-center text-[11px] font-medium animate-pulse">
+                            ⚠️ Total Internal Reflection Occurred!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Interactive Canvas -->
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div class="bg-brand-panel p-4 rounded-2xl panel-glow flex-1 flex flex-col min-h-[400px]">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-semibold text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            Real-time Ray Tracer Interactive Viewport
+                        </span>
+                        <div class="text-xs text-slate-400">
+                            🖱️ Drag light handle directly on canvas!
+                        </div>
+                    </div>
+
+                    <!-- Canvas Box -->
+                    <div class="relative flex-1 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 min-h-[350px]">
+                        <canvas id="sandbox-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+                    </div>
+
+                    <!-- Live Data Cards -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                            <div class="text-xs text-slate-400">Angle of Incidence (θ₁)</div>
+                            <div id="card-theta1" class="text-lg font-bold text-blue-400">45.0°</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                            <div class="text-xs text-slate-400">Angle of Refraction (θ₂)</div>
+                            <div id="card-theta2" class="text-lg font-bold text-emerald-400">38.8°</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                            <div class="text-xs text-slate-400">Speed Ratio (v₁/v₂)</div>
+                            <div id="card-speed" class="text-lg font-bold text-amber-400">1.13x</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- TAB 2: VIRTUAL TEXTBOOK ACTIVITIES -->
+        <section id="pane-activities" class="tab-pane hidden flex flex-col gap-6">
+            
+            <!-- Mini Selector Sub-tabs -->
+            <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
+                <button onclick="switchLabActivity('pencil')" id="btn-lab-pencil" class="px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-blue-600 text-white transition">
+                    ✏️ Activity 1: The Broken Pencil
+                </button>
+                <button onclick="switchLabActivity('coin')" id="btn-lab-coin" class="px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-slate-800 text-slate-300 hover:text-white transition">
+                    🪙 Activity 2: The Disappearing Coin
+                </button>
+                <button onclick="switchLabActivity('slab')" id="btn-lab-slab" class="px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-slate-800 text-slate-300 hover:text-white transition">
+                    🔲 Activity 3: Glass Slab Ray Tracer
+                </button>
+            </div>
+
+            <!-- Activity 1 Content: The Pencil -->
+            <div id="lab-pencil-content" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    <div class="bg-brand-panel p-5 rounded-2xl panel-glow">
+                        <h3 class="heading-font text-lg font-bold text-amber-300 mb-2">Activity 1: The Bending Pencil</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            When a pencil is submerged in water, it appears broken or thicker. Why?
+                        </p>
+                        <div class="space-y-4 text-xs text-slate-300">
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                                <span class="font-bold text-blue-400 block mb-1">Observation 1:</span>
+                                When dipped vertically, the submerged portion appears thicker because the cylindrical glass of water acts like a magnifying lens.
+                            </div>
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                                <span class="font-bold text-amber-400 block mb-1">Observation 2:</span>
+                                When dipped at an angle, light rays coming from the pencil inside the water change direction as they cross into the air, making the pencil look cracked at the water surface.
+                            </div>
+                        </div>
+
+                        <!-- Interactive Control inside Activity -->
+                        <div class="mt-6 p-4 bg-slate-950 rounded-xl border border-slate-800">
+                            <span class="text-xs text-slate-400 font-bold block mb-2 uppercase">Adjust Laboratory Settings:</span>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="flex justify-between text-xs mb-1 text-slate-300">
+                                        <span>Pencil Angle</span>
+                                        <span id="pencil-angle-val" class="text-blue-400 font-bold">25°</span>
+                                    </label>
+                                    <input type="range" id="pencil-angle-slider" min="5" max="55" value="25" oninput="updatePencilLab()" class="w-full accent-blue-500">
+                                </div>
+                                <div>
+                                    <label class="flex justify-between text-xs mb-1 text-slate-300">
+                                        <span>Liquid Refractive Index</span>
+                                        <span id="pencil-n-val" class="text-emerald-400 font-bold">1.33 (Water)</span>
+                                    </label>
+                                    <input type="range" id="pencil-n-slider" min="1.0" max="2.0" step="0.1" value="1.33" oninput="updatePencilLab()" class="w-full accent-emerald-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <div class="bg-brand-panel p-5 rounded-2xl panel-glow flex flex-col items-center">
+                        <span class="text-xs font-semibold text-slate-400 self-start mb-4">🔬 Virtual Lab View: Transparent Beaker Experiment</span>
+                        <div class="relative w-full max-w-[450px] aspect-square bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                            <canvas id="pencil-canvas" class="w-full h-full block"></canvas>
+                        </div>
+                        <p class="text-xs text-slate-400 text-center mt-3 italic">
+                            Notice how the light rays (dotted lines) bend at the surface, fooling your eye into seeing the pencil higher than it actually is!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity 2 Content: The Disappearing Coin -->
+            <div id="lab-coin-content" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    <div class="bg-brand-panel p-5 rounded-2xl panel-glow">
+                        <h3 class="heading-font text-lg font-bold text-amber-300 mb-2">Activity 2: The Disappearing Coin</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            Place a coin in a metallic dish and walk away until it is just out of sight over the rim. When your friend fills the dish with water, the coin magically appears again!
+                        </p>
+                        <div class="space-y-4 text-xs text-slate-300">
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                                <span class="font-bold text-blue-400 block mb-1">Empty Cup:</span>
+                                The rays of light from the coin travel in a straight line but are blocked by the opaque lip of the vessel. The eye cannot see it.
+                            </div>
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                                <span class="font-bold text-emerald-400 block mb-1">Water Added:</span>
+                                Light rays exit the water and bend *away* from the normal line (downwards toward the observer's eye). The eye traces these rays back in a straight line, making the coin appear raised!
+                            </div>
+                        </div>
+
+                        <!-- Fill Control -->
+                        <div class="mt-6 p-4 bg-slate-950 rounded-xl border border-slate-800">
+                            <span class="text-xs text-slate-400 font-bold block mb-2 uppercase">Fill Vessel with Water:</span>
+                            <div class="space-y-3">
+                                <input type="range" id="coin-water-slider" min="0" max="100" value="0" oninput="updateCoinLab()" class="w-full accent-blue-500">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-red-400 font-semibold">Dry Container (Hidden)</span>
+                                    <span class="text-emerald-400 font-semibold">Fully Submerged (Visible!)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <div class="bg-brand-panel p-5 rounded-2xl panel-glow flex flex-col items-center">
+                        <span class="text-xs font-semibold text-slate-400 self-start mb-4">🔬 Virtual Lab View: Metallic Vessel Simulation</span>
+                        <div class="relative w-full max-w-[480px] aspect-video bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                            <canvas id="coin-canvas" class="w-full h-full block"></canvas>
+                        </div>
+                        <div id="coin-status" class="mt-4 text-sm font-semibold py-1.5 px-4 rounded-full bg-red-900/40 text-red-300 border border-red-500">
+                            Coin state: Hidden under vessel edge!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity 3 Content: The Parallel Glass Slab -->
+            <div id="lab-slab-content" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    <div class="bg-brand-panel p-5 rounded-2xl panel-glow">
+                        <h3 class="heading-font text-lg font-bold text-amber-300 mb-2">Activity 3: Parallel Glass Slab Double Refraction</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            Observe light entering a glass slab and then emerging back into the air. Let's look at the mathematics of parallel interfaces.
+                        </p>
+                        <div class="space-y-4 text-xs text-slate-300">
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                                <span class="font-bold text-blue-400 block mb-1">First Refraction (N on PQ):</span>
+                                Light moves from Air (rarer) to Glass (denser). The beam bends *towards* the normal normal line.
+                            </div>
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                                <span class="font-bold text-emerald-400 block mb-1">Second Refraction (M on RS):</span>
+                                Light moves from Glass back to Air. The beam bends *away* from the normal line. Since the faces are parallel, the final emergent angle $e$ equals the incident angle $i$.
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="mt-6 p-4 bg-slate-950 rounded-xl border border-slate-800">
+                            <span class="text-xs text-slate-400 font-bold block mb-2 uppercase">Adjust Glass Slab Settings:</span>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="flex justify-between text-xs mb-1 text-slate-300">
+                                        <span>Slab Thickness</span>
+                                        <span id="slab-thick-val" class="text-blue-400 font-bold">120 px</span>
+                                    </label>
+                                    <input type="range" id="slab-thick-slider" min="60" max="180" value="120" oninput="updateSlabLab()" class="w-full accent-blue-500">
+                                </div>
+                                <div>
+                                    <label class="flex justify-between text-xs mb-1 text-slate-300">
+                                        <span>Incident Angle (i)</span>
+                                        <span id="slab-angle-val" class="text-emerald-400 font-bold">40°</span>
+                                    </label>
+                                    <input type="range" id="slab-angle-slider" min="10" max="75" value="40" oninput="updateSlabLab()" class="w-full accent-emerald-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <div class="bg-brand-panel p-5 rounded-2xl panel-glow flex flex-col items-center">
+                        <span class="text-xs font-semibold text-slate-400 self-start mb-4">🔬 Virtual Lab View: Glass Slab Double Refraction</span>
+                        <div class="relative w-full max-w-[480px] aspect-square bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                            <canvas id="slab-canvas" class="w-full h-full block"></canvas>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-4 w-full">
+                            <div class="p-2 bg-slate-900 rounded-lg text-center">
+                                <span class="text-[10px] text-slate-400 uppercase block">Emergent Angle (e)</span>
+                                <span id="slab-emergent-text" class="text-sm font-bold text-emerald-400">40.0°</span>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg text-center">
+                                <span class="text-[10px] text-slate-400 uppercase block">Lateral Shift (Displacement)</span>
+                                <span id="slab-displacement-text" class="text-sm font-bold text-amber-400">22.4 px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- TAB 3: DISPERSION LAB (RAINBOW MAKER) -->
+        <section id="pane-dispersion" class="tab-pane hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <div class="bg-brand-panel p-5 rounded-2xl panel-glow">
+                    <h2 class="heading-font text-lg font-bold text-white mb-2 flex items-center gap-2">
+                        <span>🌈 Newton's Prism Lab</span>
+                    </h2>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        White light is a mix of many colors of different wavelengths. As white light enters glass at an angle, each color bends at a slightly different angle because the refractive index is wavelength-dependent!
+                    </p>
+
+                    <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded bg-red-500"></div>
+                            <span><strong>Red:</strong> Longer wavelength, bends less ($n \approx 1.51$)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded bg-purple-500"></div>
+                            <span><strong>Violet:</strong> Shorter wavelength, bends more ($n \approx 1.53$)</span>
+                        </div>
+                    </div>
+
+                    <!-- Dispersion Control Sliders -->
+                    <div class="mt-6 p-4 bg-slate-900/60 rounded-xl border border-slate-800 space-y-4">
+                        <div>
+                            <label class="flex justify-between text-xs mb-1 text-slate-300">
+                                <span>Prism Glass Density (Base Refraction)</span>
+                                <span id="prism-n-val" class="text-blue-400 font-bold">1.52</span>
+                            </label>
+                            <input type="range" id="prism-n-slider" min="1.3" max="1.8" step="0.01" value="1.52" oninput="drawDispersion()" class="w-full accent-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="flex justify-between text-xs mb-1 text-slate-300">
+                                <span>Light Source Width</span>
+                                <span id="dispersion-width-val" class="text-emerald-400 font-bold">Medium</span>
+                            </label>
+                            <input type="range" id="prism-beam-width" min="1" max="12" value="4" oninput="drawDispersion()" class="w-full accent-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Dispersion Fun Fact -->
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-xs text-slate-400">
+                    <span class="text-amber-400 font-bold block mb-1">💡 Isaac Newton's Discovery</span>
+                    He was the first to show that the prism didn't paint the rainbow, but simply split the preexisting colored components inside the white beam!
+                </div>
+            </div>
+
+            <!-- Simulation View -->
+            <div class="lg:col-span-8">
+                <div class="bg-brand-panel p-5 rounded-2xl panel-glow flex flex-col h-full min-h-[400px]">
+                    <span class="text-xs font-semibold text-slate-400 mb-3">🔬 Live Dispersion Spectrometer Simulation</span>
+                    <div class="flex-1 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 relative">
+                        <canvas id="dispersion-canvas" class="w-full h-full block min-h-[350px]"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- TAB 4: THE TARGET QUEST CHALLENGE -->
+        <section id="pane-challenge" class="tab-pane hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left Info Panel -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <div class="bg-brand-panel p-5 rounded-2xl panel-glow">
+                    <h2 class="heading-font text-lg font-bold text-amber-400 mb-2 flex items-center gap-2">
+                        <span>🎯 Target Alignment Quest</span>
+                    </h2>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Can you bend the laser ray so it passes precisely through the gold target crystals? Test your intuitive mastery of medium density and angles!
+                    </p>
+
+                    <!-- Game Control/Progress -->
+                    <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 mb-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs text-slate-400 font-semibold uppercase">Current Mission:</span>
+                            <span id="game-level-indicator" class="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 font-bold">Level 1 of 3</span>
+                        </div>
+                        <h4 id="game-objective-text" class="text-sm font-bold text-white mb-2">Refract and Hit Target in Water</h4>
+                        <p id="game-hint-text" class="text-xs text-slate-400 leading-relaxed">Hint: Water has a refractive index of 1.33. Adjust the launcher angle to align your green laser beam with the golden crystal.</p>
+                    </div>
+
+                    <!-- Active Quest Sliders -->
+                    <div class="space-y-4 p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                        <div>
+                            <label class="flex justify-between text-xs mb-1 text-slate-300">
+                                <span>Laser Angle Offset</span>
+                                <span id="game-angle-val" class="text-blue-400 font-bold">30°</span>
+                            </label>
+                            <input type="range" id="game-angle-slider" min="10" max="80" value="30" oninput="updateGameControls()" class="w-full accent-blue-500">
+                        </div>
+
+                        <div id="game-param2-container">
+                            <label class="flex justify-between text-xs mb-1 text-slate-300">
+                                <span id="game-param2-label">Custom Slab Index (n)</span>
+                                <span id="game-n-val" class="text-emerald-400 font-bold">1.50</span>
+                            </label>
+                            <input type="range" id="game-n-slider" min="1.0" max="2.4" step="0.05" value="1.50" oninput="updateGameControls()" class="w-full accent-emerald-500">
+                        </div>
+                    </div>
+
+                    <!-- Next Level / Success Buttons -->
+                    <div class="mt-4">
+                        <button id="claim-victory-btn" onclick="nextGameLevel()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition text-sm hidden">
+                            🎉 Mission Completed! Next Level →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scores & Fun stats -->
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block uppercase">Total Crystals Smashed</span>
+                        <span id="score-counter" class="text-2xl font-black text-amber-400">0</span>
+                    </div>
+                    <button onclick="resetGame()" class="text-xs text-slate-400 hover:text-white underline">Reset Puzzle Progress</button>
+                </div>
+            </div>
+
+            <!-- Interactive Canvas -->
+            <div class="lg:col-span-8">
+                <div class="bg-brand-panel p-5 rounded-2xl panel-glow flex flex-col h-full min-h-[400px]">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold text-slate-400 uppercase">Target Simulation Map</span>
+                        <span id="laser-status-tag" class="text-xs font-bold text-red-400 bg-red-950/40 px-2 py-0.5 rounded border border-red-900/40">LASER OFF TARGET</span>
+                    </div>
+                    <div class="flex-1 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 relative">
+                        <canvas id="game-canvas" class="w-full h-full block min-h-[350px]"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- TAB 5: OPTICS QUIZ -->
+        <section id="pane-quiz" class="tab-pane hidden max-w-3xl mx-auto w-full bg-brand-panel p-6 sm:p-8 rounded-2xl panel-glow">
+            <h2 class="heading-font text-2xl font-bold text-white mb-2 text-center">🧠 Refraction Concept Check</h2>
+            <p class="text-xs text-slate-400 text-center mb-8">Test your comprehension with these fun challenge questions based on textbook physics.</p>
+
+            <div id="quiz-container">
+                <!-- Single Question Block -->
+                <div id="quiz-card" class="bg-slate-950 p-6 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <span id="quiz-progress-text" class="text-xs text-blue-400 font-semibold uppercase tracking-wider">Question 1 of 4</span>
+                        <span id="quiz-score-badge" class="text-xs font-bold bg-slate-800 px-2.5 py-1 rounded-full text-slate-300">Score: 0</span>
+                    </div>
+                    
+                    <h3 id="quiz-question-text" class="text-base font-bold text-white mb-6 leading-relaxed">
+                        What is the fundamental cause behind the refraction of light?
+                    </h3>
+
+                    <div id="quiz-options-container" class="space-y-3">
+                        <!-- Options generated on fly -->
+                    </div>
+
+                    <!-- Explanatory Feedback Box -->
+                    <div id="quiz-feedback" class="hidden mt-6 p-4 rounded-xl border text-xs">
+                        <!-- feedback text -->
+                    </div>
+
+                    <!-- Next Button -->
+                    <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="mt-6 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-lg transition text-xs hidden">
+                        Advance to Next Question →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Results Screen (Hidden initially) -->
+            <div id="quiz-results" class="hidden text-center py-8">
+                <div class="w-16 h-16 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="heading-font text-2xl font-black text-white mb-2">Excellent Effort!</h3>
+                <p id="quiz-result-percentage" class="text-slate-300 mb-6 text-sm">You scored 4 out of 4 (100%)</p>
+                <button onclick="restartQuiz()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-6 rounded-xl text-xs transition border border-slate-700">
+                    Retake Quiz Challenge
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-brand-panel border-t border-slate-800 py-6 mt-12 text-center text-xs text-slate-500 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 Lumina Physics Interactive Labs. Designed for young scientists.</p>
+            <div class="flex gap-4">
+                <a href="#laws" onclick="openTheoryModal()" class="text-blue-400 hover:underline">Read Formal Laws of Refraction</a>
+                <span>|</span>
+                <span class="text-slate-400">Interactive Classroom Edition</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Formal Laws of Refraction Modal -->
+    <div id="theory-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-brand-panel border border-slate-800 rounded-2xl max-w-2xl w-full p-6 sm:p-8 relative">
+            <button onclick="closeTheoryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            <h3 class="heading-font text-xl font-bold text-white mb-4 flex items-center gap-2">
+                📜 The Physics Laws of Refraction
+            </h3>
+            
+            <div class="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <div>
+                    <span class="font-bold text-blue-400 block mb-1">First Law of Refraction:</span>
+                    The incident ray, the refracted ray, and the normal perpendicular at the point of incidence all lie in the exact same plane.
+                </div>
+                <div>
+                    <span class="font-bold text-emerald-400 block mb-1">Second Law (Snell's Law):</span>
+                    For a given pair of media, the ratio of the sine of the angle of incidence ($\sin i$) to the sine of the angle of refraction ($\sin r$) is constant:
+                    <div class="bg-slate-950 p-2.5 rounded-lg font-mono text-center text-amber-300 my-2">
+                        \frac{\sin i}{\sin r} = \text{constant} = n
+                    </div>
+                    Where $n$ is the refractive index of the second medium with respect to the first medium.
+                </div>
+                <div>
+                    <span class="font-bold text-slate-200 block mb-1">Special Condition (Normal Incidence):</span>
+                    A light ray incident along the perpendicular normal line ($i = 0^\circ$) proceeds straight forward into the new medium without bending ($r = 0^\circ$).
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeTheoryModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg text-xs transition">
+                    Got it, Back to Labs!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOUND & ENGINE SCRIPTS -->
+    <script>
+        // Audio Synthesizer Engine (Uses Web Audio API to avoid external static dependencies)
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playBeep(freq, type, duration, vol = 0.1) {
+            if (isMuted) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                // Audio context block fails gracefully
+            }
+        }
+
+        function toggleAudio() {
+            isMuted = !isMuted;
+            document.getElementById('sound-on-icon').classList.toggle('hidden', isMuted);
+            document.getElementById('sound-off-icon').classList.toggle('hidden', !isMuted);
+            playBeep(440, 'sine', 0.1);
+        }
+
+        function playLevelCompleteSound() {
+            playBeep(523.25, 'sine', 0.15, 0.15); // C5
+            setTimeout(() => playBeep(659.25, 'sine', 0.15, 0.15), 100); // E5
+            setTimeout(() => playBeep(783.99, 'sine', 0.15, 0.15), 200); // G5
+            setTimeout(() => playBeep(1046.50, 'sine', 0.4, 0.2), 300); // C6
+        }
+
+        function playFailSound() {
+            playBeep(220, 'triangle', 0.3, 0.15);
+            setTimeout(() => playBeep(180, 'triangle', 0.4, 0.15), 150);
+        }
+
+        // TAB SWITCHER
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`pane-${tabId}`).classList.remove('hidden');
+
+            // Toggle Tab Buttons active styling
+            document.querySelectorAll('header nav button').forEach(btn => {
+                btn.className = "px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white";
+            });
+            document.getElementById(`tab-${tabId}`).className = "px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 bg-blue-600 text-white";
+
+            playBeep(600, 'sine', 0.05, 0.05);
+
+            // Re-draw context canvases for newly displayed layouts
+            setTimeout(() => {
+                if (tabId === 'sandbox') {
+                    resizeSandboxCanvas();
+                    drawSandbox();
+                } else if (tabId === 'activities') {
+                    triggerLabResize();
+                } else if (tabId === 'dispersion') {
+                    resizeDispersionCanvas();
+                    drawDispersion();
+                } else if (tabId === 'challenge') {
+                    resizeGameCanvas();
+                    drawGame();
+                }
+            }, 50);
+        }
+
+        // Sub-lab switch inside Activity tab
+        let activeActivity = 'pencil';
+        function switchLabActivity(activityId) {
+            activeActivity = activityId;
+            document.getElementById('lab-pencil-content').classList.add('hidden');
+            document.getElementById('lab-coin-content').classList.add('hidden');
+            document.getElementById('lab-slab-content').classList.add('hidden');
+            
+            document.getElementById(`lab-${activityId}-content`).classList.remove('hidden');
+
+            document.querySelectorAll('#pane-activities button').forEach(btn => {
+                btn.className = "px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-slate-800 text-slate-300 hover:text-white transition";
+            });
+            document.getElementById(`btn-lab-${activityId}`).className = "px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-blue-600 text-white transition";
+
+            playBeep(650, 'sine', 0.05, 0.05);
+            triggerLabResize();
+        }
+
+        function triggerLabResize() {
+            setTimeout(() => {
+                if (activeActivity === 'pencil') {
+                    resizePencilCanvas();
+                    updatePencilLab();
+                } else if (activeActivity === 'coin') {
+                    resizeCoinCanvas();
+                    updateCoinLab();
+                } else if (activeActivity === 'slab') {
+                    resizeSlabCanvas();
+                    updateSlabLab();
+                }
+            }, 50);
+        }
+
+        // Theory modal controllers
+        function openTheoryModal() {
+            document.getElementById('theory-modal').classList.remove('hidden');
+            playBeep(480, 'sine', 0.1);
+        }
+        function closeTheoryModal() {
+            document.getElementById('theory-modal').classList.add('hidden');
+            playBeep(350, 'sine', 0.1);
+        }
+    </script>
+
+    <!-- PHYSICS & SIMULATION CORE -->
+    <script>
+        // --- TAB 1: SANDBOX CODE ---
+        const sCanvas = document.getElementById('sandbox-canvas');
+        const sCtx = sCanvas.getContext('2d');
+        let dragHandle = false;
+
+        function resizeSandboxCanvas() {
+            const rect = sCanvas.parentNode.getBoundingClientRect();
+            sCanvas.width = rect.width;
+            sCanvas.height = rect.height;
+        }
+
+        function setMediumPreset(idx, val) {
+            const index = parseFloat(val);
+            document.getElementById(`n${idx}-slider`).value = index;
+            document.getElementById(`n${idx}-val`).textContent = index.toFixed(2);
+            playBeep(400 + (idx * 100), 'sine', 0.08, 0.05);
+            drawSandbox();
+        }
+
+        function updateRefractionFromSliders() {
+            const n1 = parseFloat(document.getElementById('n1-slider').value);
+            const n2 = parseFloat(document.getElementById('n2-slider').value);
+            const angle = parseInt(document.getElementById('angle-slider').value);
+
+            document.getElementById('n1-val').textContent = n1.toFixed(2);
+            document.getElementById('n2-val').textContent = n2.toFixed(2);
+            document.getElementById('angle-val').textContent = angle + '°';
+
+            // Sync preset selectors if custom
+            const presetsM1 = [1.00, 1.33, 1.50, 2.42];
+            document.getElementById('m1-select').value = presetsM1.includes(n1) ? n1.toFixed(2) : "1.33";
+            const presetsM2 = [1.00, 1.33, 1.50, 2.42];
+            document.getElementById('m2-select').value = presetsM2.includes(n2) ? n2.toFixed(2) : "1.50";
+
+            drawSandbox();
+        }
+
+        function drawSandbox() {
+            const w = sCanvas.width;
+            const h = sCanvas.height;
+            sCtx.clearRect(0, 0, w, h);
+
+            const n1 = parseFloat(document.getElementById('n1-slider').value);
+            const n2 = parseFloat(document.getElementById('n2-slider').value);
+            const angleDeg = parseInt(document.getElementById('angle-slider').value);
+            
+            const showNormal = document.getElementById('show-normal-toggle').checked;
+            const showProtractor = document.getElementById('show-protractor-toggle').checked;
+
+            const centerY = h / 2;
+            const centerX = w / 2;
+
+            // 1. Draw Medium Backgrounds
+            sCtx.fillStyle = 'rgba(21, 30, 48, 0.4)'; // Air/Rare defaults
+            sCtx.fillRect(0, 0, w, centerY);
+
+            // Medium 2 color relative to its density/refractive index
+            const densityAlpha = Math.min(0.6, (n2 - 1.0) * 0.3 + 0.1);
+            sCtx.fillStyle = `rgba(16, 185, 129, ${densityAlpha})`;
+            sCtx.fillRect(0, centerY, w, centerY);
+
+            // Medium Labels
+            sCtx.font = '10px monospace';
+            sCtx.fillStyle = '#60A5FA';
+            sCtx.fillText(`Medium 1 (n₁ = ${n1.toFixed(2)})`, 15, 25);
+            sCtx.fillStyle = '#34D399';
+            sCtx.fillText(`Medium 2 (n₂ = ${n2.toFixed(2)})`, 15, h - 20);
+
+            // 2. Draw Protractor helper grid
+            if (showProtractor) {
+                sCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                sCtx.lineWidth = 1;
+                for (let r = 50; r <= Math.min(w, h)/2; r += 50) {
+                    sCtx.beginPath();
+                    sCtx.arc(centerX, centerY, r, 0, 2 * Math.PI);
+                    sCtx.stroke();
+                }
+            }
+
+            // 3. Draw boundary line
+            sCtx.strokeStyle = '#374151';
+            sCtx.lineWidth = 2;
+            sCtx.beginPath();
+            sCtx.moveTo(0, centerY);
+            sCtx.lineTo(w, centerY);
+            sCtx.stroke();
+
+            // 4. Draw Normal line
+            if (showNormal) {
+                sCtx.strokeStyle = '#94A3B8';
+                sCtx.lineWidth = 1.5;
+                sCtx.setLineDash([6, 6]);
+                sCtx.beginPath();
+                sCtx.moveTo(centerX, 0);
+                sCtx.lineTo(centerX, h);
+                sCtx.stroke();
+                sCtx.setLineDash([]);
+                sCtx.font = '10px sans-serif';
+                sCtx.fillStyle = '#94A3B8';
+                sCtx.fillText('Normal (Perpendicular)', centerX + 8, 20);
+            }
+
+            // 5. Calculate Rays
+            const theta1Rad = angleDeg * Math.PI / 180;
+            const sinTheta2 = (n1 * Math.sin(theta1Rad)) / n2;
+            let isTIR = false;
+            let theta2Rad = 0;
+
+            if (sinTheta2 > 1.0) {
+                isTIR = true;
+            } else {
+                theta2Rad = Math.asin(sinTheta2);
+            }
+
+            // Draw Draggable Light Source laser handle
+            const laserLen = Math.min(w, h) * 0.4;
+            const incX = centerX - laserLen * Math.sin(theta1Rad);
+            const incY = centerY - laserLen * Math.cos(theta1Rad);
+
+            // Laser head visual
+            sCtx.fillStyle = '#F59E0B';
+            sCtx.beginPath();
+            sCtx.arc(incX, incY, 10, 0, 2 * Math.PI);
+            sCtx.fill();
+            sCtx.strokeStyle = '#FFFFFF';
+            sCtx.lineWidth = 2;
+            sCtx.stroke();
+
+            // 6. Draw incident beam
+            sCtx.strokeStyle = '#F59E0B';
+            sCtx.lineWidth = 4;
+            sCtx.beginPath();
+            sCtx.moveTo(incX, incY);
+            sCtx.lineTo(centerX, centerY);
+            sCtx.stroke();
+
+            // Draw incident angle label
+            if (angleDeg > 5) {
+                sCtx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+                sCtx.lineWidth = 1.5;
+                sCtx.beginPath();
+                sCtx.arc(centerX, centerY, 35, -Math.PI/2 - theta1Rad, -Math.PI/2);
+                sCtx.stroke();
+                sCtx.fillStyle = '#F59E0B';
+                sCtx.font = '11px sans-serif';
+                const labelAngle = -Math.PI/2 - (theta1Rad/2);
+                sCtx.fillText(`${angleDeg}°`, centerX + 45 * Math.cos(labelAngle), centerY + 45 * Math.sin(labelAngle));
+            }
+
+            // 7. Draw refracted or reflected ray
+            if (isTIR) {
+                // Reflection Ray
+                sCtx.strokeStyle = '#EF4444'; // Red laser for TIR
+                sCtx.lineWidth = 4;
+                const refX = centerX + laserLen * Math.sin(theta1Rad);
+                const refY = centerY - laserLen * Math.cos(theta1Rad);
+                sCtx.beginPath();
+                sCtx.moveTo(centerX, centerY);
+                sCtx.lineTo(refX, refY);
+                sCtx.stroke();
+
+                document.getElementById('tir-warning').classList.remove('hidden');
+                document.getElementById('card-theta2').textContent = "TIR ⚠️";
+                document.getElementById('card-theta2').className = "text-lg font-bold text-red-400";
+            } else {
+                // Refracted Ray
+                sCtx.strokeStyle = '#10B981'; // Green emerald for successful refraction
+                sCtx.lineWidth = 4;
+                const refrX = centerX + laserLen * Math.sin(theta2Rad);
+                const refrY = centerY + laserLen * Math.cos(theta2Rad);
+                sCtx.beginPath();
+                sCtx.moveTo(centerX, centerY);
+                sCtx.lineTo(refrX, refrY);
+                sCtx.stroke();
+
+                document.getElementById('tir-warning').classList.add('hidden');
+                const theta2Deg = theta2Rad * 180 / Math.PI;
+                document.getElementById('card-theta2').textContent = theta2Deg.toFixed(1) + '°';
+                document.getElementById('card-theta2').className = "text-lg font-bold text-emerald-400";
+
+                // Draw refracted angle label
+                if (theta2Deg > 3) {
+                    sCtx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+                    sCtx.lineWidth = 1.5;
+                    sCtx.beginPath();
+                    sCtx.arc(centerX, centerY, 35, Math.PI/2 - theta2Rad, Math.PI/2);
+                    sCtx.stroke();
+                    sCtx.fillStyle = '#10B981';
+                    sCtx.font = '11px sans-serif';
+                    const labelAngle = Math.PI/2 - (theta2Rad/2);
+                    sCtx.fillText(`${theta2Deg.toFixed(1)}°`, centerX + 45 * Math.cos(labelAngle) - 10, centerY + 45 * Math.sin(labelAngle) + 5);
+                }
+            }
+
+            // Update bottom live stats cards
+            document.getElementById('card-theta1').textContent = angleDeg.toFixed(1) + '°';
+            const vRatio = n2 / n1;
+            document.getElementById('card-speed').textContent = vRatio.toFixed(2) + 'x';
+
+            // Update mathematical live block
+            document.getElementById('math-incident').textContent = `${n1.toFixed(2)} × sin(${angleDeg}°) = ${(n1 * Math.sin(theta1Rad)).toFixed(3)}`;
+            if (isTIR) {
+                document.getElementById('math-refracted').textContent = `N/A (TIR)`;
+            } else {
+                document.getElementById('math-refracted').textContent = `${n2.toFixed(2)} × sin(${(theta2Rad * 180 / Math.PI).toFixed(1)}°) = ${(n2 * Math.sin(theta2Rad)).toFixed(3)}`;
+            }
+        }
+
+        // Drag handle events on sandbox canvas
+        sCanvas.addEventListener('mousedown', (e) => {
+            dragHandle = true;
+            trackDrag(e);
+        });
+        sCanvas.addEventListener('mousemove', (e) => {
+            if (dragHandle) trackDrag(e);
+        });
+        window.addEventListener('mouseup', () => {
+            dragHandle = false;
+        });
+
+        // Touch event fallbacks for mobile simulation
+        sCanvas.addEventListener('touchstart', (e) => {
+            dragHandle = true;
+            trackDrag(e.touches[0]);
+        });
+        sCanvas.addEventListener('touchmove', (e) => {
+            if (dragHandle) {
+                trackDrag(e.touches[0]);
+                e.preventDefault();
+            }
+        });
+        sCanvas.addEventListener('touchend', () => { dragHandle = false; });
+
+        function trackDrag(e) {
+            const rect = sCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const centerX = sCanvas.width / 2;
+            const centerY = sCanvas.height / 2;
+
+            // Calculate angle from center to mouse (Incident region: top side, i.e., mouseY < centerY)
+            if (mouseY < centerY) {
+                const dx = centerX - mouseX;
+                const dy = centerY - mouseY;
+                let angleRad = Math.atan2(dx, dy);
+                if (angleRad < 0) angleRad = 0; // limit clamp
+                let angleDeg = Math.round(angleRad * 180 / Math.PI);
+                angleDeg = Math.max(0, Math.min(89, angleDeg));
+
+                document.getElementById('angle-slider').value = angleDeg;
+                updateRefractionFromSliders();
+            }
+        }
+
+
+        // --- TAB 2: VIRTUAL LABS (Pencil, Coin, Slab) ---
+        const pCanvas = document.getElementById('pencil-canvas');
+        const pCtx = pCanvas.getContext('2d');
+
+        function resizePencilCanvas() {
+            const rect = pCanvas.parentNode.getBoundingClientRect();
+            pCanvas.width = rect.width;
+            pCanvas.height = rect.height;
+        }
+
+        function updatePencilLab() {
+            const angle = parseInt(document.getElementById('pencil-angle-slider').value);
+            const n = parseFloat(document.getElementById('pencil-n-slider').value);
+
+            document.getElementById('pencil-angle-val').textContent = angle + '°';
+            document.getElementById('pencil-n-val').textContent = n.toFixed(2) + (n === 1.33 ? " (Water)" : n === 1.5 ? " (Glass)" : "");
+
+            const w = pCanvas.width;
+            const h = pCanvas.height;
+            pCtx.clearRect(0, 0, w, h);
+
+            const waterY = h * 0.45;
+
+            // Draw liquid
+            const liquidAlpha = Math.min(0.6, (n - 1.0) * 0.4 + 0.1);
+            pCtx.fillStyle = `rgba(59, 130, 246, ${liquidAlpha})`;
+            pCtx.fillRect(0, waterY, w, h - waterY);
+
+            // Water border line
+            pCtx.strokeStyle = 'rgba(59, 130, 246, 0.7)';
+            pCtx.lineWidth = 3;
+            pCtx.beginPath();
+            pCtx.moveTo(0, waterY);
+            pCtx.lineTo(w, waterY);
+            pCtx.stroke();
+
+            // Pencil geometry
+            const pencilLength = h * 0.6;
+            const pivotX = w * 0.5;
+            const pivotY = waterY; // intersection point
+
+            // Draw Above water pencil
+            const angleRad = angle * Math.PI / 180;
+            const xTop = pivotX - pencilLength * 0.5 * Math.sin(angleRad);
+            const yTop = pivotY - pencilLength * 0.5 * Math.cos(angleRad);
+
+            pCtx.strokeStyle = '#F59E0B'; // Yellow pencil
+            pCtx.lineWidth = 12;
+            pCtx.lineCap = 'round';
+            pCtx.beginPath();
+            pCtx.moveTo(xTop, yTop);
+            pCtx.lineTo(pivotX, pivotY);
+            pCtx.stroke();
+
+            // Calculate Apparent Pencil Bending (Submerged)
+            // Snell's: sin(theta_air) = n_water * sin(theta_water) -> theta_water = asin(sin(theta_air) / n_water)
+            const sinThetaWater = Math.sin(angleRad) / n;
+            const thetaWaterRad = Math.asin(sinThetaWater);
+
+            // True submerged position
+            const xSubReal = pivotX + pencilLength * 0.5 * Math.sin(angleRad);
+            const ySubReal = pivotY + pencilLength * 0.5 * Math.cos(angleRad);
+
+            // Apparent refracted pencil position (where it seems to be)
+            const xSubApparent = pivotX + pencilLength * 0.5 * Math.sin(thetaWaterRad);
+            const ySubApparent = pivotY + pencilLength * 0.5 * Math.cos(thetaWaterRad);
+
+            // Draw Real Pencil line slightly transparent underneath
+            pCtx.strokeStyle = 'rgba(245, 158, 11, 0.2)';
+            pCtx.lineWidth = 12;
+            pCtx.beginPath();
+            pCtx.moveTo(pivotX, pivotY);
+            pCtx.lineTo(xSubReal, ySubReal);
+            pCtx.stroke();
+
+            // Draw BENT Apparent Pencil in water (Solid/broken appearance)
+            pCtx.strokeStyle = '#EAB308'; // Slightly magnified look too!
+            pCtx.lineWidth = 15; // Refraction causes thickness boost
+            pCtx.beginPath();
+            pCtx.moveTo(pivotX, pivotY);
+            pCtx.lineTo(xSubApparent, ySubApparent);
+            pCtx.stroke();
+
+            // Ray Tracing helpers
+            pCtx.setLineDash([3, 3]);
+            pCtx.strokeStyle = '#EF4444';
+            pCtx.lineWidth = 1.5;
+            pCtx.beginPath();
+            pCtx.moveTo(xSubApparent, ySubApparent);
+            pCtx.lineTo(pivotX, pivotY);
+            pCtx.lineTo(pivotX - 60, pivotY - 100); // Path back to observer eye
+            pCtx.stroke();
+            pCtx.setLineDash([]);
+
+            // Labels
+            pCtx.fillStyle = '#FFFFFF';
+            pCtx.font = '10px sans-serif';
+            pCtx.fillText("Light bends at interface, making", 15, h - 35);
+            pCtx.fillText("the submerged pencil appear broken!", 15, h - 20);
+        }
+
+        // --- ACTIVITY 2: COIN EXPERIMENT ---
+        const cCanvas = document.getElementById('coin-canvas');
+        const cCtx = cCanvas.getContext('2d');
+
+        function resizeCoinCanvas() {
+            const rect = cCanvas.parentNode.getBoundingClientRect();
+            cCanvas.width = rect.width;
+            cCanvas.height = rect.height;
+        }
+
+        function updateCoinLab() {
+            const waterLevel = parseInt(document.getElementById('coin-water-slider').value);
+            const w = cCanvas.width;
+            const h = cCanvas.height;
+            cCtx.clearRect(0, 0, w, h);
+
+            // Draw Vessel (opaque grey boundaries)
+            cCtx.fillStyle = '#334155';
+            cCtx.beginPath();
+            cCtx.moveTo(w * 0.1, h * 0.3); // left edge
+            cCtx.lineTo(w * 0.2, h * 0.85); // corner
+            cCtx.lineTo(w * 0.7, h * 0.85); // corner
+            cCtx.lineTo(w * 0.8, h * 0.4); // right edge (observer block)
+            cCtx.lineWidth = 12;
+            cCtx.strokeStyle = '#475569';
+            cCtx.stroke();
+
+            // Draw Water
+            if (waterLevel > 0) {
+                const waterTop = h * 0.85 - (waterLevel / 100) * (h * 0.45);
+                cCtx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+                cCtx.beginPath();
+                cCtx.moveTo(w * 0.15, waterTop);
+                cCtx.lineTo(w * 0.2 + (waterLevel/100)*(w * 0.05), h * 0.85);
+                cCtx.lineTo(w * 0.7 - (waterLevel/100)*(w * 0.05), h * 0.85);
+                cCtx.lineTo(w * 0.75 + (waterLevel/100)*(w * 0.05), waterTop);
+                cCtx.closePath();
+                cCtx.fill();
+            }
+
+            // Draw Real Coin at bottom left corner
+            const coinX = w * 0.25;
+            const coinY = h * 0.81;
+            cCtx.fillStyle = '#EAB308'; // Gold coin
+            cCtx.beginPath();
+            cCtx.arc(coinX, coinY, 14, 0, 2 * Math.PI);
+            cCtx.fill();
+            cCtx.fillStyle = '#B45309';
+            cCtx.font = '9px monospace';
+            cCtx.fillText("₹5", coinX - 5, coinY + 3);
+
+            // Observer Eye
+            const eyeX = w * 0.85;
+            const eyeY = h * 0.25;
+            // Draw stylized eye
+            cCtx.strokeStyle = '#94A3B8';
+            cCtx.lineWidth = 2;
+            cCtx.beginPath();
+            cCtx.arc(eyeX, eyeY, 10, 0, 2 * Math.PI);
+            cCtx.stroke();
+            cCtx.fillStyle = '#38BDF8';
+            cCtx.beginPath();
+            cCtx.arc(eyeX - 3, eyeY, 4, 0, 2 * Math.PI);
+            cCtx.fill();
+
+            // Trace Eye ray over the vessel's lip
+            const lipX = w * 0.8;
+            const lipY = h * 0.4;
+
+            // Line from eye to lip
+            const dx = lipX - eyeX;
+            const dy = lipY - eyeY;
+            const slope = dy / dx;
+
+            // Direct straight-line sight ray extending past lip
+            const straightExtendX = coinX;
+            const straightExtendY = eyeY + slope * (straightExtendX - eyeX);
+
+            // Ray tracing logic with water refraction
+            let isCoinVisible = false;
+            let apparentCoinY = coinY;
+
+            if (waterLevel < 40) {
+                // Dry / Low water: Ray misses coin completely because opaque side blocks straight paths
+                cCtx.strokeStyle = '#EF4444';
+                cCtx.lineWidth = 1.5;
+                cCtx.beginPath();
+                cCtx.moveTo(eyeX, eyeY);
+                cCtx.lineTo(lipX, lipY);
+                // Straight path into wall
+                cCtx.lineTo(w * 0.45, h * 0.85);
+                cCtx.stroke();
+                
+                document.getElementById('coin-status').textContent = "Coin state: Hidden by metal side wall!";
+                document.getElementById('coin-status').className = "mt-4 text-sm font-semibold py-1.5 px-4 rounded-full bg-red-900/40 text-red-300 border border-red-500";
+            } else {
+                // Sufficient water levels bend ray down to coin!
+                isCoinVisible = true;
+                cCtx.strokeStyle = '#10B981';
+                cCtx.lineWidth = 2;
+
+                // Find intersection of line of sight with water level
+                const waterTopY = h * 0.85 - (waterLevel / 100) * (h * 0.45);
+                const refractX = eyeX + (waterTopY - eyeY) / slope;
+
+                // Beam from eye to interface
+                cCtx.beginPath();
+                cCtx.moveTo(eyeX, eyeY);
+                cCtx.lineTo(refractX, waterTopY);
+                cCtx.stroke();
+
+                // Beam refracts down inside water towards the coin
+                cCtx.beginPath();
+                cCtx.moveTo(refractX, waterTopY);
+                cCtx.lineTo(coinX, coinY);
+                cCtx.stroke();
+
+                // Dotted virtual ray showing where eye perceives the coin (straight line trace back)
+                cCtx.strokeStyle = 'rgba(234, 179, 8, 0.6)';
+                cCtx.setLineDash([4, 4]);
+                cCtx.beginPath();
+                cCtx.moveTo(refractX, waterTopY);
+                // Extends straight in original slope direction
+                const apparentX = refractX - 100;
+                const apparentY = waterTopY - 100 * slope;
+                cCtx.lineTo(apparentX, apparentY);
+                cCtx.stroke();
+                cCtx.setLineDash([]);
+
+                // Draw Apparent Floating Coin image
+                apparentCoinY = coinY - (waterLevel / 100) * 45; // apparent lift
+                cCtx.fillStyle = 'rgba(234, 179, 8, 0.4)';
+                cCtx.beginPath();
+                cCtx.arc(coinX, apparentCoinY, 14, 0, 2 * Math.PI);
+                cCtx.fill();
+                cCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                cCtx.stroke();
+
+                document.getElementById('coin-status').textContent = "Coin state: Visible! Refraction lifts coin's apparent position.";
+                document.getElementById('coin-status').className = "mt-4 text-sm font-semibold py-1.5 px-4 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500";
+            }
+        }
+
+
+        // --- ACTIVITY 3: GLASS SLAB ---
+        const gCanvas = document.getElementById('slab-canvas');
+        const gCtx = gCanvas.getContext('2d');
+
+        function resizeSlabCanvas() {
+            const rect = gCanvas.parentNode.getBoundingClientRect();
+            gCanvas.width = rect.width;
+            gCanvas.height = rect.height;
+        }
+
+        function updateSlabLab() {
+            const thickness = parseInt(document.getElementById('slab-thick-slider').value);
+            const angleDeg = parseInt(document.getElementById('slab-angle-slider').value);
+
+            document.getElementById('slab-thick-val').textContent = thickness + ' px';
+            document.getElementById('slab-angle-val').textContent = angleDeg + '°';
+
+            const w = gCanvas.width;
+            const h = gCanvas.height;
+            gCtx.clearRect(0, 0, w, h);
+
+            const slabTopY = h * 0.3;
+            const slabBottomY = slabTopY + thickness;
+
+            // Draw parallel slab container
+            gCtx.fillStyle = 'rgba(59, 130, 246, 0.25)';
+            gCtx.strokeStyle = 'rgba(59, 130, 246, 0.7)';
+            gCtx.lineWidth = 3;
+            gCtx.fillRect(w * 0.15, slabTopY, w * 0.7, thickness);
+            gCtx.strokeRect(w * 0.15, slabTopY, w * 0.7, thickness);
+
+            // Interface parallel labels
+            gCtx.fillStyle = '#60A5FA';
+            gCtx.font = '10px monospace';
+            gCtx.fillText("Interface PQ", w * 0.15 + 10, slabTopY - 8);
+            gCtx.fillText("Interface SR (Parallel)", w * 0.15 + 10, slabBottomY + 16);
+
+            // Math computations
+            const i1Rad = angleDeg * Math.PI / 180;
+            const nGlass = 1.5; // Fixed glass block
+            const r1Rad = Math.asin(Math.sin(i1Rad) / nGlass);
+
+            // Anchor point N (incidence) on slab top
+            const nx = w * 0.4;
+            const ny = slabTopY;
+
+            // Draw Normal lines at point of incidence N
+            gCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            gCtx.lineWidth = 1;
+            gCtx.setLineDash([4, 4]);
+            gCtx.beginPath();
+            gCtx.moveTo(nx, slabTopY - 60);
+            gCtx.lineTo(nx, slabTopY + 60);
+            gCtx.stroke();
+
+            // Incident ray AN
+            const ax = nx - 120 * Math.sin(i1Rad);
+            const ay = slabTopY - 120 * Math.cos(i1Rad);
+            gCtx.strokeStyle = '#F59E0B'; // Gold Incident Ray
+            gCtx.lineWidth = 3;
+            gCtx.beginPath();
+            gCtx.moveTo(ax, ay);
+            gCtx.lineTo(nx, ny);
+            gCtx.stroke();
+            gCtx.fillStyle = '#F59E0B';
+            gCtx.fillText("Incident Ray (AN)", ax - 20, ay - 8);
+
+            // Refracted ray inside NM
+            const mx = nx + thickness * Math.tan(r1Rad);
+            const my = slabBottomY;
+            gCtx.strokeStyle = '#10B981'; // Green Refracted Ray
+            gCtx.lineWidth = 3;
+            gCtx.beginPath();
+            gCtx.moveTo(nx, ny);
+            gCtx.lineTo(mx, my);
+            gCtx.stroke();
+
+            // Normal lines at point of emergence M
+            gCtx.beginPath();
+            gCtx.moveTo(mx, slabBottomY - 60);
+            gCtx.lineTo(mx, slabBottomY + 80);
+            gCtx.stroke();
+            gCtx.setLineDash([]);
+
+            // Emergent ray MD out of parallel slab
+            // Angle of emergence equals incident angle since surfaces are parallel!
+            const dx = mx + 120 * Math.sin(i1Rad);
+            const dy = slabBottomY + 120 * Math.cos(i1Rad);
+            gCtx.strokeStyle = '#EAB308'; // Emergent
+            gCtx.lineWidth = 3;
+            gCtx.beginPath();
+            gCtx.moveTo(mx, my);
+            gCtx.lineTo(dx, dy);
+            gCtx.stroke();
+            gCtx.fillStyle = '#EAB308';
+            gCtx.fillText("Emergent Ray (MD)", dx - 40, dy + 15);
+
+            // Virtual straight ray line showing parallel displacement
+            const straightY = dy;
+            const straightX = nx + (straightY - ny) * Math.tan(i1Rad);
+            gCtx.strokeStyle = 'rgba(239, 68, 68, 0.3)';
+            gCtx.lineWidth = 1.5;
+            gCtx.setLineDash([3, 3]);
+            gCtx.beginPath();
+            gCtx.moveTo(nx, ny);
+            gCtx.lineTo(straightX, straightY);
+            gCtx.stroke();
+            gCtx.setLineDash([]);
+
+            // Lateral displacement distance calculation
+            const lateralDisplacement = thickness * Math.sin(i1Rad - r1Rad) / Math.cos(r1Rad);
+            document.getElementById('slab-emergent-text').textContent = angleDeg.toFixed(1) + '°';
+            document.getElementById('slab-displacement-text').textContent = lateralDisplacement.toFixed(1) + ' px';
+        }
+
+
+        // --- TAB 3: DISPERSION ---
+        const dCanvas = document.getElementById('dispersion-canvas');
+        const dCtx = dCanvas.getContext('2d');
+
+        function resizeDispersionCanvas() {
+            const rect = dCanvas.parentNode.getBoundingClientRect();
+            dCanvas.width = rect.width;
+            dCanvas.height = rect.height;
+        }
+
+        // Color mapper from wavelength (approximate representation)
+        function wavelengthToColor(wl) {
+            if (wl >= 620) return 'rgba(239, 68, 68, 0.9)';   // Red
+            if (wl >= 590) return 'rgba(245, 158, 11, 0.9)';  // Orange
+            if (wl >= 570) return 'rgba(234, 179, 8, 0.9)';   // Yellow
+            if (wl >= 495) return 'rgba(16, 185, 129, 0.9)';  // Green
+            if (wl >= 450) return 'rgba(59, 130, 246, 0.9)';  // Blue
+            return 'rgba(139, 92, 246, 0.9)';                 // Violet
+        }
+
+        function drawDispersion() {
+            const w = dCanvas.width;
+            const h = dCanvas.height;
+            dCtx.clearRect(0, 0, w, h);
+
+            const prismBaseN = parseFloat(document.getElementById('prism-n-slider').value);
+            const beamWidth = parseInt(document.getElementById('prism-beam-width').value);
+            document.getElementById('prism-n-val').textContent = prismBaseN.toFixed(2);
+            document.getElementById('dispersion-width-val').textContent = beamWidth > 8 ? "Thick" : beamWidth > 4 ? "Medium" : "Thin";
+
+            // Draw Triangular Glass Prism
+            const px1 = w * 0.5;
+            const py1 = h * 0.25;
+            const px2 = w * 0.3;
+            const py2 = h * 0.75;
+            const px3 = w * 0.7;
+            const py3 = h * 0.75;
+
+            dCtx.fillStyle = 'rgba(59, 130, 246, 0.15)';
+            dCtx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
+            dCtx.lineWidth = 3;
+            dCtx.beginPath();
+            dCtx.moveTo(px1, py1);
+            dCtx.lineTo(px2, py2);
+            dCtx.lineTo(px3, py3);
+            dCtx.closePath();
+            dCtx.fill();
+            dCtx.stroke();
+
+            // Draw White Light Beam arriving from left
+            const sourceX = w * 0.05;
+            const sourceY = h * 0.6;
+            const entryX = w * 0.38; // intersection on left side of prism
+            const entryY = h * 0.55;
+
+            dCtx.strokeStyle = '#FFFFFF';
+            dCtx.lineWidth = beamWidth;
+            dCtx.beginPath();
+            dCtx.moveTo(sourceX, sourceY);
+            dCtx.lineTo(entryX, entryY);
+            dCtx.stroke();
+
+            // Label source
+            dCtx.fillStyle = '#FFFFFF';
+            dCtx.font = '10px monospace';
+            dCtx.fillText("Incident White Light", sourceX, sourceY - 10);
+
+            // Refracted spectrum inside & exiting the glass
+            // Wavelength range from Red (650nm) down to Violet (410nm)
+            const wavelengths = [650, 600, 575, 520, 470, 420];
+            
+            wavelengths.forEach((wl, idx) => {
+                // Cauchy's simplified dispersion: n depends inversely on wavelength
+                const n_color = prismBaseN + (50000 / (wl * wl));
+                
+                // Angle calculations inside prism (approximation of double interface refraction)
+                const bendFactor = (n_color - 1.0) * 0.45;
+                const innerEndX = w * 0.58;
+                const innerEndY = entryY + bendFactor * 80;
+
+                // Exit refraction out of right side towards the display screen
+                const exitX = w * 0.95;
+                const exitY = innerEndY + bendFactor * 200;
+
+                dCtx.strokeStyle = wavelengthToColor(wl);
+                dCtx.lineWidth = beamWidth / 2;
+                
+                // Draw path inside prism
+                dCtx.beginPath();
+                dCtx.moveTo(entryX, entryY);
+                dCtx.lineTo(innerEndX, innerEndY);
+                dCtx.stroke();
+
+                // Draw path exiting prism (dispersion split!)
+                dCtx.beginPath();
+                dCtx.moveTo(innerEndX, innerEndY);
+                dCtx.lineTo(exitX, exitY);
+                dCtx.stroke();
+            });
+
+            // Projection Screen Line
+            const screenX = w * 0.95;
+            dCtx.strokeStyle = '#475569';
+            dCtx.lineWidth = 6;
+            dCtx.beginPath();
+            dCtx.moveTo(screenX, h * 0.35);
+            dCtx.lineTo(screenX, h * 0.9);
+            dCtx.stroke();
+            dCtx.fillStyle = '#94A3B8';
+            dCtx.fillText("Rainbow Spectrum Screen", screenX - 130, h * 0.35 - 10);
+        }
+
+
+        // --- TAB 4: OPTICS TARGET QUEST (THE GAME) ---
+        const gGameCanvas = document.getElementById('game-canvas');
+        const gGameCtx = gGameCanvas.getContext('2d');
+
+        let gameLevel = 1;
+        let totalScore = 0;
+        let gameAngle = 35;
+        let gameN = 1.33;
+
+        // Target settings: dynamically changed per level
+        let targetX = 0;
+        let targetY = 0;
+        let hasWonLevel = false;
+
+        function resizeGameCanvas() {
+            const rect = gGameCanvas.parentNode.getBoundingClientRect();
+            gGameCanvas.width = rect.width;
+            gGameCanvas.height = rect.height;
+        }
+
+        function resetGame() {
+            gameLevel = 1;
+            totalScore = 0;
+            document.getElementById('score-counter').textContent = totalScore;
+            initLevel();
+            playBeep(300, 'sawtooth', 0.2);
+        }
+
+        function initLevel() {
+            hasWonLevel = false;
+            document.getElementById('claim-victory-btn').classList.add('hidden');
+            document.getElementById('game-level-indicator').textContent = `Level ${gameLevel} of 3`;
+
+            const w = gGameCanvas.width || 500;
+            const h = gGameCanvas.height || 400;
+
+            if (gameLevel === 1) {
+                // Target in Water level
+                targetX = w * 0.75;
+                targetY = h * 0.75;
+                gameAngle = 30;
+                gameN = 1.33;
+                document.getElementById('game-objective-text').textContent = "🎯 Target under Water Surface";
+                document.getElementById('game-hint-text').textContent = "Hint: Set the right laser launcher angle so that the refraction angle matches the target crystal's position!";
+                document.getElementById('game-param2-container').classList.add('hidden'); // hidden custom n slider
+            } else if (gameLevel === 2) {
+                // Target behind custom refracting block
+                targetX = w * 0.8;
+                targetY = h * 0.65;
+                gameAngle = 40;
+                gameN = 1.2;
+                document.getElementById('game-objective-text').textContent = "🎯 Penetrate Parallel Block";
+                document.getElementById('game-hint-text').textContent = "Hint: Adjust BOTH the incident angle and the custom refractive index (n) of the block to guide the laser straight into the gold target.";
+                document.getElementById('game-param2-container').classList.remove('hidden');
+            } else if (gameLevel === 3) {
+                // Extreme angle with Diamond
+                targetX = w * 0.82;
+                targetY = h * 0.8;
+                gameAngle = 50;
+                gameN = 1.9;
+                document.getElementById('game-objective-text').textContent = "🎯 Extreme Diamond Refractor Challenge";
+                document.getElementById('game-hint-text').textContent = "Hint: High densities require precise critical angles. Find the sweet spot to bounce or slide into the golden target crystal!";
+                document.getElementById('game-param2-container').classList.remove('hidden');
+            }
+
+            document.getElementById('game-angle-slider').value = gameAngle;
+            document.getElementById('game-n-slider').value = gameN;
+            updateGameControls();
+        }
+
+        function updateGameControls() {
+            gameAngle = parseInt(document.getElementById('game-angle-slider').value);
+            gameN = parseFloat(document.getElementById('game-n-slider').value);
+
+            document.getElementById('game-angle-val').textContent = gameAngle + '°';
+            document.getElementById('game-n-val').textContent = gameN.toFixed(2);
+
+            drawGame();
+        }
+
+        function drawGame() {
+            const w = gGameCanvas.width;
+            const h = gGameCanvas.height;
+            gGameCtx.clearRect(0, 0, w, h);
+
+            const centerY = h * 0.45;
+            const centerX = w * 0.35;
+
+            // Draw Background Media for Game Levels
+            if (gameLevel === 1) {
+                // Water bottom half
+                gGameCtx.fillStyle = 'rgba(14, 116, 144, 0.4)';
+                gGameCtx.fillRect(0, centerY, w, h - centerY);
+                gGameCtx.strokeStyle = '#06B6D4';
+                gGameCtx.lineWidth = 2;
+                gGameCtx.beginPath();
+                gGameCtx.moveTo(0, centerY);
+                gGameCtx.lineTo(w, centerY);
+                gGameCtx.stroke();
+                
+                gGameCtx.fillStyle = '#06B6D4';
+                gGameCtx.font = '10px monospace';
+                gGameCtx.fillText("WATER n=1.33", 10, centerY + 20);
+            } else {
+                // Centered Rectangular slab
+                const slabW = w * 0.35;
+                const slabH = h * 0.35;
+                const slabX = centerX + 10;
+                const slabY = centerY - 40;
+
+                gGameCtx.fillStyle = 'rgba(59, 130, 246, 0.25)';
+                gGameCtx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
+                gGameCtx.lineWidth = 2;
+                gGameCtx.fillRect(slabX, slabY, slabW, slabH);
+                gGameCtx.strokeRect(slabX, slabY, slabW, slabH);
+
+                gGameCtx.fillStyle = '#60A5FA';
+                gGameCtx.font = '10px monospace';
+                gGameCtx.fillText(`SLAB n=${gameN.toFixed(2)}`, slabX + 10, slabY + 20);
+            }
+
+            // Draw Normal Guides
+            gGameCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            gGameCtx.lineWidth = 1;
+            gGameCtx.setLineDash([5, 5]);
+            gGameCtx.beginPath();
+            gGameCtx.moveTo(centerX, 0);
+            gGameCtx.lineTo(centerX, h);
+            gGameCtx.stroke();
+            gGameCtx.setLineDash([]);
+
+            // Draw Target Gold Crystal
+            gGameCtx.fillStyle = '#F59E0B';
+            gGameCtx.beginPath();
+            gGameCtx.arc(targetX, targetY, 15, 0, 2 * Math.PI);
+            gGameCtx.fill();
+            gGameCtx.strokeStyle = '#FFFFFF';
+            gGameCtx.lineWidth = 2;
+            gGameCtx.stroke();
+
+            // Target Core Star visual
+            gGameCtx.fillStyle = '#FFFFFF';
+            gGameCtx.font = '12px sans-serif';
+            gGameCtx.fillText("⭐", targetX - 6, targetY + 4);
+
+            // Compute Laser Paths & Collision
+            const launcherX = centerX - 120 * Math.sin(gameAngle * Math.PI / 180);
+            const launcherY = centerY - 120 * Math.cos(gameAngle * Math.PI / 180);
+
+            // Draw launcher node
+            gGameCtx.fillStyle = '#EF4444';
+            gGameCtx.beginPath();
+            gGameCtx.arc(launcherX, launcherY, 8, 0, 2 * Math.PI);
+            gGameCtx.fill();
+
+            // Trace ray
+            let hitTarget = false;
+            gGameCtx.strokeStyle = '#10B981'; // Green laser beam
+            gGameCtx.lineWidth = 4;
+            gGameCtx.shadowBlur = 10;
+            gGameCtx.shadowColor = '#10B981';
+
+            if (gameLevel === 1) {
+                // Simple refraction
+                const n1 = 1.0; // Air
+                const n2 = 1.33; // Water
+                const i1Rad = gameAngle * Math.PI / 180;
+                const r1Rad = Math.asin(Math.sin(i1Rad) / n2);
+
+                const endY = h;
+                const endX = centerX + (endY - centerY) * Math.tan(r1Rad);
+
+                gGameCtx.beginPath();
+                gGameCtx.moveTo(launcherX, launcherY);
+                gGameCtx.lineTo(centerX, centerY);
+                gGameCtx.lineTo(endX, endY);
+                gGameCtx.stroke();
+
+                // Check distance from target to segment
+                // A = (centerX, centerY), B = (endX, endY)
+                const dist = distToSegment({x: targetX, y: targetY}, {x: centerX, y: centerY}, {x: endX, y: endY});
+                if (dist < 18) hitTarget = true;
+
+            } else {
+                // Slab refraction level (double boundary)
+                const slabW = w * 0.35;
+                const slabH = h * 0.35;
+                const slabX = centerX + 10;
+                const slabY = centerY - 40;
+
+                const i1Rad = gameAngle * Math.PI / 180;
+                const r1Rad = Math.asin(Math.sin(i1Rad) / gameN);
+
+                // First boundary hit
+                const enterX = slabX;
+                const enterY = launcherY + (slabX - launcherX) * Math.tan(i1Rad);
+
+                // Check if laser misses the slab entrance completely
+                if (enterY >= slabY && enterY <= slabY + slabH) {
+                    // Refract inside slab
+                    const exitX = slabX + slabW;
+                    const exitY = enterY + slabW * Math.tan(r1Rad);
+
+                    // Refract out of slab (parallel to original direction)
+                    const finalX = w;
+                    const finalY = exitY + (w - exitX) * Math.tan(i1Rad);
+
+                    gGameCtx.beginPath();
+                    gGameCtx.moveTo(launcherX, launcherY);
+                    gGameCtx.lineTo(enterX, enterY);
+                    gGameCtx.lineTo(exitX, exitY);
+                    gGameCtx.lineTo(finalX, finalY);
+                    gGameCtx.stroke();
+
+                    // Check distance along third segment
+                    const dist = distToSegment({x: targetX, y: targetY}, {x: exitX, y: exitY}, {x: finalX, y: finalY});
+                    if (dist < 18) hitTarget = true;
+                } else {
+                    // Miss slab completely, straight line
+                    const missX = w;
+                    const missY = launcherY + (w - launcherX) * Math.tan(i1Rad);
+                    gGameCtx.beginPath();
+                    gGameCtx.moveTo(launcherX, launcherY);
+                    gGameCtx.lineTo(missX, missY);
+                    gGameCtx.stroke();
+                }
+            }
+
+            gGameCtx.shadowBlur = 0; // reset shadow glow
+
+            // Update UI
+            if (hitTarget) {
+                if (!hasWonLevel) {
+                    hasWonLevel = true;
+                    playLevelCompleteSound();
+                    document.getElementById('claim-victory-btn').classList.remove('hidden');
+                    document.getElementById('laser-status-tag').textContent = "🎯 TARGET HIT!";
+                    document.getElementById('laser-status-tag').className = "text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/50";
+                }
+            } else {
+                document.getElementById('laser-status-tag').textContent = "LASER OFF TARGET";
+                document.getElementById('laser-status-tag').className = "text-xs font-bold text-red-400 bg-red-950/40 px-2 py-0.5 rounded border border-red-900/40";
+            }
+        }
+
+        // Distance from point to line segment helper function
+        function distToSegment(p, v, w) {
+            const l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2);
+            if (l2 === 0) return Math.sqrt(Math.pow(p.x - v.x, 2) + Math.pow(p.y - v.y, 2));
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.sqrt(Math.pow(p.x - (v.x + t * (w.x - v.x)), 2) + Math.pow(p.y - (v.y + t * (w.y - v.y)), 2));
+        }
+
+        function nextGameLevel() {
+            totalScore += 100;
+            document.getElementById('score-counter').textContent = totalScore;
+            
+            if (gameLevel < 3) {
+                gameLevel++;
+                initLevel();
+            } else {
+                // Game Finished!
+                playLevelCompleteSound();
+                alert("🎉 Amazing! You completed all refractor sandbox challenges! Feel free to reset and try again.");
+                resetGame();
+            }
+        }
+
+
+        // --- TAB 5: CONCEPT CHECK QUIZ ---
+        const quizData = [
+            {
+                question: "What is the primary physical reason light bends (refracts) when passing from air into glass?",
+                options: [
+                    "Glass is shiny and reflects some of the photon beams.",
+                    "The velocity of light decreases in a denser medium.",
+                    "The normal line pulls the light magnetically.",
+                    "Gravity acts stronger inside liquid media."
+                ],
+                correct: 1,
+                explain: "Refraction occurs because light travels at different velocities in different media. When entering a optically denser medium like glass, light slows down and bends toward the normal line."
+            },
+            {
+                question: "Which equation represents the Second Law of Refraction (commonly known as Snell's Law)?",
+                options: [
+                    "sin i / sin r = constant (n)",
+                    "sin i × sin r = speed of light (c)",
+                    "angle i + angle r = 90 degrees",
+                    "n₁ / n₂ = refractive depth"
+                ],
+                correct: 0,
+                explain: "Snell's Law states that for any given pair of media, the ratio of sin(i) to sin(r) remains constant, which is defined as the refractive index (n)."
+            },
+            {
+                question: "If a light ray enters glass perfectly perpendicular to the surface (incident angle = 0°), what happens?",
+                options: [
+                    "It bounces back completely due to reflection.",
+                    "It bends at a sharp 90-degree angle.",
+                    "It continues straight forward without any bending.",
+                    "It disperses immediately into a wide rainbow."
+                ],
+                correct: 2,
+                explain: "A ray incident along the normal (i = 0) goes forward into the new medium in the same direction without bending (r = 0)."
+            },
+            {
+                question: "When observing a parallel-sided glass slab, why does the emergent ray exit parallel to the original incident ray?",
+                options: [
+                    "Refraction only happens once at the front surface.",
+                    "Parallel faces cause equal but opposite bending at both interfaces.",
+                    "The color wavelengths neutralize the distortion.",
+                    "The thickness of the slab is always very thin."
+                ],
+                correct: 1,
+                explain: "At both parallel sides of the slab, the change in direction of the light ray is equal in magnitude but opposite in direction. Thus, the emergent ray is parallel, though laterally shifted!"
+            }
+        ];
+
+        let currentQuestionIdx = 0;
+        let quizScore = 0;
+
+        function loadQuizQuestion() {
+            const q = quizData[currentQuestionIdx];
+            document.getElementById('quiz-progress-text').textContent = `Question ${currentQuestionIdx + 1} of ${quizData.length}`;
+            document.getElementById('quiz-score-badge').textContent = `Score: ${quizScore}`;
+            document.getElementById('quiz-question-text').textContent = q.question;
+
+            const optContainer = document.getElementById('quiz-options-container');
+            optContainer.innerHTML = '';
+            document.getElementById('quiz-feedback').classList.add('hidden');
+            document.getElementById('quiz-next-btn').classList.add('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 bg-slate-900 hover:bg-slate-850 rounded-xl border border-slate-800 text-sm font-medium transition flex items-center justify-between";
+                btn.innerHTML = `
+                    <span>${opt}</span>
+                    <span class="w-5 h-5 rounded-full border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold">${String.fromCharCode(65 + idx)}</span>
+                `;
+                btn.onclick = () => selectQuizAnswer(idx, btn);
+                optContainer.appendChild(btn);
+            });
+        }
+
+        function selectQuizAnswer(selectedIdx, btnEl) {
+            const q = quizData[currentQuestionIdx];
+            const feedbackBox = document.getElementById('quiz-feedback');
+            
+            // Disable all option buttons
+            document.querySelectorAll('#quiz-options-container button').forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === q.correct) {
+                    btn.classList.add('bg-emerald-950/60', 'border-emerald-500', 'text-emerald-300');
+                } else if (index === selectedIdx) {
+                    btn.classList.add('bg-red-950/60', 'border-red-500', 'text-red-300');
+                }
+            });
+
+            if (selectedIdx === q.correct) {
+                quizScore++;
+                playBeep(523.25, 'sine', 0.2); // Success note
+                feedbackBox.className = "mt-6 p-4 rounded-xl border text-xs bg-emerald-950/40 border-emerald-500 text-emerald-300";
+                feedbackBox.innerHTML = `<strong>✨ Correct!</strong> ${q.explain}`;
+            } else {
+                playFailSound();
+                feedbackBox.className = "mt-6 p-4 rounded-xl border text-xs bg-red-950/40 border-red-500 text-red-300";
+                feedbackBox.innerHTML = `<strong>❌ Incorrect.</strong> ${q.explain}`;
+            }
+
+            feedbackBox.classList.remove('hidden');
+            document.getElementById('quiz-next-btn').classList.remove('hidden');
+            document.getElementById('quiz-score-badge').textContent = `Score: ${quizScore}`;
+        }
+
+        function nextQuizQuestion() {
+            if (currentQuestionIdx < quizData.length - 1) {
+                currentQuestionIdx++;
+                loadQuizQuestion();
+                playBeep(440, 'sine', 0.05);
+            } else {
+                // Show Quiz Results Screen
+                document.getElementById('quiz-container').classList.add('hidden');
+                document.getElementById('quiz-results').classList.remove('hidden');
+                document.getElementById('quiz-result-percentage').textContent = `You scored ${quizScore} out of ${quizData.length} (${Math.round((quizScore / quizData.length) * 100)}%)`;
+                playLevelCompleteSound();
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIdx = 0;
+            quizScore = 0;
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-results').classList.add('hidden');
+            loadQuizQuestion();
+            playBeep(380, 'sine', 0.1);
+        }
+
+
+        // --- WINDOW BOOT & ONLOAD INIT ---
+        window.onload = function() {
+            // Initial render layouts
+            resizeSandboxCanvas();
+            updateRefractionFromSliders();
+
+            resizePencilCanvas();
+            updatePencilLab();
+
+            resizeCoinCanvas();
+            updateCoinLab();
+
+            resizeSlabCanvas();
+            updateSlabLab();
+
+            resizeDispersionCanvas();
+            drawDispersion();
+
+            resizeGameCanvas();
+            initLevel();
+
+            loadQuizQuestion();
+
+            // Setup Resize Listeners for beautiful fluid responsive scaling
+            window.addEventListener('resize', () => {
+                resizeSandboxCanvas();
+                drawSandbox();
+
+                resizePencilCanvas();
+                updatePencilLab();
+
+                resizeCoinCanvas();
+                updateCoinLab();
+
+                resizeSlabCanvas();
+                updateSlabLab();
+
+                resizeDispersionCanvas();
+                drawDispersion();
+
+                resizeGameCanvas();
+                drawGame();
+            });
+        };
+    </script>
+</body>
+</html>
