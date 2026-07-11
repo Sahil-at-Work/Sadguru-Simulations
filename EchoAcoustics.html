@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcoustiLab - Interactive Sound, Echo & Acoustics Explorer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            900: '#1e3a8a',
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            accent: '#10b981'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Glassmorphism utility */
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.35);
+        }
+        .glow-green {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+        }
+        .glow-red {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 border-b border-slate-800 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-brand-600 p-2.5 rounded-xl text-white glow-blue flex items-center justify-center">
+                        <i class="fa-solid fa-wave-square text-xl animate-pulse"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">AcoustiLab</span>
+                        <span class="hidden sm:inline-block text-xs text-slate-400 ml-2 border border-slate-700 px-2 py-0.5 rounded-full">Interactive Physics Suite</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex space-x-1">
+                    <button onclick="switchTab('lab-echo')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all text-white bg-brand-600" id="btn-lab-echo">
+                        <i class="fa-solid fa-ear-listen mr-2"></i>Echo Lab
+                    </button>
+                    <button onclick="switchTab('lab-auditorium')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 transition-all" id="btn-lab-auditorium">
+                        <i class="fa-solid fa-landmark mr-2"></i>Auditorium Architect
+                    </button>
+                    <button onclick="switchTab('lab-nature')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 transition-all" id="btn-lab-nature">
+                        <i class="fa-solid fa-bat mr-2"></i>Nature & Tech
+                    </button>
+                    <button onclick="switchTab('lab-challenges')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 transition-all" id="btn-lab-challenges">
+                        <i class="fa-solid fa-trophy mr-2 text-amber-400"></i>Challenges
+                    </button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="audio-enable-btn" onclick="initAudioContext()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 transition-all">
+                        <i id="audio-icon" class="fa-solid fa-volume-xmark text-rose-400"></i>
+                        <span id="audio-status-text">Audio Off</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Nav Bar (Bottom Navigation) -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-slate-800 py-2 px-4 flex justify-around items-center">
+        <button onclick="switchTab('lab-echo')" class="mob-tab-btn flex flex-col items-center text-brand-500" id="mob-btn-lab-echo">
+            <i class="fa-solid fa-ear-listen text-lg"></i>
+            <span class="text-[10px] mt-1">Echo</span>
+        </button>
+        <button onclick="switchTab('lab-auditorium')" class="mob-tab-btn flex flex-col items-center text-slate-400" id="mob-btn-lab-auditorium">
+            <i class="fa-solid fa-landmark text-lg"></i>
+            <span class="text-[10px] mt-1">Architect</span>
+        </button>
+        <button onclick="switchTab('lab-nature')" class="mob-tab-btn flex flex-col items-center text-slate-400" id="mob-btn-lab-nature">
+            <i class="fa-solid fa-network-wired text-lg"></i>
+            <span class="text-[10px] mt-1">Nature</span>
+        </button>
+        <button onclick="switchTab('lab-challenges')" class="mob-tab-btn flex flex-col items-center text-slate-400" id="mob-btn-lab-challenges">
+            <i class="fa-solid fa-trophy text-lg"></i>
+            <span class="text-[10px] mt-1">Challenges</span>
+        </button>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-12">
+        
+        <!-- Audio Warning Toast -->
+        <div id="audio-toast" class="mb-6 p-4 rounded-xl border border-blue-500/30 bg-blue-500/10 flex items-start gap-3 shadow-lg transition-all duration-500 animate-pulse">
+            <i class="fa-solid fa-info-circle text-blue-400 text-xl mt-0.5"></i>
+            <div>
+                <h4 class="font-bold text-blue-300">Welcome Future Acoustic Engineer!</h4>
+                <p class="text-sm text-slate-300">To experience live sound simulations (synthesized echoing and reverberations as you move items), click the <strong class="text-white">"Audio Off"</strong> button in the top right corner to grant audio permission!</p>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 1: ECHO LAB                                -->
+        <!-- ============================================== -->
+        <section id="lab-echo" class="tab-content block space-y-6">
+            <!-- Header Section -->
+            <div class="glass rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-blue-500 font-bold">
+                    <i class="fa-solid fa-ear-listen"></i>
+                </div>
+                <div class="max-w-3xl">
+                    <span class="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Interactive Lab 1</span>
+                    <h1 class="text-3xl md:text-4xl font-extrabold mt-3 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Echo & Speed of Sound Simulator</h1>
+                    <p class="text-slate-300 mt-2 text-base md:text-lg">
+                        Explore the delicate physics of echo. Sound is reflected like light. Find out why we can only hear a distinct echo under very specific structural distances and thermal environments!
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Simulation Controls (Left Column) -->
+                <div class="lg:col-span-5 glass rounded-2xl p-6 flex flex-col gap-6">
+                    <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-brand-500"></i> Environmental Settings
+                    </h3>
+                    
+                    <!-- Temperature Control -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-semibold text-slate-300">Air Temperature (&deg;C)</label>
+                            <span id="val-temp" class="bg-blue-900/40 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-md font-mono text-xs font-bold">22 &deg;C</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Velocity of sound depends directly on the atmospheric temperature.</p>
+                        <input type="range" id="slider-temp" min="-20" max="50" value="22" step="1" 
+                               class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>-20 &deg;C</span>
+                            <span>0 &deg;C</span>
+                            <span>22 &deg;C (Room Temp)</span>
+                            <span>50 &deg;C</span>
+                        </div>
+                    </div>
+
+                    <!-- Distance Control -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-semibold text-slate-300">Distance to Reflective Wall (meters)</label>
+                            <span id="val-distance" class="bg-emerald-900/40 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-md font-mono text-xs font-bold">40.0 m</span>
+                        </div>
+                        <p class="text-xs text-slate-400">The total distance traveled by the sound wave is double this value (round trip).</p>
+                        <input type="range" id="slider-distance" min="5" max="100" value="40" step="0.5" 
+                               class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>5 m</span>
+                            <span>15 m (Reverb Boundary)</span>
+                            <span>50 m</span>
+                            <span>100 m</span>
+                        </div>
+                    </div>
+
+                    <!-- Trigger Section -->
+                    <div class="pt-2 border-t border-slate-700/50 flex flex-col gap-3">
+                        <button id="shout-btn" onclick="triggerShout()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-white glow-blue">
+                            <i class="fa-solid fa-bullhorn text-lg"></i>
+                            <span>TRIGGER SHOUT!</span>
+                        </button>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="changeShoutSound('voice')" id="sound-voice" class="sound-select-btn flex-1 py-2 rounded-lg text-xs font-bold border border-blue-500 bg-blue-500/20 text-white transition-all">
+                                <i class="fa-solid fa-comment mr-1"></i> Vocal Pulse
+                            </button>
+                            <button onclick="changeShoutSound('clap')" id="sound-clap" class="sound-select-btn flex-1 py-2 rounded-lg text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all">
+                                <i class="fa-solid fa-hands-clapping mr-1"></i> Clap
+                            </button>
+                            <button onclick="changeShoutSound('beep')" id="sound-beep" class="sound-select-btn flex-1 py-2 rounded-lg text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all">
+                                <i class="fa-solid fa-wave-square mr-1"></i> Synth Beep
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Physics Engine Analytics -->
+                    <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-800 space-y-3">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Physics Calculations</h4>
+                        <div class="grid grid-cols-2 gap-3 text-sm font-mono">
+                            <div class="bg-slate-800/50 p-2 rounded-lg border border-slate-700/30">
+                                <div class="text-[10px] text-slate-400">Speed of Sound (v)</div>
+                                <div id="calc-v" class="text-base font-bold text-blue-400">344.5 m/s</div>
+                            </div>
+                            <div class="bg-slate-800/50 p-2 rounded-lg border border-slate-700/30">
+                                <div class="text-[10px] text-slate-400">Round Trip Distance (2d)</div>
+                                <div id="calc-2d" class="text-base font-bold text-emerald-400">80.0 m</div>
+                            </div>
+                            <div class="bg-slate-800/50 p-2 rounded-lg border border-slate-700/30 col-span-2">
+                                <div class="text-[10px] text-slate-400">Calculated Delay Time (t = 2d / v)</div>
+                                <div id="calc-t" class="text-lg font-bold text-amber-400">0.232 seconds</div>
+                            </div>
+                        </div>
+
+                        <!-- Verdict Card -->
+                        <div id="echo-verdict-card" class="mt-2 p-3 rounded-xl border flex items-center gap-3 transition-all">
+                            <div id="verdict-icon" class="text-2xl"></div>
+                            <div>
+                                <h5 id="verdict-title" class="font-bold text-sm"></h5>
+                                <p id="verdict-desc" class="text-xs text-slate-300 mt-0.5"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualization Output (Right Column) -->
+                <div class="lg:col-span-7 flex flex-col gap-6">
+                    <!-- Echo Canvas Visualizer -->
+                    <div class="glass rounded-2xl p-4 flex flex-col flex-grow relative">
+                        <div class="flex justify-between items-center mb-2 px-2">
+                            <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                <span class="flex h-2 w-2 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                                Real-Time Wave Propagation Visualizer
+                            </h3>
+                            <span class="text-xs text-slate-500">Interactive Canvas Simulation</span>
+                        </div>
+
+                        <!-- Canvas Area -->
+                        <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 min-h-[320px] flex-grow flex items-center justify-center">
+                            <canvas id="echo-canvas" class="w-full h-full absolute inset-0"></canvas>
+                            <div class="absolute bottom-3 left-3 bg-slate-900/80 border border-slate-700/50 px-3 py-1.5 rounded-lg text-xs font-mono text-slate-400 flex gap-4 pointer-events-none">
+                                <div><span class="inline-block w-2.5 h-2.5 bg-blue-500 rounded-sm mr-1"></span>Original Wave</div>
+                                <div><span class="inline-block w-2.5 h-2.5 bg-emerald-400 rounded-sm mr-1"></span>Reflected Echo</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mini-Lesson Overlay Card -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-850">
+                                <h4 class="font-bold text-sm text-blue-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-brain"></i> The 0.1s Retentive Threshold
+                                </h4>
+                                <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                                    The human brain retains any sound for exactly <strong class="text-white">0.1 seconds</strong>. If the reflected sound bounces back faster than this, they blur together (reverberation). Only when distance is sufficient ($>17.2\text{m}$ at $22^\circ\text{C}$) can we hear them as distinct events!
+                                </p>
+                            </div>
+                            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-850">
+                                <h4 class="font-bold text-sm text-amber-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-temperature-half"></i> Temperature Factor
+                                </h4>
+                                <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                                    Sound travels faster in warmer air because air molecules have more thermal kinetic energy to pass along compressions. At hot temperatures, the minimum distance needed to hear an echo increases!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 2: AUDITORIUM ARCHITECT                    -->
+        <!-- ============================================== -->
+        <section id="lab-auditorium" class="tab-content hidden space-y-6">
+            <div class="glass rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-emerald-500 font-bold">
+                    <i class="fa-solid fa-landmark"></i>
+                </div>
+                <div class="max-w-3xl">
+                    <span class="bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Interactive Lab 2</span>
+                    <h1 class="text-3xl md:text-4xl font-extrabold mt-3 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Auditorium & Acoustics Architect</h1>
+                    <p class="text-slate-300 mt-2 text-base md:text-lg">
+                        Test your engineering skills! Design a music auditorium and solve critical acoustic issues including focusing hot-spots, Echelon effects, and muddy reverberation times.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Parameters Selector (Left Column) -->
+                <div class="lg:col-span-4 glass rounded-2xl p-6 space-y-6">
+                    <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-compass-drafting text-emerald-500"></i> Blueprint Settings
+                    </h3>
+
+                    <!-- 1. Ceiling Curvature -->
+                    <div class="space-y-3">
+                        <label class="text-sm font-semibold text-slate-300 block">Ceiling Geometry</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setArchParam('ceiling', 'flat')" id="arch-ceil-flat" class="arch-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-750 transition-all">
+                                <i class="fa-solid fa-minus text-lg mb-1"></i>
+                                <span class="text-[10px] font-bold">Flat</span>
+                            </button>
+                            <button onclick="setArchParam('ceiling', 'parabolic')" id="arch-ceil-parabolic" class="arch-btn flex flex-col items-center justify-center p-3 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-300 transition-all">
+                                <i class="fa-solid fa-signature text-lg mb-1"></i>
+                                <span class="text-[10px] font-bold">Parabolic</span>
+                            </button>
+                            <button onclick="setArchParam('ceiling', 'curved')" id="arch-ceil-curved" class="arch-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-750 transition-all">
+                                <i class="fa-solid fa-bezier-curve text-lg mb-1"></i>
+                                <span class="text-[10px] font-bold">Concave</span>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400" id="ceil-description">Parabolic ceilings direct reflected sound parallelly and uniformly to all spectators.</p>
+                    </div>
+
+                    <!-- 2. Wall & Ceiling Treatment -->
+                    <div class="space-y-3">
+                        <label class="text-sm font-semibold text-slate-300 block">Wall Absorbing Materials</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setArchParam('walls', 'concrete')" id="arch-walls-concrete" class="arch-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 transition-all">
+                                <i class="fa-solid fa-cubes text-lg mb-1"></i>
+                                <span class="text-[10px] font-bold">Polished Marble</span>
+                            </button>
+                            <button onclick="setArchParam('walls', 'gypsum')" id="arch-walls-gypsum" class="arch-btn flex flex-col items-center justify-center p-3 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-300 transition-all">
+                                <i class="fa-solid fa-border-all text-lg mb-1"></i>
+                                <span class="text-[10px] font-bold">Acoustic Tiles</span>
+                            </button>
+                            <button onclick="setArchParam('walls', 'curtains')" id="arch-walls-curtains" class="arch-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 transition-all">
+                                <i class="fa-solid fa-scroll text-lg mb-1"></i>
+                                <span class="text-[10px] font-bold">Thick Curtains</span>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400" id="walls-description">Acoustic tiles feature micro-pores that trap and absorb sound waves to optimize decay.</p>
+                    </div>
+
+                    <!-- 3. Staircase & Seating Design (Echelon effect) -->
+                    <div class="space-y-3">
+                        <label class="text-sm font-semibold text-slate-300 block">Seat/Step Design</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setArchParam('stairs', 'regular')" id="arch-stairs-regular" class="arch-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 transition-all">
+                                <i class="fa-solid fa-stairs text-lg mb-1"></i>
+                                <span class="text-[10px] font-bold">Stair Construction</span>
+                            </button>
+                            <button onclick="setArchParam('stairs', 'upholstered')" id="arch-stairs-upholstered" class="arch-btn flex flex-col items-center justify-center p-3 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-300 transition-all">
+                                <i class="fa-solid fa-couch text-lg mb-1"></i>
+                                <span class="text-[10px] font-bold">Soft Upholstered Seats</span>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400" id="stairs-description">Rigid, repetitive staircases create Echelon echo reflections, which can muddy speeches.</p>
+                    </div>
+
+                    <!-- Test Button -->
+                    <div class="pt-4 border-t border-slate-700 flex flex-col gap-3">
+                        <button id="speaker-shout-btn" onclick="testAuditoriumAcoustics()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-white glow-green">
+                            <i class="fa-solid fa-play"></i> Play Speaker Sound
+                        </button>
+                        <p class="text-[10px] text-center text-slate-400">Note: Dynamic acoustic feedback filters will alter the generated synth sounds in real time based on your materials!</p>
+                    </div>
+                </div>
+
+                <!-- Blueprint Render (Right Column) -->
+                <div class="lg:col-span-8 flex flex-col gap-6">
+                    <div class="glass rounded-2xl p-4 flex flex-col flex-grow relative">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-drafting-compass text-emerald-400"></i> Blueprint Sound Distribution Ray Tracer
+                            </h3>
+                            <span class="text-xs text-slate-400 bg-emerald-950 px-2 py-1 border border-emerald-500/20 rounded-md">Realtime Ray-Tracing</span>
+                        </div>
+
+                        <!-- Ray Trace Canvas -->
+                        <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 min-h-[350px] flex-grow flex flex-col items-center justify-center">
+                            <canvas id="arch-canvas" class="w-full h-full absolute inset-0"></canvas>
+                            <!-- Audio Feedback overlay meter -->
+                            <div class="absolute top-3 right-3 bg-slate-900/90 border border-slate-800 px-3 py-2 rounded-xl text-xs flex flex-col gap-1 pointer-events-none z-10">
+                                <span class="font-bold text-slate-400 uppercase text-[10px]">Reverberation Profile</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-24 bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                        <div id="reverb-meter" class="bg-red-500 h-full transition-all duration-300" style="width: 85%;"></div>
+                                    </div>
+                                    <span id="reverb-meter-text" class="font-mono text-slate-300 font-bold">1.8s</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scorecard and Feedback -->
+                        <div class="mt-4 p-4 rounded-xl border border-slate-700 bg-slate-900/40 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                            <div class="md:col-span-1 text-center md:border-r border-slate-700/60 pb-3 md:pb-0">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold">Acoustic Rating</div>
+                                <div id="arch-score" class="text-3xl font-extrabold mt-1 text-red-400">D+</div>
+                                <div id="arch-score-title" class="text-xs text-slate-300 font-semibold mt-1">Highly Muddy</div>
+                            </div>
+                            <div class="md:col-span-3 text-sm space-y-1">
+                                <h4 class="font-bold text-white">Architectural Analysis & Feedback:</h4>
+                                <ul class="list-disc pl-5 text-slate-300 text-xs space-y-1" id="arch-bullets">
+                                    <li class="text-red-300">Concrete walls absorb 0% of energy, causing sound to persist (very high reverberation of 1.8 seconds).</li>
+                                    <li>Concave ceilings focus sound reflections into a localized "burning point" hot-spot, leaving other seats silent.</li>
+                                    <li class="text-red-300">Staircases produce distinct echelon rattles when sound waves bounce sequentially off the identical vertical steps.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 3: ACOUSTICS IN NATURE & MEDICAL          -->
+        <!-- ============================================== -->
+        <section id="lab-nature" class="tab-content hidden space-y-6">
+            <div class="glass rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-cyan-500 font-bold">
+                    <i class="fa-solid fa-bat"></i>
+                </div>
+                <div class="max-w-3xl">
+                    <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Interactive Explorations 3</span>
+                    <h1 class="text-3xl md:text-4xl font-extrabold mt-3 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Acoustics in Nature & Medicine</h1>
+                    <p class="text-slate-300 mt-2 text-base md:text-lg">
+                        The laws of reflection are not just for auditorium designs. Explore how species navigate, and how engineers harness acoustics to view pre-natal babies, shatter stones, or hunt sub-surface craft!
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- 1. Bat Echolocation -->
+                <div class="glass rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden group hover:border-cyan-500/40 transition-all duration-300">
+                    <div class="flex justify-between items-start">
+                        <div class="p-3 bg-cyan-500/15 text-cyan-400 rounded-xl text-xl">
+                            <i class="fa-solid fa-spider"></i>
+                        </div>
+                        <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-2 py-0.5 border border-cyan-500/20 rounded">Ultrasonic (30k-150k Hz)</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-lg">Bat Echolocation</h4>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                            Bats emit rapid pulses of ultrasonic frequencies. By timing how long the reflection takes to arrive, they can pinpoint mosquitoes in absolute darkness.
+                        </p>
+                    </div>
+                    <button onclick="playNatureSound('bat')" class="mt-auto w-full py-2 bg-cyan-950 hover:bg-cyan-900 border border-cyan-500/30 rounded-lg text-xs font-bold text-cyan-300 transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-wave-square"></i> Synthesize Bat Pulse
+                    </button>
+                </div>
+
+                <!-- 2. Dolphin Navigation -->
+                <div class="glass rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden group hover:border-blue-500/40 transition-all duration-300">
+                    <div class="flex justify-between items-start">
+                        <div class="p-3 bg-blue-500/15 text-blue-400 rounded-xl text-xl">
+                            <i class="fa-solid fa-fish"></i>
+                        </div>
+                        <span class="text-[10px] font-mono text-blue-400 bg-blue-950 px-2 py-0.5 border border-blue-500/20 rounded">Subsonic (~100 Hz)</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-lg">Dolphin Navigation</h4>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                            Dolphins rely on low frequency underwater clicks. They sense items up to sizes matching the sound's wavelength (&ge;1.4m) using an analog sensory pathway.
+                        </p>
+                    </div>
+                    <button onclick="playNatureSound('dolphin')" class="mt-auto w-full py-2 bg-blue-950 hover:bg-blue-900 border border-blue-500/30 rounded-lg text-xs font-bold text-blue-300 transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-wave-square"></i> Synthesize Dolphin Click
+                    </button>
+                </div>
+
+                <!-- 3. Medical Kidney Stone Shockwaves -->
+                <div class="glass rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden group hover:border-red-500/40 transition-all duration-300">
+                    <div class="flex justify-between items-start">
+                        <div class="p-3 bg-red-500/15 text-red-400 rounded-xl text-xl">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                        <span class="text-[10px] font-mono text-red-400 bg-red-950 px-2 py-0.5 border border-red-500/20 rounded">Shockwaves (High-Amp)</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-lg">Acoustic Lithotripsy</h4>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                            Doctors project non-invasive acoustic pulses, focusing maximum pressure via parabolic lenses directly on kidney stones to shatter them into tiny grains.
+                        </p>
+                    </div>
+                    <button onclick="playNatureSound('shockwave')" class="mt-auto w-full py-2 bg-red-950 hover:bg-red-900 border border-red-500/30 rounded-lg text-xs font-bold text-red-300 transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-burst"></i> Synthesize Shockwave
+                    </button>
+                </div>
+
+                <!-- 4. Geological SONAR Mapping -->
+                <div class="glass rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300">
+                    <div class="flex justify-between items-start">
+                        <div class="p-3 bg-emerald-500/15 text-emerald-400 rounded-xl text-xl">
+                            <i class="fa-solid fa-anchor"></i>
+                        </div>
+                        <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 border border-emerald-500/20 rounded">SONAR Systems</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-lg">SONAR & Geology</h4>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                            Ships measure time-lag to locate subsurface targets or chart deep-sea floor reliefs. Similarly, geologists mapping seismic sound waves can find oil.
+                        </p>
+                    </div>
+                    <button onclick="playNatureSound('sonar')" class="mt-auto w-full py-2 bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/30 rounded-lg text-xs font-bold text-emerald-300 transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-satellite-dish"></i> Synthesize SONAR Ping
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interactive Mini-Simulation for SONAR -->
+            <div class="glass rounded-2xl p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 mb-4 gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-ship text-emerald-400"></i> SONAR Depth Sounding Sandbox
+                        </h3>
+                        <p class="text-xs text-slate-400">Click anywhere inside the ocean below to ping and calculate deep sea floor topography!</p>
+                    </div>
+                    <div class="bg-emerald-950 border border-emerald-500/25 px-4 py-2 rounded-xl text-xs flex gap-4 font-mono">
+                        <div>Water Speed: <span class="text-emerald-300 font-bold">1,500 m/s</span></div>
+                        <div>Max Depth: <span class="text-emerald-300 font-bold">1,000 m</span></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-8 bg-slate-950 border border-slate-800 rounded-xl overflow-hidden relative h-64">
+                        <canvas id="sonar-canvas" class="w-full h-full absolute inset-0 cursor-crosshair"></canvas>
+                        <!-- Topographic Scanner Beam Visual overlay -->
+                        <div class="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-emerald-500/20 to-transparent pointer-events-none animate-bounce"></div>
+                    </div>
+                    <div class="lg:col-span-4 bg-slate-900/60 rounded-xl border border-slate-800 p-5 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider">Sonar Analysis Screen</h4>
+                            <div class="space-y-2 text-sm font-mono">
+                                <div class="flex justify-between border-b border-slate-800 pb-1.5">
+                                    <span class="text-slate-400">Status:</span>
+                                    <span id="sonar-status" class="text-emerald-400 font-bold">READY TO SCAN</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-800 pb-1.5">
+                                    <span class="text-slate-400">Transit Delay (Round Trip):</span>
+                                    <span id="sonar-time" class="text-white">-- sec</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-800 pb-1.5">
+                                    <span class="text-slate-400">One-way Path Time:</span>
+                                    <span id="sonar-time-half" class="text-white">-- sec</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-800 pb-1.5">
+                                    <span class="text-slate-400">Calculated Depth:</span>
+                                    <span id="sonar-depth" class="text-emerald-400 font-extrabold text-base">-- meters</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-200 mt-4 leading-relaxed">
+                            <strong class="block text-emerald-400 mb-0.5"><i class="fa-solid fa-graduation-cap"></i> Note:</strong>
+                            Unlike air, sound waves travel 4.3x faster in water ($1500\text{ m/s}$) due to high bulk modulus of water. Formula: $\text{Depth} = (\text{Speed in Water} \times \text{Delay}) / 2$.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 4: CHALLENGES                              -->
+        <!-- ============================================== -->
+        <section id="lab-challenges" class="tab-content hidden space-y-6">
+            <div class="glass rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-amber-500 font-bold">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div class="max-w-3xl">
+                    <span class="bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Mission Suite</span>
+                    <h1 class="text-3xl md:text-4xl font-extrabold mt-3 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Acoustic Engineering Challenges</h1>
+                    <p class="text-slate-300 mt-2 text-base md:text-lg">
+                        Put your learning to the ultimate test! Solve these interactive physics puzzles to earn your Acoustic Engineer Certificate!
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Mission Card 1 -->
+                <div class="glass rounded-2xl p-5 flex flex-col gap-4 relative border-l-4 border-l-blue-500 shadow-xl" id="challenge-card-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-blue-400 uppercase tracking-widest font-mono">Mission 01</span>
+                        <span id="chal-badge-1" class="text-xs px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded-full font-bold">Locked</span>
+                    </div>
+                    <h3 class="font-bold text-white text-lg">Targeting Echo Duration</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Go to the <strong>Echo Lab</strong>. Tweak the <strong>air temperature</strong> and the <strong>wall distance</strong> until you achieve a calculated delay time of exactly <strong class="text-white font-mono">0.300 seconds</strong> (tolerance &plusmn;0.005s) to hear a crisp perfect echo!
+                    </p>
+                    <div class="mt-auto pt-3 border-t border-slate-800 flex justify-between items-center">
+                        <span class="text-xs font-mono text-slate-400" id="current-target-1">Target: 0.300s</span>
+                        <button onclick="checkChallenge1()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white rounded-lg transition-all shadow-md">
+                            Verify Setup
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mission Card 2 -->
+                <div class="glass rounded-2xl p-5 flex flex-col gap-4 relative border-l-4 border-l-emerald-500 shadow-xl" id="challenge-card-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest font-mono">Mission 02</span>
+                        <span id="chal-badge-2" class="text-xs px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded-full font-bold">Locked</span>
+                    </div>
+                    <h3 class="font-bold text-white text-lg">The Perfect Concert Hall</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Solve all room acoustic complaints! Enter the <strong>Auditorium Architect</strong> and choose settings to get an <strong class="text-emerald-400 font-bold text-sm">"A+ Perfect Acoustics"</strong> rating. Ensure reflections distribute perfectly and echelon noises are wiped out!
+                    </p>
+                    <div class="mt-auto pt-3 border-t border-slate-800 flex justify-between items-center">
+                        <span class="text-xs font-mono text-slate-400" id="current-target-2">Target Rating: A+</span>
+                        <button onclick="checkChallenge2()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white rounded-lg transition-all shadow-md">
+                            Verify Architecture
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mission Card 3 -->
+                <div class="glass rounded-2xl p-5 flex flex-col gap-4 relative border-l-4 border-l-cyan-500 shadow-xl" id="challenge-card-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest font-mono">Mission 03</span>
+                        <span id="chal-badge-3" class="text-xs px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded-full font-bold">Locked</span>
+                    </div>
+                    <h3 class="font-bold text-white text-lg">SONAR Deepsea Finder</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        We have triggered a submarine sonar ping and received the reflection exactly <strong class="text-cyan-400 font-mono text-sm font-bold">0.680 seconds</strong> later. Given water velocity is $1500\text{ m/s}$, calculate the correct ocean depth!
+                    </p>
+                    <div class="mt-auto space-y-3">
+                        <div class="flex gap-2">
+                            <input type="number" id="chal-sonar-input" placeholder="Enter Depth (m)" class="flex-grow bg-slate-950 border border-slate-800 p-2 rounded-lg text-xs font-mono text-emerald-400 focus:outline-none focus:border-cyan-500">
+                            <button onclick="checkChallenge3()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-xs font-bold text-white rounded-lg transition-all shadow-md shrink-0">
+                                Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Congratulations Block -->
+            <div id="cert-banner" class="hidden glass p-6 rounded-2xl border-2 border-dashed border-amber-500/50 relative overflow-hidden bg-gradient-to-r from-amber-500/10 to-slate-900 shadow-2xl transition-all duration-700">
+                <div class="absolute right-0 top-0 opacity-10 text-[200px] text-amber-500">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="max-w-xl space-y-4">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-amber-500 text-slate-950 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">Certificate Earned</span>
+                        <i class="fa-solid fa-star text-amber-400 animate-spin"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-white">Master of Acoustics</h2>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        You have successfully configured temperatures to shift sonic delay times, eliminated curved hotspots and stair echelons in construction architectures, and mastered SONAR propagation metrics. You understand sound behavior perfectly!
+                    </p>
+                    <div class="pt-2 flex gap-4">
+                        <div class="text-xs text-slate-400 font-mono">
+                            ISSUED: <span class="text-slate-200">AcoustiLab Suite</span>
+                        </div>
+                        <div class="text-xs text-slate-400 font-mono">
+                            STATUS: <span class="text-amber-400 font-bold">APPROVED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 py-6 text-center text-slate-500 text-xs glass mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                &copy; 2026 AcoustiLab. Built with a Software Engineering Architecture and Pediatric/Pedagogical Vision.
+            </div>
+            <div class="flex gap-4">
+                <a href="#lab-echo" onclick="switchTab('lab-echo')" class="hover:text-slate-300">Echo Physics</a>
+                <a href="#lab-auditorium" onclick="switchTab('lab-auditorium')" class="hover:text-slate-300">Auditorium Design</a>
+                <a href="#lab-nature" onclick="switchTab('lab-nature')" class="hover:text-slate-300">Geology & Biology</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Sound Systems & Physics Engines Script -->
+    <script>
+        // Tab system
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            // Show current
+            const target = document.getElementById(tabId);
+            target.classList.remove('hidden');
+            target.classList.add('block');
+
+            // Set buttons state
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-600', 'text-white');
+                btn.classList.add('text-slate-400', 'hover:text-slate-200');
+            });
+            document.querySelectorAll('.mob-tab-btn').forEach(btn => {
+                btn.classList.remove('text-brand-500');
+                btn.classList.add('text-slate-400');
+            });
+
+            // Update respective active button
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'hover:text-slate-200');
+                activeBtn.classList.add('bg-brand-600', 'text-white');
+            }
+            const activeMobBtn = document.getElementById(`mob-btn-${tabId}`);
+            if (activeMobBtn) {
+                activeMobBtn.classList.remove('text-slate-400');
+                activeMobBtn.classList.add('text-brand-500');
+            }
+        }
+
+        /* ------------------------------------------------------------- */
+        /* WEB AUDIO ENGINE                                              */
+        /* ------------------------------------------------------------- */
+        let audioCtx = null;
+        let mainVolume = null;
+        let selectedSound = 'voice'; // 'voice', 'clap', 'beep'
+
+        function initAudioContext() {
+            if (audioCtx) {
+                // If already open, toggle state
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                    updateAudioUI(true);
+                } else if (audioCtx.state === 'running') {
+                    audioCtx.suspend();
+                    updateAudioUI(false);
+                }
+                return;
+            }
+
+            try {
+                // Instantiate the cross-browser Audio Context
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+                
+                // Create primary output node
+                mainVolume = audioCtx.createGain();
+                mainVolume.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                mainVolume.connect(audioCtx.destination);
+                
+                // Hide information toast
+                document.getElementById('audio-toast').style.display = 'none';
+                updateAudioUI(true);
+            } catch(e) {
+                console.error("Audio Context initialization failed: ", e);
+            }
+        }
+
+        function updateAudioUI(isRunning) {
+            const btn = document.getElementById('audio-enable-btn');
+            const icon = document.getElementById('audio-icon');
+            const txt = document.getElementById('audio-status-text');
+
+            if (isRunning) {
+                btn.classList.remove('bg-slate-800', 'border-slate-700');
+                btn.classList.add('bg-emerald-900/40', 'border-emerald-500/50');
+                icon.className = "fa-solid fa-volume-high text-emerald-400";
+                txt.textContent = "Audio Active";
+                txt.className = "text-emerald-300 font-semibold";
+            } else {
+                btn.classList.remove('bg-emerald-900/40', 'border-emerald-500/50');
+                btn.classList.add('bg-slate-800', 'border-slate-700');
+                icon.className = "fa-solid fa-volume-xmark text-rose-400";
+                txt.textContent = "Audio Off";
+                txt.className = "text-slate-200";
+            }
+        }
+
+        function changeShoutSound(soundType) {
+            selectedSound = soundType;
+            document.querySelectorAll('.sound-select-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-500/20', 'text-white');
+                btn.classList.add('border-slate-700', 'bg-slate-800', 'text-slate-400');
+            });
+            document.getElementById(`sound-${soundType}`).classList.remove('border-slate-700', 'bg-slate-800', 'text-slate-400');
+            document.getElementById(`sound-${soundType}`).classList.add('border-blue-500', 'bg-blue-500/20', 'text-white');
+        }
+
+        // Synthesize dynamic sounds directly inside the browser using oscillator curves
+        function generateSoundPulse(type, delaySec, gainVal, filterType = 'none', filterCutoff = 1000) {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+
+            // Trigger source pulse generator
+            const osc = audioCtx.createOscillator();
+            const pulseGain = audioCtx.createGain();
+            let destinationNode = mainVolume;
+
+            // Apply special material acoustics filters if requested
+            if (filterType !== 'none') {
+                const materialFilter = audioCtx.createBiquadFilter();
+                materialFilter.type = filterType;
+                materialFilter.frequency.setValueAtTime(filterCutoff, audioCtx.currentTime);
+                materialFilter.connect(mainVolume);
+                destinationNode = materialFilter;
+            }
+
+            // Route audio structure
+            osc.connect(pulseGain);
+            pulseGain.connect(destinationNode);
+
+            const t = audioCtx.currentTime;
+
+            if (type === 'beep') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, t); // High crisp pitch
+                
+                // Attack Decay envelope
+                pulseGain.gain.setValueAtTime(0, t);
+                pulseGain.gain.linearRampToValueAtTime(gainVal, t + 0.02);
+                pulseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                
+                osc.start(t);
+                osc.stop(t + 0.18);
+            } 
+            else if (type === 'clap') {
+                // Synthesize transient noise burst for wooden/human handclap sound
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, t);
+                osc.frequency.exponentialRampToValueAtTime(40, t + 0.08);
+
+                pulseGain.gain.setValueAtTime(0, t);
+                pulseGain.gain.linearRampToValueAtTime(gainVal, t + 0.01);
+                pulseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+                osc.start(t);
+                osc.stop(t + 0.1);
+            } 
+            else { // 'voice' - simulated double-frequency human speech shout sound
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, t); // Pitch representing voice resonance
+                osc.frequency.linearRampToValueAtTime(180, t + 0.15);
+
+                const bandpass = audioCtx.createBiquadFilter();
+                bandpass.type = 'bandpass';
+                bandpass.frequency.setValueAtTime(1000, t);
+                
+                // Reconnect source
+                osc.disconnect(pulseGain);
+                osc.connect(bandpass);
+                bandpass.connect(pulseGain);
+
+                pulseGain.gain.setValueAtTime(0, t);
+                pulseGain.gain.linearRampToValueAtTime(gainVal, t + 0.05);
+                pulseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+
+                osc.start(t);
+                osc.stop(t + 0.25);
+            }
+
+            // If there's a delayed reflection (The Echo!), chain a timeout to sound again
+            if (delaySec > 0.02) {
+                setTimeout(() => {
+                    // Reflected waves always lose sound pressure intensity based on surface/air propagation dispersion
+                    const reflectedGain = gainVal * 0.45; 
+                    generateSoundPulse(type, 0, reflectedGain, filterType, filterCutoff * 0.8);
+                }, delaySec * 1000);
+            }
+        }
+
+        /* ------------------------------------------------------------- */
+        /* LAB 1: PHYSICAL CORE ECHO LOGIC                              */
+        /* ------------------------------------------------------------- */
+        const sliderTemp = document.getElementById('slider-temp');
+        const sliderDistance = document.getElementById('slider-distance');
+        const valTemp = document.getElementById('val-temp');
+        const valDistance = document.getElementById('val-distance');
+
+        const calcV = document.getElementById('calc-v');
+        const calc2d = document.getElementById('calc-2d');
+        const calcT = document.getElementById('calc-t');
+
+        const verdictCard = document.getElementById('echo-verdict-card');
+        const verdictIcon = document.getElementById('verdict-icon');
+        const verdictTitle = document.getElementById('verdict-title');
+        const verdictDesc = document.getElementById('verdict-desc');
+
+        // Physics equations
+        function computeAcoustics() {
+            const T = parseFloat(sliderTemp.value);
+            const d = parseFloat(sliderDistance.value);
+
+            // Speed of sound formula: v = 331.5 + 0.6 * T (m/s)
+            const v = (331.5 + 0.6 * T).toFixed(1);
+            const totalDistance = (2 * d).toFixed(1);
+            // Delay t = 2d / v
+            const timeDelay = (totalDistance / v).toFixed(3);
+
+            // Update visual math
+            valTemp.innerHTML = `${T} &deg;C`;
+            valDistance.innerHTML = `${d.toFixed(1)} m`;
+
+            calcV.innerText = `${v} m/s`;
+            calc2d.innerText = `${totalDistance} m`;
+            calcT.innerText = `${timeDelay} seconds`;
+
+            // Evaluate if distinct echo is audible (threshold: t >= 0.1s)
+            if (timeDelay >= 0.1) {
+                verdictCard.className = "mt-2 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-center gap-3 shadow-lg glow-green";
+                verdictIcon.innerHTML = "🎉";
+                verdictTitle.innerText = "Distinct Echo Audible!";
+                verdictTitle.className = "font-bold text-sm text-emerald-400";
+                verdictDesc.innerText = `At ${T}°C, minimum wall distance is ${(v * 0.05).toFixed(2)}m. Reflected sound returns in ${timeDelay}s (>= 0.1s threshold), letting your brain easily hear two separate events!`;
+            } else {
+                verdictCard.className = "mt-2 p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 flex items-center gap-3 shadow-lg glow-red";
+                verdictIcon.innerHTML = "🔊";
+                verdictTitle.innerText = "Reverberation (Mixed Sound)";
+                verdictTitle.className = "font-bold text-sm text-rose-400";
+                verdictDesc.innerText = `Reflected sound returns in only ${timeDelay}s. Since this is faster than the brain's 0.1s threshold, the reflection joins and muddies up your original shout!`;
+            }
+        }
+
+        // Setup real-time event listeners on controls
+        sliderTemp.addEventListener('input', computeAcoustics);
+        sliderDistance.addEventListener('input', computeAcoustics);
+
+        // Run on initial load
+        computeAcoustics();
+
+        /* ------------------------------------------------------------- */
+        /* CANVAS WAVE ANIMATION (ECHO LAB)                              */
+        /* ------------------------------------------------------------- */
+        const canvas = document.getElementById('echo-canvas');
+        const ctx = canvas.getContext('2d');
+        let animationFrameId = null;
+
+        // Wave tracking objects
+        let isAnimating = false;
+        let originalPulse = [];
+        let reflectedPulse = [];
+        let waveTimer = 0;
+
+        function resizeEchoCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        window.addEventListener('resize', resizeEchoCanvas);
+        resizeEchoCanvas();
+
+        function triggerShout() {
+            // Initiate Web Audio context on user trigger
+            if (!audioCtx) initAudioContext();
+
+            const T = parseFloat(sliderTemp.value);
+            const d = parseFloat(sliderDistance.value);
+            const v = 331.5 + 0.6 * T;
+            const timeDelay = (2 * d) / v;
+
+            // Trigger physical synthesized sound
+            generateSoundPulse(selectedSound, timeDelay, 0.6);
+
+            // Reset visual simulation timeline
+            originalPulse = [];
+            reflectedPulse = [];
+            isAnimating = true;
+            waveTimer = 0;
+
+            // Launch animation loops
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animateEchoWaves();
+        }
+
+        function animateEchoWaves() {
+            if (!isAnimating) return;
+
+            // Dimensions and layout
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // Character Source Position (Left side)
+            const charX = w * 0.15;
+            const charY = h * 0.5;
+
+            // Obstacle Wall Position (Adjusted by distance slider relative to 100m)
+            const dInput = parseFloat(sliderDistance.value);
+            const wallX = w * 0.15 + (w * 0.75) * (dInput / 100);
+
+            // Speed of sound relative multiplier
+            const tempVal = parseFloat(sliderTemp.value);
+            const speedFactor = 1.5 + (tempVal + 20) / 70 * 2.0; 
+
+            waveTimer += speedFactor;
+
+            // Draw source node
+            ctx.beginPath();
+            ctx.arc(charX, charY, 14, 0, Math.PI * 2);
+            ctx.fillStyle = '#3b82f6';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#3b82f6';
+            ctx.fill();
+            ctx.shadowBlur = 0; // reset
+
+            // Source Label
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px monospace';
+            ctx.fillText("SHOUTER", charX - 22, charY + 30);
+
+            // Draw Reflective Surface Wall
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(wallX, h * 0.15, 12, h * 0.7);
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(wallX, h * 0.15, 3, h * 0.7);
+
+            // Wall label
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText("WALL", wallX - 5, h * 0.15 - 10);
+            ctx.fillText(`${dInput.toFixed(1)}m`, wallX - 8, h * 0.85 + 20);
+
+            // Propagate outgoing (Original Blue Waves)
+            const originalMaxRadius = wallX - charX;
+            if (waveTimer < originalMaxRadius) {
+                // Generate wavefront rings
+                if (Math.round(waveTimer) % 30 < speedFactor) {
+                    originalPulse.push(0);
+                }
+            }
+
+            // Render outgoing rings
+            for (let i = 0; i < originalPulse.length; i++) {
+                originalPulse[i] += speedFactor;
+                const r = originalPulse[i];
+
+                if (r < originalMaxRadius) {
+                    ctx.beginPath();
+                    // Draw localized arc heading rightward
+                    ctx.arc(charX, charY, r, -Math.PI / 3, Math.PI / 3);
+                    ctx.strokeStyle = `rgba(59, 130, 246, ${1 - (r / originalMaxRadius)})`;
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                } else if (r >= originalMaxRadius && r < originalMaxRadius + 10) {
+                    // When hitting the obstacle, start reflecting!
+                    reflectedPulse.push(0);
+                    // Slight visual shake on the wall!
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(wallX, h * 0.15, 4, h * 0.7);
+                }
+            }
+
+            // Propagate backward reflections (Reflected Green Waves)
+            for (let j = 0; j < reflectedPulse.length; j++) {
+                reflectedPulse[j] += speedFactor;
+                const refR = reflectedPulse[j];
+
+                if (refR < originalMaxRadius) {
+                    ctx.beginPath();
+                    // Draw arc heading leftwards starting from the reflecting wall
+                    ctx.arc(wallX, charY, refR, Math.PI - Math.PI / 3, Math.PI + Math.PI / 3);
+                    ctx.strokeStyle = `rgba(16, 185, 129, ${1 - (refR / originalMaxRadius)})`;
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                }
+            }
+
+            // Stop animation loop once waves have returned and faded out
+            if (reflectedPulse.length > 0 && reflectedPulse[reflectedPulse.length - 1] >= originalMaxRadius) {
+                isAnimating = false;
+                ctx.clearRect(0, 0, w, h);
+                drawStaticCanvasState(charX, charY, wallX, h, dInput);
+                return;
+            }
+
+            animationFrameId = requestAnimationFrame(animateEchoWaves);
+        }
+
+        function drawStaticCanvasState(charX, charY, wallX, h, dInput) {
+            // Draws default ready graphics
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(charX, charY, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#1e3a8a';
+            ctx.fill();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px monospace';
+            ctx.fillText("SHOUTER", charX - 22, charY + 30);
+
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(wallX, h * 0.15, 12, h * 0.7);
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(wallX, h * 0.15, 3, h * 0.7);
+            ctx.fillText("WALL", wallX - 5, h * 0.15 - 10);
+            ctx.fillText(`${dInput.toFixed(1)}m`, wallX - 8, h * 0.85 + 20);
+
+            // Draw illustrative distance arrow
+            ctx.beginPath();
+            ctx.moveTo(charX + 15, charY);
+            ctx.lineTo(wallX - 5, charY);
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Initialize static graph on load
+        setTimeout(() => {
+            const charX = canvas.width * 0.15;
+            const charY = canvas.height * 0.5;
+            const wallX = charX + (canvas.width * 0.75) * (40 / 100);
+            drawStaticCanvasState(charX, charY, wallX, canvas.height, 40);
+        }, 300);
+
+
+        /* ------------------------------------------------------------- */
+        /* LAB 2: AUDITORIUM ARCHITECT ENGINE                            */
+        /* ------------------------------------------------------------- */
+        let archBlueprint = {
+            ceiling: 'parabolic', // 'flat', 'parabolic', 'curved'
+            walls: 'gypsum',      // 'concrete', 'gypsum', 'curtains'
+            stairs: 'upholstered'  // 'regular', 'upholstered'
+        };
+
+        const archCanvas = document.getElementById('arch-canvas');
+        const archCtx = archCanvas.getContext('2d');
+        let archAnimationFrameId = null;
+
+        function resizeArchCanvas() {
+            const container = archCanvas.parentElement;
+            archCanvas.width = container.clientWidth;
+            archCanvas.height = container.clientHeight;
+            drawAuditoriumBlueprint();
+        }
+        window.addEventListener('resize', resizeArchCanvas);
+        setTimeout(resizeArchCanvas, 500);
+
+        function setArchParam(category, selection) {
+            archBlueprint[category] = selection;
+
+            // Highlight buttons
+            const categoryBtns = document.querySelectorAll(`[id^="arch-${category}-"]`);
+            categoryBtns.forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-300');
+                btn.classList.add('border-slate-700', 'bg-slate-800', 'text-slate-300');
+            });
+
+            const activeBtn = document.getElementById(`arch-${category}-${selection}`);
+            activeBtn.classList.remove('border-slate-700', 'bg-slate-800', 'text-slate-300');
+            activeBtn.classList.add('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-300');
+
+            // Set contextual descriptions
+            updateArchitectureDescriptions();
+            analyzeAuditoriumAcoustics();
+            drawAuditoriumBlueprint();
+        }
+
+        function updateArchitectureDescriptions() {
+            const ceilDesc = document.getElementById('ceil-description');
+            const wallsDesc = document.getElementById('walls-description');
+            const stairsDesc = document.getElementById('stairs-description');
+
+            if (archBlueprint.ceiling === 'flat') {
+                ceilDesc.innerText = "Flat ceilings produce standard reflection. Sound propagates uniformly but lacks focused amplification for rear seats.";
+            } else if (archBlueprint.ceiling === 'parabolic') {
+                ceilDesc.innerText = "Optimal parabolic reflector behind the speaker focal-point, projecting crisp direct audio waves uniformly deep into the hall!";
+            } else {
+                ceilDesc.innerText = "CRITICAL DEFECT: Concave curvatures focus reflective sound energy into hot-spots, producing areas of extreme loudness and silent zones.";
+            }
+
+            if (archBlueprint.walls === 'concrete') {
+                wallsDesc.innerText = "Marble absorbs almost 0% of waves. Hard stone structures prolong sound bounce leading to severe reverberation and echo overlap.";
+            } else if (archBlueprint.walls === 'gypsum') {
+                wallsDesc.innerText = "Acoustic panels feature micro-pores that lock sound wave kinetic energy to drop reverberation to safe, comfortable zones.";
+            } else {
+                wallsDesc.innerText = "High-absorption materials. Thick theatrical curtains soak reflections, bringing high clarity but slightly dry acoustics.";
+            }
+
+            if (archBlueprint.stairs === 'regular') {
+                stairsDesc.innerText = "Echelon Hazard: Regular stair spacing causes sound reflections to sequentially bunch together, creating high-frequency rattling chirps.";
+            } else {
+                stairsDesc.innerText = "Soft fabrics completely trap reflections, silencing unwanted echelon echoes and stabilizing auditorium acoustics.";
+            }
+        }
+
+        // Deep Analytical Physics Scoring Engine for Concert Hall Blueprints
+        function analyzeAuditoriumAcoustics() {
+            let score = 100;
+            let bullets = [];
+            let reverbTime = 0.5; // base perfect timing
+
+            // Evaluative metrics
+            if (archBlueprint.ceiling === 'parabolic') {
+                score += 0;
+            } else if (archBlueprint.ceiling === 'flat') {
+                score -= 15;
+                bullets.push({ text: "Flat ceiling is clean but doesn't assist sound propagation to rear spectators.", type: 'neutral' });
+            } else if (archBlueprint.ceiling === 'curved') {
+                score -= 40;
+                bullets.push({ text: "Concave curvature focuses sound into acoustic hot-spots, causing severe poor audibility zones.", type: 'bad' });
+            }
+
+            if (archBlueprint.walls === 'concrete') {
+                score -= 40;
+                reverbTime = 2.4;
+                bullets.push({ text: "Polished concrete/marble structures absorb almost nothing, creating prolonged echo (reverberation of 2.4s).", type: 'bad' });
+            } else if (archBlueprint.walls === 'gypsum') {
+                reverbTime = 1.1; // optimal orchestra hall
+                bullets.push({ text: "Acoustic tiles absorb balanced mid/high frequencies, optimizing the reverb decay down to a perfect 1.1s.", type: 'good' });
+            } else if (archBlueprint.walls === 'curtains') {
+                reverbTime = 0.6; // dry lecture hall
+                bullets.push({ text: "Heavy drapes absorb maximum energy, resulting in a slightly 'dry' room decay rate of 0.6s.", type: 'good' });
+            }
+
+            if (archBlueprint.stairs === 'regular') {
+                score -= 20;
+                bullets.push({ text: "Uncovered structural stairs trigger Echelon interference patterns (high-pitched rattle).", type: 'bad' });
+            } else {
+                bullets.push({ text: "Upholstered seating effectively dampens stray floor-level waves and echelon rattling.", type: 'good' });
+            }
+
+            // Cap scores
+            score = Math.max(10, Math.min(100, score));
+
+            // Render calculations into score indicators
+            const scoreEl = document.getElementById('arch-score');
+            const scoreTitleEl = document.getElementById('arch-score-title');
+            const bulletContainer = document.getElementById('arch-bullets');
+            const reverbMeter = document.getElementById('reverb-meter');
+            const reverbMeterText = document.getElementById('reverb-meter-text');
+
+            // Grade letters
+            let grade = 'F';
+            let title = 'Inaudible Mud';
+            let colorClass = 'text-rose-500';
+
+            if (score >= 95) {
+                grade = 'A+';
+                title = 'Perfect Acoustics';
+                colorClass = 'text-emerald-400';
+            } else if (score >= 80) {
+                grade = 'B';
+                title = 'Good Hall';
+                colorClass = 'text-teal-400';
+            } else if (score >= 60) {
+                grade = 'C';
+                title = 'Moderate Echo';
+                colorClass = 'text-amber-400';
+            } else if (score >= 40) {
+                grade = 'D';
+                title = 'High Distortion';
+                colorClass = 'text-orange-500';
+            }
+
+            scoreEl.className = `text-4xl font-extrabold mt-1 ${colorClass}`;
+            scoreEl.innerText = grade;
+            scoreTitleEl.innerText = title;
+
+            // Reverb meter width (normalized around 3s scale)
+            const meterWidth = Math.min(100, (reverbTime / 3.0) * 100);
+            reverbMeter.style.width = `${meterWidth}%`;
+            reverbMeterText.innerText = `${reverbTime}s`;
+
+            if (reverbTime > 1.8) {
+                reverbMeter.className = "bg-rose-500 h-full transition-all duration-300";
+            } else if (reverbTime > 1.2) {
+                reverbMeter.className = "bg-amber-500 h-full transition-all duration-300";
+            } else {
+                reverbMeter.className = "bg-emerald-500 h-full transition-all duration-300";
+            }
+
+            // Pop bullets list
+            bulletContainer.innerHTML = '';
+            if (bullets.length === 0) {
+                bulletContainer.innerHTML = '<li class="text-emerald-400 font-bold">Awesome! All conditions satisfied! Sound is uniformly loud, echo is muted, and echelon rattles are entirely resolved.</li>';
+            } else {
+                bullets.forEach(b => {
+                    const li = document.createElement('li');
+                    li.innerText = b.text;
+                    if (b.type === 'bad') {
+                        li.className = "text-rose-300";
+                    } else if (b.type === 'good') {
+                        li.className = "text-emerald-300";
+                    } else {
+                        li.className = "text-slate-300";
+                    }
+                    bulletContainer.appendChild(li);
+                });
+            }
+        }
+
+        function drawAuditoriumBlueprint() {
+            const w = archCanvas.width;
+            const h = archCanvas.height;
+            archCtx.clearRect(0, 0, w, h);
+
+            // Draw Stage on the left
+            archCtx.fillStyle = '#1e293b';
+            archCtx.fillRect(0, h * 0.7, w * 0.2, h * 0.3);
+            archCtx.strokeStyle = '#3b82f6';
+            archCtx.lineWidth = 2;
+            archCtx.strokeRect(0, h * 0.7, w * 0.2, h * 0.3);
+
+            // Draw Speaker (Focal point of sound)
+            const spkX = w * 0.12;
+            const spkY = h * 0.65;
+            archCtx.beginPath();
+            archCtx.arc(spkX, spkY, 8, 0, Math.PI * 2);
+            archCtx.fillStyle = '#3b82f6';
+            archCtx.fill();
+
+            archCtx.fillStyle = '#94a3b8';
+            archCtx.font = '9px monospace';
+            archCtx.fillText("SPEAKER", spkX - 20, spkY - 14);
+
+            // Draw Auditory Spectators seating (Right side slope)
+            if (archBlueprint.stairs === 'regular') {
+                // Draw rigid stair steps
+                archCtx.strokeStyle = '#ef4444';
+                archCtx.lineWidth = 3;
+                archCtx.beginPath();
+                archCtx.moveTo(w * 0.5, h * 0.85);
+                
+                let cx = w * 0.5;
+                let cy = h * 0.85;
+                const stepsCount = 10;
+                const stepW = (w * 0.45) / stepsCount;
+                const stepH = (h * 0.4) / stepsCount;
+
+                for (let s = 0; s < stepsCount; s++) {
+                    archCtx.lineTo(cx + stepW, cy);
+                    archCtx.lineTo(cx + stepW, cy - stepH);
+                    cx += stepW;
+                    cy -= stepH;
+                }
+                archCtx.stroke();
+                
+                // Stair label warning
+                archCtx.fillStyle = '#ef4444';
+                archCtx.fillText("ECHELON HAZARD", w * 0.7, h * 0.9);
+            } else {
+                // Soft sloped padded seats
+                archCtx.fillStyle = '#1e293b';
+                archCtx.strokeStyle = '#10b981';
+                archCtx.lineWidth = 3;
+                archCtx.beginPath();
+                archCtx.moveTo(w * 0.5, h * 0.85);
+                archCtx.lineTo(w * 0.95, h * 0.45);
+                archCtx.stroke();
+
+                // Draw circles to represent soft chairs
+                archCtx.fillStyle = '#10b981';
+                for (let sc = 0; sc < 7; sc++) {
+                    const sx = w * 0.53 + (w * 0.38) * (sc / 6);
+                    const sy = h * 0.82 - (h * 0.35) * (sc / 6);
+                    archCtx.beginPath();
+                    archCtx.arc(sx, sy, 5, 0, Math.PI * 2);
+                    archCtx.fill();
+                }
+            }
+
+            // Draw Selected Ceiling Structure
+            archCtx.strokeStyle = '#38bdf8';
+            archCtx.lineWidth = 4;
+            archCtx.beginPath();
+
+            if (archBlueprint.ceiling === 'flat') {
+                archCtx.moveTo(w * 0.1, h * 0.15);
+                archCtx.lineTo(w * 0.9, h * 0.15);
+                archCtx.stroke();
+            } else if (archBlueprint.ceiling === 'parabolic') {
+                // Parabolic focus behind speaker curve mapping
+                archCtx.moveTo(w * 0.05, h * 0.4);
+                archCtx.quadraticCurveTo(w * 0.08, h * 0.1, w * 0.9, h * 0.15);
+                archCtx.stroke();
+                // Draw curve focal mathematical boundary
+                archCtx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+                archCtx.lineWidth = 1;
+                archCtx.setLineDash([4, 4]);
+                archCtx.stroke();
+                archCtx.setLineDash([]);
+            } else if (archBlueprint.ceiling === 'curved') {
+                // Concave curve
+                archCtx.moveTo(w * 0.1, h * 0.15);
+                archCtx.bezierCurveTo(w * 0.4, h * 0.35, w * 0.6, h * 0.35, w * 0.9, h * 0.15);
+                archCtx.stroke();
+            }
+
+            // Render decorative wall boundary absorbing icons
+            const wallColor = archBlueprint.walls === 'concrete' ? '#ef4444' : (archBlueprint.walls === 'gypsum' ? '#10b981' : '#3b82f6');
+            archCtx.fillStyle = wallColor;
+            archCtx.font = '10px font-mono';
+            archCtx.fillText(`WALL MATERIAL: ${archBlueprint.walls.toUpperCase()}`, w * 0.4, h * 0.08);
+        }
+
+        // Action Trigger for checking blueprint sounds
+        function testAuditoriumAcoustics() {
+            if (!audioCtx) initAudioContext();
+
+            // Setup real-time audio parameters based on materials
+            let reverbSec = 0.5;
+            let filterCutoff = 8000;
+            let filterType = 'none';
+
+            if (archBlueprint.walls === 'concrete') {
+                reverbSec = 1.8;
+                filterCutoff = 6000; // very echoey room resonance
+            } else if (archBlueprint.walls === 'gypsum') {
+                reverbSec = 0.8;
+                filterType = 'lowpass';
+                filterCutoff = 2500; // nicely absorbed high end
+            } else if (archBlueprint.walls === 'curtains') {
+                reverbSec = 0.2;
+                filterType = 'lowpass';
+                filterCutoff = 1200; // heavily absorbed frequencies
+            }
+
+            // Trigger a synthesizer sequence simulating real speech or orchestra hit
+            generateSoundPulse('voice', 0, 0.7, filterType, filterCutoff);
+            
+            // If concrete, trigger successive echoes to simulate high reverberation
+            if (reverbSec > 0.5) {
+                setTimeout(() => { generateSoundPulse('voice', 0, 0.4, filterType, filterCutoff); }, 120);
+                setTimeout(() => { generateSoundPulse('voice', 0, 0.2, filterType, filterCutoff); }, 240);
+                setTimeout(() => { generateSoundPulse('voice', 0, 0.1, filterType, filterCutoff); }, 360);
+            }
+
+            // If regular stairs, trigger echelon rattle high beep clicks sequential
+            if (archBlueprint.stairs === 'regular') {
+                setTimeout(() => { generateSoundPulse('beep', 0, 0.15); }, 50);
+                setTimeout(() => { generateSoundPulse('beep', 0, 0.12); }, 90);
+                setTimeout(() => { generateSoundPulse('beep', 0, 0.10); }, 130);
+                setTimeout(() => { generateSoundPulse('beep', 0, 0.08); }, 170);
+            }
+
+            // Launch active tracing ray tracers!
+            triggerRayTraceAnimation();
+        }
+
+        let rayCounter = 0;
+        let isTracingRays = false;
+        let raysList = [];
+
+        function triggerRayTraceAnimation() {
+            isTracingRays = true;
+            rayCounter = 0;
+            raysList = [];
+
+            const w = archCanvas.width;
+            const h = archCanvas.height;
+            const spkX = w * 0.12;
+            const spkY = h * 0.65;
+
+            // Generate rays emanating outwards in an angular cone from speaker
+            const totalRays = 16;
+            const startAngle = -Math.PI / 2.5;
+            const endAngle = Math.PI / 12;
+
+            for (let r = 0; r < totalRays; r++) {
+                const angle = startAngle + (endAngle - startAngle) * (r / (totalRays - 1));
+                raysList.push({
+                    x: spkX,
+                    y: spkY,
+                    origX: spkX,
+                    origY: spkY,
+                    dx: Math.cos(angle) * 4.5,
+                    dy: Math.sin(angle) * 4.5,
+                    reflected: false,
+                    color: '#3b82f6',
+                    history: []
+                });
+            }
+
+            if (archAnimationFrameId) cancelAnimationFrame(archAnimationFrameId);
+            animateRayTracer();
+        }
+
+        function animateRayTracer() {
+            if (!isTracingRays) return;
+
+            const w = archCanvas.width;
+            const h = archCanvas.height;
+
+            // Render baseline room layout static curves
+            drawAuditoriumBlueprint();
+
+            let activeRays = 0;
+
+            raysList.forEach(ray => {
+                // Skip rays that exited outer bounding fields
+                if (ray.x > w || ray.y > h || ray.x < 0 || ray.y < 0) return;
+
+                activeRays++;
+
+                // Track historical path
+                ray.history.push({x: ray.x, y: ray.y});
+                if (ray.history.length > 50) ray.history.shift();
+
+                // Draw ray vector tail
+                archCtx.beginPath();
+                archCtx.moveTo(ray.history[0].x, ray.history[0].y);
+                for (let p = 1; p < ray.history.length; p++) {
+                    archCtx.lineTo(ray.history[p].x, ray.history[p].y);
+                }
+                archCtx.strokeStyle = ray.color;
+                archCtx.lineWidth = 2;
+                archCtx.stroke();
+
+                // Move ray
+                ray.x += ray.dx;
+                ray.y += ray.dy;
+
+                // Physics Collision Triggers with Ceiling boundary profiles
+                if (!ray.reflected) {
+                    let hitCeiling = false;
+
+                    // Compute generic bounding zone representing ceiling limits
+                    if (archBlueprint.ceiling === 'flat' && ray.y <= h * 0.15) {
+                        hitCeiling = true;
+                        ray.dy = -ray.dy; // pure flat vector reflection
+                    } 
+                    else if (archBlueprint.ceiling === 'parabolic') {
+                        // Approximate parabolic vector reflection pointing parallel to bottom spectating planes
+                        if (ray.y <= h * 0.15 || (ray.x < w * 0.2 && ray.y <= h * 0.4)) {
+                            hitCeiling = true;
+                            // Reflect perfectly parallel (dx > 0, dy ≈ 0)
+                            const currentSpeed = Math.sqrt(ray.dx * ray.dx + ray.dy * ray.dy);
+                            ray.dx = currentSpeed;
+                            ray.dy = 0.5; // slight slope downwards to audience
+                        }
+                    } 
+                    else if (archBlueprint.ceiling === 'curved') {
+                        // Concave ceiling causes focal hotspot grouping vectors inside center areas
+                        if (ray.y <= h * 0.22) {
+                            hitCeiling = true;
+                            // Distort reflected vector targeting a focal zone center point (0.45w, 0.55h)
+                            const targetX = w * 0.45;
+                            const targetY = h * 0.55;
+                            const angle = Math.atan2(targetY - ray.y, targetX - ray.x);
+                            const currentSpeed = Math.sqrt(ray.dx * ray.dx + ray.dy * ray.dy);
+                            ray.dx = Math.cos(angle) * currentSpeed;
+                            ray.dy = Math.sin(angle) * currentSpeed;
+                            ray.color = '#ef4444'; // Hotspot focus warn red!
+                        }
+                    }
+
+                    if (hitCeiling) {
+                        ray.reflected = true;
+                        // Absorption dampening color based on materials
+                        if (archBlueprint.walls === 'concrete') {
+                            // High reflection, keep vibrant
+                        } else if (archBlueprint.walls === 'gypsum') {
+                            ray.color = 'rgba(16, 185, 129, 0.6)'; // Green dim
+                        } else if (archBlueprint.walls === 'curtains') {
+                            ray.color = 'rgba(59, 130, 246, 0.2)'; // Extreme faint dim
+                        }
+                    }
+                }
+            });
+
+            if (activeRays === 0) {
+                isTracingRays = false;
+                drawAuditoriumBlueprint(); // redraw clean
+                return;
+            }
+
+            archAnimationFrameId = requestAnimationFrame(animateRayTracer);
+        }
+
+        // Initialize setup analyses
+        setTimeout(() => {
+            setArchParam('ceiling', 'parabolic');
+        }, 800);
+
+
+        /* ------------------------------------------------------------- */
+        /* LAB 3: NATURE & TECH (SONAR METRICS EXPLORATION)               */
+        /* ------------------------------------------------------------- */
+        const sonarCanvas = document.getElementById('sonar-canvas');
+        const sonarCtx = sonarCanvas.getContext('2d');
+        let seabedProfile = []; // Map coordinates array representing undersea geology
+
+        function initSonarSandbox() {
+            const w = sonarCanvas.width = sonarCanvas.parentElement.clientWidth;
+            const h = sonarCanvas.height = sonarCanvas.parentElement.clientHeight;
+
+            // Generate an interesting hilly oceanic seabed topography
+            seabedProfile = [];
+            for (let i = 0; i <= w; i += 15) {
+                // Combine multi-sine wave harmonics to make natural-looking seabed valleys
+                const baseHeight = h * 0.72;
+                const hill1 = Math.sin(i * 0.008) * 35;
+                const hill2 = Math.cos(i * 0.02) * 15;
+                seabedProfile.push({x: i, y: baseHeight + hill1 + hill2});
+            }
+            drawSonarSea();
+        }
+
+        function drawSonarSea() {
+            const w = sonarCanvas.width;
+            const h = sonarCanvas.height;
+            sonarCtx.clearRect(0, 0, w, h);
+
+            // 1. Draw Deep Blue Sea water gradient
+            const oceanGrad = sonarCtx.createLinearGradient(0, 0, 0, h);
+            oceanGrad.addColorStop(0, '#0d1e3d');
+            oceanGrad.addColorStop(1, '#050a18');
+            sonarCtx.fillStyle = oceanGrad;
+            sonarCtx.fillRect(0, 0, w, h);
+
+            // 2. Draw Ship representation
+            sonarCtx.fillStyle = '#64748b';
+            sonarCtx.fillRect(w * 0.42, 20, 60, 15);
+            sonarCtx.fillStyle = '#ef4444';
+            sonarCtx.fillRect(w * 0.42, 17, 10, 4); // flag detail
+
+            sonarCtx.fillStyle = '#94a3b8';
+            sonarCtx.font = '10px monospace';
+            sonarCtx.fillText("RESEARCH VESSEL", w * 0.42 - 10, 13);
+
+            // 3. Draw Seabed Bedrock Layer
+            sonarCtx.beginPath();
+            sonarCtx.moveTo(0, h);
+            sonarCtx.lineTo(0, seabedProfile[0].y);
+            
+            for (let p = 1; p < seabedProfile.length; p++) {
+                sonarCtx.lineTo(seabedProfile[p].x, seabedProfile[p].y);
+            }
+            sonarCtx.lineTo(w, h);
+            sonarCtx.closePath();
+
+            // Sand floor colors
+            const seabedGrad = sonarCtx.createLinearGradient(0, h * 0.6, 0, h);
+            seabedGrad.addColorStop(0, '#115e59'); // teal sediment
+            seabedGrad.addColorStop(1, '#062f2f');
+            sonarCtx.fillStyle = seabedGrad;
+            sonarCtx.fill();
+
+            // Draw line border of seabed
+            sonarCtx.strokeStyle = '#14b8a6';
+            sonarCtx.lineWidth = 3;
+            sonarCtx.stroke();
+        }
+
+        // Active Click to Ping coordinates
+        sonarCanvas.addEventListener('mousedown', function(e) {
+            // Initiate Web Audio context on user trigger
+            if (!audioCtx) initAudioContext();
+
+            const rect = sonarCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Trigger synthesized high pitch sonar sound
+            playNatureSound('sonar');
+
+            // Find closest seabed coordinate under mouse cursor
+            let targetY = sonarCanvas.height * 0.75;
+            for (let i = 0; i < seabedProfile.length; i++) {
+                if (Math.abs(seabedProfile[i].x - mouseX) < 15) {
+                    targetY = seabedProfile[i].y;
+                    break;
+                }
+            }
+
+            // Launch sonar wave animations targeting this point
+            animateSonarBeam(mouseX, targetY);
+        });
+
+        let sonarBeamId = null;
+        function animateSonarBeam(beamX, floorY) {
+            const w = sonarCanvas.width;
+            const h = sonarCanvas.height;
+            const shipX = w * 0.48;
+            const shipY = 35; // depth transducer
+
+            let beamRadius = 0;
+            const targetDistance = Math.sqrt((beamX - shipX)**2 + (floorY - shipY)**2);
+            let state = 'outward'; // 'outward' propagation, 'reflected' return
+
+            if (sonarBeamId) cancelAnimationFrame(sonarBeamId);
+
+            document.getElementById('sonar-status').innerText = "PING SENT...";
+            document.getElementById('sonar-status').className = "text-amber-400 font-bold";
+
+            function runBeam() {
+                drawSonarSea();
+
+                // Draw beam source sonar head node pulse glows
+                sonarCtx.beginPath();
+                sonarCtx.arc(shipX, shipY, 6, 0, Math.PI * 2);
+                sonarCtx.fillStyle = '#ef4444';
+                sonarCtx.fill();
+
+                if (state === 'outward') {
+                    beamRadius += 4;
+                    
+                    // Draw expandive concentric ping rings
+                    sonarCtx.beginPath();
+                    sonarCtx.arc(shipX, shipY, beamRadius, 0, Math.PI * 2);
+                    sonarCtx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+                    sonarCtx.lineWidth = 3;
+                    sonarCtx.stroke();
+
+                    // Collision trigger with seabed point
+                    if (beamRadius >= targetDistance) {
+                        state = 'reflected';
+                        beamRadius = targetDistance;
+                        // Trigger synthetic target echo ping sound at half volume
+                        setTimeout(() => { playNatureSound('sonar_echo'); }, 100);
+                        
+                        // Physics Calculations update
+                        // Assume ocean scale where canvas h = 1000m. Target distance ratio:
+                        const scaledDepth = (targetDistance / h * 1000).toFixed(0);
+                        // Speed of sound in ocean = 1500m/s. Time lag:
+                        const roundTripTime = (scaledDepth * 2 / 1500).toFixed(3);
+
+                        document.getElementById('sonar-status').innerText = "ECHO RECEIVED";
+                        document.getElementById('sonar-status').className = "text-emerald-400 font-bold";
+                        document.getElementById('sonar-time').innerText = `${roundTripTime} seconds`;
+                        document.getElementById('sonar-time-half').innerText = `${(roundTripTime/2).toFixed(3)} seconds`;
+                        document.getElementById('sonar-depth').innerText = `${scaledDepth} meters`;
+                    }
+                } 
+                else if (state === 'reflected') {
+                    beamRadius -= 4;
+
+                    // Draw collapsing reflecting rings heading back to transducer
+                    sonarCtx.beginPath();
+                    sonarCtx.arc(shipX, shipY, beamRadius, 0, Math.PI * 2);
+                    sonarCtx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+                    sonarCtx.lineWidth = 3;
+                    sonarCtx.stroke();
+
+                    // Back home
+                    if (beamRadius <= 5) {
+                        drawSonarSea();
+                        return; // stop loops
+                    }
+                }
+
+                // Draw target spot dot
+                sonarCtx.beginPath();
+                sonarCtx.arc(beamX, floorY, 8, 0, Math.PI*2);
+                sonarCtx.fillStyle = '#14b8a6';
+                sonarCtx.fill();
+
+                sonarBeamId = requestAnimationFrame(runBeam);
+            }
+            runBeam();
+        }
+
+        // Initialize sandbox
+        window.addEventListener('resize', initSonarSandbox);
+        setTimeout(initSonarSandbox, 1000);
+
+
+        /* ------------------------------------------------------------- */
+        /* BIOLOGICAL & NATURAL SOUND GENERATION                         */
+        /* ------------------------------------------------------------- */
+        function playNatureSound(type) {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+
+            const t = audioCtx.currentTime;
+            
+            if (type === 'bat') {
+                // Bat chirp high-to-low ultrasonic frequency sweep simulated within hearing zone
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(mainVolume);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(14000, t); // Starts extremely high pitch boundary
+                osc.frequency.exponentialRampToValueAtTime(3000, t + 0.1);
+
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.4, t + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+
+                osc.start(t);
+                osc.stop(t + 0.11);
+            } 
+            else if (type === 'dolphin') {
+                // Dolphin repetitive low subsonic clicking pulses
+                for (let click = 0; click < 4; click++) {
+                    setTimeout(() => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.connect(gain);
+                        gain.connect(mainVolume);
+
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(120, t + click * 0.05); // low rumble thump
+
+                        gain.gain.setValueAtTime(0, t + click * 0.05);
+                        gain.gain.linearRampToValueAtTime(0.6, t + click * 0.05 + 0.005);
+                        gain.gain.exponentialRampToValueAtTime(0.001, t + click * 0.05 + 0.03);
+
+                        osc.start(t + click * 0.05);
+                        osc.stop(t + click * 0.05 + 0.04);
+                    }, click * 50);
+                }
+            } 
+            else if (type === 'shockwave') {
+                // Instant extreme explosion pulse
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(mainVolume);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(80, t);
+                osc.frequency.exponentialRampToValueAtTime(20, t + 0.25);
+
+                const lowpass = audioCtx.createBiquadFilter();
+                lowpass.type = 'lowpass';
+                lowpass.frequency.setValueAtTime(350, t);
+                
+                osc.disconnect(gain);
+                osc.connect(lowpass);
+                lowpass.connect(gain);
+
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.9, t + 0.005);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+
+                osc.start(t);
+                osc.stop(t + 0.3);
+            } 
+            else if (type === 'sonar') {
+                // Perfect SONAR submarine sound ping
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(mainVolume);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1500, t); // Crystal clear naval frequency
+
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.6, t + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+                osc.start(t);
+                osc.stop(t + 0.5);
+            } 
+            else if (type === 'sonar_echo') {
+                // Dim reflection
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(mainVolume);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1500, t);
+
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.25, t + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+                osc.start(t);
+                osc.stop(t + 0.4);
+            }
+        }
+
+
+        /* ------------------------------------------------------------- */
+        /* LAB 4: CHALLENGES & GAMIFICATION ENGINE                       */
+        /* ------------------------------------------------------------- */
+        let challengesCompleted = {
+            c1: false,
+            c2: false,
+            c3: false
+        };
+
+        // Mission 01: Set precise parameters
+        function checkChallenge1() {
+            const T = parseFloat(sliderTemp.value);
+            const d = parseFloat(sliderDistance.value);
+            const v = 331.5 + 0.6 * T;
+            const totalDistance = 2 * d;
+            const timeDelay = parseFloat((totalDistance / v).toFixed(3));
+
+            const targetVal = 0.300;
+            const tolerance = 0.005;
+
+            const badge = document.getElementById('chal-badge-1');
+            const card = document.getElementById('challenge-card-1');
+
+            if (Math.abs(timeDelay - targetVal) <= tolerance) {
+                challengesCompleted.c1 = true;
+                badge.className = "text-xs px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/50 rounded-full font-bold";
+                badge.innerHTML = '<i class="fa-solid fa-check"></i> Passed';
+                card.classList.add('border-l-emerald-500');
+                showLocalNotification("Mission 1 Solved!", "Fantastic! You configured values to set sound delay to exactly 0.3 seconds!");
+                verifyAcousticMastery();
+            } else {
+                badge.className = "text-xs px-2.5 py-0.5 bg-rose-950 text-rose-400 border border-rose-500/50 rounded-full font-bold";
+                badge.innerHTML = '<i class="fa-solid fa-times"></i> Try Again';
+                showLocalNotification("Verification Failed", `Your current configuration returns sound delay in ${timeDelay}s. Adjust sliders to get 0.300s!`, true);
+            }
+        }
+
+        // Mission 02: Design flawless auditorium setup
+        function checkChallenge2() {
+            const badge = document.getElementById('chal-badge-2');
+            const card = document.getElementById('challenge-card-2');
+
+            // Master parameters: Parabolic ceiling, Acoustic Tiles or Curtains, soft seating
+            const correctCeil = archBlueprint.ceiling === 'parabolic';
+            const correctWalls = archBlueprint.walls === 'gypsum' || archBlueprint.walls === 'curtains';
+            const correctStairs = archBlueprint.stairs === 'upholstered';
+
+            if (correctCeil && correctWalls && correctStairs) {
+                challengesCompleted.c2 = true;
+                badge.className = "text-xs px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/50 rounded-full font-bold";
+                badge.innerHTML = '<i class="fa-solid fa-check"></i> Passed';
+                card.classList.add('border-l-emerald-500');
+                showLocalNotification("Mission 2 Solved!", "Outstanding! Your auditorium model achieves perfect acoustical distribution.");
+                verifyAcousticMastery();
+            } else {
+                badge.className = "text-xs px-2.5 py-0.5 bg-rose-950 text-rose-400 border border-rose-500/50 rounded-full font-bold";
+                badge.innerHTML = '<i class="fa-solid fa-times"></i> Try Again';
+                showLocalNotification("Verification Failed", "Acoustics still suffer from focus hotspots, high reverb, or echelon stair noises. Check the blueprint scorecard comments!", true);
+            }
+        }
+
+        // Mission 03: SONAR calculation
+        function checkChallenge3() {
+            const inputVal = parseFloat(document.getElementById('chal-sonar-input').value);
+            const badge = document.getElementById('chal-badge-3');
+            const card = document.getElementById('challenge-card-3');
+
+            // Math: Delay = 0.680s. Speed = 1500 m/s
+            // Depth = (v * t) / 2 = (1500 * 0.680) / 2 = 510 meters
+            const targetDepth = 510;
+
+            if (inputVal === targetDepth) {
+                challengesCompleted.c3 = true;
+                badge.className = "text-xs px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/50 rounded-full font-bold";
+                badge.innerHTML = '<i class="fa-solid fa-check"></i> Passed';
+                card.classList.add('border-l-emerald-500');
+                showLocalNotification("Mission 3 Solved!", "Awesome calculation! 510 meters is the exact depth of the seabed!");
+                verifyAcousticMastery();
+            } else {
+                badge.className = "text-xs px-2.5 py-0.5 bg-rose-950 text-rose-400 border border-rose-500/50 rounded-full font-bold";
+                badge.innerHTML = '<i class="fa-solid fa-times"></i> Try Again';
+                showLocalNotification("Verification Failed", "Incorrect calculations. Depth = (1500m/s * 0.680s) / 2. Try recalculating!", true);
+            }
+        }
+
+        // Check if user completed all 3 challenges
+        function verifyAcousticMastery() {
+            if (challengesCompleted.c1 && challengesCompleted.c2 && challengesCompleted.c3) {
+                document.getElementById('cert-banner').classList.remove('hidden');
+                // Play graduation sound flare
+                if (audioCtx && audioCtx.state === 'running') {
+                    const t = audioCtx.currentTime;
+                    // Arpeggio sequence
+                    setTimeout(() => { playArpeggioBeep(440); }, 0);
+                    setTimeout(() => { playArpeggioBeep(554); }, 150);
+                    setTimeout(() => { playArpeggioBeep(659); }, 300);
+                    setTimeout(() => { playArpeggioBeep(880); }, 450);
+                }
+            }
+        }
+
+        function playArpeggioBeep(freq) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(mainVolume);
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+        }
+
+        /* ------------------------------------------------------------- */
+        /* TOAST NOTIFICATION UTILITY                                    */
+        /* ------------------------------------------------------------- */
+        function showLocalNotification(title, text, isWarn = false) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 z-50 p-4 rounded-xl border glass shadow-2xl flex gap-3 transition-all duration-500 transform translate-y-12 opacity-0 max-w-sm ${isWarn ? 'border-red-500/30 bg-red-500/10' : 'border-emerald-500/30 bg-emerald-500/10'}`;
+            toast.innerHTML = `
+                <div class="text-xl">${isWarn ? '❌' : '🎉'}</div>
+                <div>
+                    <h5 class="font-bold text-sm ${isWarn ? 'text-rose-400' : 'text-emerald-400'}">${title}</h5>
+                    <p class="text-xs text-slate-300 mt-1 leading-relaxed">${text}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-y-12', 'opacity-0');
+            }, 50);
+
+            // Dismiss
+            setTimeout(() => {
+                toast.classList.add('translate-y-12', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 500);
+            }, 4500);
+        }
+    </script>
+</body>
+</html>
