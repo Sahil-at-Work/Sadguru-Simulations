@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aether Lab - Interactive Atmospheric Optics</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        physics: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
+        }
+        .glow-amber {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+        }
+        .glow-red {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+        }
+        .glow-yellow {
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.15);
+        }
+        /* Canvas glowing container */
+        .canvas-container {
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, #111827, #030712);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-gray-800 bg-gray-950/80 backdrop-blur sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                    <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 via-indigo-200 to-amber-300 bg-clip-text text-transparent">
+                        Aether Lab
+                    </h1>
+                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Atmospheric Optics Playground</p>
+                </div>
+            </div>
+            
+            <!-- Quick mode toggles -->
+            <nav class="flex flex-wrap gap-1 bg-gray-900/90 p-1 rounded-xl border border-gray-800/80">
+                <button onclick="switchTab('twinkle')" id="btn-twinkle" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 bg-sky-500 text-white shadow-md">
+                    <i class="fa-solid fa-star"></i> Twinkling Stars
+                </button>
+                <button onclick="switchTab('mirage')" id="btn-mirage" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-water"></i> Mirage
+                </button>
+                <button onclick="switchTab('fire')" id="btn-fire" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-fire"></i> Holi Fire
+                </button>
+                <button onclick="switchTab('horizon')" id="btn-horizon" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-sun"></i> Sunrise/Sunset
+                </button>
+                <button onclick="switchTab('quest')" id="btn-quest" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-gray-400 hover:text-white border border-transparent hover:border-amber-500/35">
+                    <i class="fa-solid fa-trophy text-amber-400"></i> Physics Quest
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Sidebar: Controls, Explanations, Scaffolding -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- Active Concept Info Card -->
+            <div id="concept-info-card" class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 glow-cyan transition-all duration-300">
+                <div class="flex items-center gap-2 mb-3">
+                    <span id="concept-tag" class="text-[10px] uppercase font-extrabold tracking-widest px-2.5 py-1 bg-sky-500/15 text-sky-400 rounded-full border border-sky-500/20">
+                        Astronomy & Physics
+                    </span>
+                    <span class="text-[10px] text-gray-500 font-mono">Topic 6.5 - 6.7</span>
+                </div>
+                
+                <h2 id="concept-title" class="text-2xl font-bold text-white mb-2">Twinkling of Stars</h2>
+                <p id="concept-description" class="text-sm text-gray-300 leading-relaxed">
+                    Ever wondered why stars dance and flicker in the night sky while planets glow with a steady beam of light? It all comes down to refractive index shifts caused by layers of hot and cold atmospheric air. Let's bend some light to find out!
+                </p>
+
+                <!-- Interactive Formula Helper -->
+                <div class="mt-4 p-3 bg-gray-950 rounded-xl border border-gray-800/80 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2 text-gray-400">
+                        <i class="fa-solid fa-wave-square text-sky-400"></i>
+                        <span>Atmospheric Refractive Index:</span>
+                    </div>
+                    <span class="font-mono text-sky-300 font-bold" id="snell-law">n ≈ 1.000293</span>
+                </div>
+            </div>
+
+            <!-- Interactive Physics Control Desk -->
+            <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i> Live Laboratory Adjusters
+                </h3>
+
+                <!-- Controls Container (Dynamic Injection based on Tab) -->
+                <div id="controls-container" class="space-y-5">
+                    <!-- Twinkling Stars Controls -->
+                    <div id="ctrl-twinkle" class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-gray-300 font-medium">Atmospheric Turbulence</span>
+                                <span id="val-turbulence" class="text-sky-400 font-mono">Medium</span>
+                            </div>
+                            <input id="slider-turbulence" type="range" min="1" max="10" value="4" 
+                                class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-sky-500">
+                            <p class="text-[11px] text-gray-500 mt-1">Simulates moving air packets changing density rapidly.</p>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-gray-300 font-medium">Star Distance (Light rays)</span>
+                                <span id="val-distance" class="text-sky-400 font-mono">Distant (Point Source)</span>
+                            </div>
+                            <input id="slider-distance" type="range" min="1" max="3" value="1" 
+                                class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-sky-500">
+                            <p class="text-[11px] text-gray-500 mt-1">Stars look like tiny points; planets are large disk sources.</p>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-gray-300 font-medium">Density Gradient</span>
+                                <span id="val-gradient" class="text-sky-400 font-mono">Normal</span>
+                            </div>
+                            <input id="slider-gradient" type="range" min="0" max="100" value="50" 
+                                class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-sky-500">
+                            <p class="text-[11px] text-gray-500 mt-1">Changes how much refractive index increases as light descends.</p>
+                        </div>
+                    </div>
+
+                    <!-- Mirage Controls -->
+                    <div id="ctrl-mirage" class="space-y-4 hidden">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-gray-300 font-medium">Surface Temperature</span>
+                                <span id="val-mirage-temp" class="text-amber-400 font-mono">Hot (45°C)</span>
+                            </div>
+                            <input id="slider-mirage-temp" type="range" min="20" max="60" value="45" 
+                                class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                            <p class="text-[11px] text-gray-500 mt-1">A hotter ground makes the air near the surface rarer (lower n).</p>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-gray-300 font-medium">Viewer Height (Angle)</span>
+                                <span id="val-viewer-height" class="text-amber-400 font-mono">1.6 m</span>
+                            </div>
+                            <input id="slider-viewer-height" type="range" min="5" max="35" value="16" 
+                                class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                            <p class="text-[11px] text-gray-500 mt-1">Changing viewer elevation shows critical angle limit of reflection.</p>
+                        </div>
+                    </div>
+
+                    <!-- Holi Fire Controls -->
+                    <div id="ctrl-fire" class="space-y-4 hidden">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-gray-300 font-medium">Thermal Plume Intensity</span>
+                                <span id="val-fire-intensity" class="text-red-400 font-mono">Strong</span>
+                            </div>
+                            <input id="slider-fire-intensity" type="range" min="10" max="100" value="70" 
+                                class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-red-500">
+                            <p class="text-[11px] text-gray-500 mt-1">Controls temperature fluctuation and updraft convection speed.</p>
+                        </div>
+                    </div>
+
+                    <!-- Horizon Controls -->
+                    <div id="ctrl-horizon" class="space-y-4 hidden">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-gray-300 font-medium">Sun Position Angle</span>
+                                <span id="val-sun-pos" class="text-yellow-400 font-mono">Below Horizon (-2.5°)</span>
+                            </div>
+                            <input id="slider-sun-pos" type="range" min="-10" max="10" value="-3" 
+                                class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-yellow-500">
+                            <p class="text-[11px] text-gray-500 mt-1">Watch how atmospheric bending reveals the Sun even below horizon.</p>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-gray-300 font-medium">Atmosphere Thickness</span>
+                                <span id="val-atm-thickness" class="text-yellow-400 font-mono">Dense</span>
+                            </div>
+                            <input id="slider-atm-thickness" type="range" min="10" max="60" value="35" 
+                                class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-yellow-500">
+                            <p class="text-[11px] text-gray-500 mt-1">A thicker atmosphere bends light rays even more drastically.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laboratory Preset buttons -->
+                <div class="mt-6 pt-4 border-t border-gray-800/80 flex justify-between items-center">
+                    <span class="text-xs text-gray-400 font-semibold">Active Presets:</span>
+                    <div class="flex gap-2">
+                        <button onclick="resetToDefaults()" class="px-2.5 py-1 text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 rounded font-medium transition-all">
+                            Reset Active Lab
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Classroom Corner -->
+            <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 text-xs">
+                <h4 class="text-gray-200 font-semibold mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-graduation-cap text-indigo-400"></i> Teacher's Explanation Tip
+                </h4>
+                <div id="classroom-tip" class="text-gray-400 leading-relaxed">
+                    Light travels fastest in vacuum/rarer air and slows down when reaching denser air. This causes it to bend towards the normal continuously, creating beautiful illusions.
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Simulation Zone (Canvas Area & Analytical Charts) -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Canvas Container -->
+            <div class="canvas-container flex flex-col h-[520px] shadow-2xl relative">
+                <!-- Simulation Title and Stats overlay -->
+                <div class="absolute top-4 left-4 z-10 bg-gray-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-gray-800 text-[11px] font-mono flex items-center gap-3">
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Physical Engine Active</span>
+                    <span class="text-gray-500">|</span>
+                    <span id="canvas-status">Visualizing Refraction Rays</span>
+                </div>
+
+                <!-- Live Legend Overlay -->
+                <div id="sim-legend" class="absolute bottom-4 left-4 z-10 bg-gray-950/80 backdrop-blur-md p-3 rounded-lg border border-gray-800 text-[11px] space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="w-4 h-0.5 bg-yellow-400 inline-block"></span>
+                        <span class="text-gray-300">Actual Ray Path</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-4 h-0.5 bg-red-400 inline-block border-dashed border-t"></span>
+                        <span class="text-gray-300">Apparent Straight Path (What we see)</span>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <canvas id="opticsCanvas" class="w-full flex-grow cursor-crosshair"></canvas>
+            </div>
+
+            <!-- Data Analytics & Sandbox Tools -->
+            <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-sky-400"></i> Oscilloscope Graph & Live Analytics
+                        </h3>
+                        <p class="text-xs text-gray-400">Measures the light intensity reaching the eye over time.</p>
+                    </div>
+                    <div class="flex gap-2 text-xs">
+                        <span class="px-2.5 py-1 bg-sky-500/10 text-sky-400 rounded-full border border-sky-500/20 font-semibold" id="dynamic-metric-label">
+                            Bending Factor: 1.2%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Graphical Visualizer of Intensity -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                    <div class="md:col-span-8 bg-gray-950 rounded-xl border border-gray-800/80 p-2 h-36 relative overflow-hidden flex items-end">
+                        <canvas id="graphCanvas" class="w-full h-full"></canvas>
+                        <div class="absolute top-2 left-3 text-[10px] text-gray-500 font-mono">Intensity Amplitude</div>
+                        <div class="absolute bottom-2 right-3 text-[10px] text-gray-500 font-mono">Time Step</div>
+                    </div>
+                    
+                    <div class="md:col-span-4 space-y-3 bg-gray-950/40 p-3 rounded-xl border border-gray-800/50 text-xs">
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+                            <span class="text-gray-400">Total Optical Dispersion:</span>
+                            <span class="font-mono text-white" id="stat-dispersion">0.024 nm</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+                            <span class="text-gray-400">Atmospheric Density:</span>
+                            <span class="font-mono text-white" id="stat-density">1.225 kg/m³</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Twinkles Detected:</span>
+                            <span class="font-mono text-emerald-400 font-bold" id="stat-events">12 Hz</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Full-Width Quest/Quiz Modal/Overlay -->
+    <section id="quest-arena" class="max-w-7xl mx-auto px-4 py-6 w-full hidden">
+        <div class="bg-gray-900/80 border border-amber-500/30 rounded-3xl p-6 glow-amber">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-gray-800">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-400 animate-bounce"></i> Interactive Physics Quest Arena
+                    </h2>
+                    <p class="text-sm text-gray-400 mt-1">Put your optical mechanics knowledge to the test. Win your Atmospheric Physics Rank Certificate!</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-400">Quest Progress:</span>
+                    <span id="quiz-progress-text" class="text-amber-400 font-bold font-mono">Question 1 of 4</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Challenge Zone -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="bg-gray-950 p-5 rounded-2xl border border-gray-800">
+                        <span id="quest-badge" class="text-[10px] font-bold text-amber-400 uppercase bg-amber-400/10 px-2 py-1 rounded border border-amber-400/20">Challenge Module 1</span>
+                        <h3 id="quiz-question" class="text-lg font-bold text-white mt-3 leading-relaxed">
+                            Question Loading...
+                        </h3>
+                    </div>
+
+                    <div id="quiz-options" class="grid grid-cols-1 gap-3">
+                        <!-- Options injected dynamically by JS -->
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <div id="quiz-feedback" class="text-sm font-semibold transition-all"></div>
+                        <button id="next-quest-btn" onclick="nextQuestion()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/10 flex items-center gap-2 opacity-50 cursor-not-allowed" disabled>
+                            Next Challenge <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- visual interactive reference helper -->
+                <div class="lg:col-span-5 bg-gray-950/60 rounded-2xl border border-gray-800 p-5 flex flex-col items-center justify-center text-center">
+                    <div id="quest-graphic" class="w-full h-48 bg-gray-900 rounded-xl flex items-center justify-center relative overflow-hidden border border-gray-800 mb-4">
+                        <!-- Dynamic vector / emoji graphic to illustrate current quest question -->
+                    </div>
+                    <h4 class="text-sm font-bold text-gray-200 mb-1">Optical Hint Notebook</h4>
+                    <p id="quiz-hint" class="text-xs text-gray-400 max-w-sm">
+                        Look closely at refractive index rules: a ray moving from rarer (hot air) to denser (cold air) medium always bends towards the normal!
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Certificate Overlay / Modal -->
+    <div id="certificate-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md items-center justify-center z-[100] px-4 hidden">
+        <div class="bg-gray-900 border-2 border-amber-400/60 p-8 rounded-3xl max-w-2xl w-full text-center relative overflow-hidden shadow-2xl">
+            <!-- Decorative elements -->
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-sky-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl"></div>
+
+            <div class="w-16 h-16 bg-amber-500/10 border border-amber-400/40 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-400 text-2xl">
+                <i class="fa-solid fa-ribbon animate-pulse"></i>
+            </div>
+            
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Physicist Certificate</h2>
+            <p class="text-xs text-amber-400 uppercase tracking-widest font-mono mt-1">Atmospheric Refraction Mastery</p>
+            
+            <div class="my-6 p-6 bg-gray-950/80 rounded-2xl border border-gray-800 text-left space-y-4">
+                <div class="text-center">
+                    <p class="text-xs text-gray-400">Awarded to the Inspiring Learner for solving</p>
+                    <p id="cert-learner-name" class="text-xl font-bold text-white mt-1 border-b border-gray-800 pb-2 inline-block px-8">Junior Optical Scientist</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-center text-xs mt-4">
+                    <div class="bg-gray-900 p-2.5 rounded-lg">
+                        <span class="text-gray-500 block">Grade Achieved:</span>
+                        <strong class="text-emerald-400 text-sm font-mono">100% PERFECT</strong>
+                    </div>
+                    <div class="bg-gray-900 p-2.5 rounded-lg">
+                        <span class="text-gray-500 block">Optics Rank:</span>
+                        <strong class="text-amber-400 text-sm font-mono">Atmosphere Master</strong>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-xs text-gray-400 max-w-md mx-auto mb-6">
+                You successfully mapped light rays through variable temperature layers, quantified why planets do not twinkle, and solved early sunrise anomalies!
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-3">
+                <button onclick="closeCertificate()" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-sm rounded-xl transition">
+                    Keep Playing
+                </button>
+                <button onclick="window.print()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-print"></i> Print Certificate
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Educational Footer -->
+    <footer class="border-t border-gray-900 bg-gray-950 px-4 py-6 mt-12">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+            <div class="flex items-center gap-2">
+                <div class="h-6 w-6 rounded bg-sky-500/10 flex items-center justify-center text-sky-400 font-bold">
+                    6
+                </div>
+                <span>Curriculum Reference: Ray Optics & Atmospheric Refraction</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="#concept-title" onclick="switchTab('twinkle')" class="hover:text-white transition">Twinkling of Stars</a>
+                <span>•</span>
+                <a href="#concept-title" onclick="switchTab('mirage')" class="hover:text-white transition">Desert Mirage</a>
+                <span>•</span>
+                <a href="#concept-title" onclick="switchTab('fire')" class="hover:text-white transition">Holi Fire</a>
+                <span>•</span>
+                <a href="#concept-title" onclick="switchTab('horizon')" class="hover:text-white transition">Early Sunrise</a>
+            </div>
+            <div>
+                <span>Designed with love for young scientists.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Primary Controller Script -->
+    <script>
+        // Tab system global state
+        let currentTab = 'twinkle';
+
+        // Set up main HTML5 canvases and contexts (safely initialized after load)
+        let canvas, ctx, graphCanvas, graphCtx;
+
+        // Simulation parameters dictionary (Global state)
+        const simParams = {
+            twinkle: {
+                turbulence: 4,
+                distance: 1, // 1 = Point Star, 2 = Medium, 3 = Planet Disk
+                gradient: 50
+            },
+            mirage: {
+                temp: 45,
+                viewerHeight: 16
+            },
+            fire: {
+                intensity: 70
+            },
+            horizon: {
+                sunPos: -3,
+                atmThickness: 35
+            }
+        };
+
+        // Graphing data buffers
+        let intensityHistory = [];
+        const maxGraphDataPoints = 120;
+        let animationFrameId;
+
+        // UI Tab Contents Explanations Mapping
+        const activeConceptMeta = {
+            twinkle: {
+                title: "Twinkling of Stars vs. Planets",
+                tag: "Astronomy & Physics",
+                bgClass: "glow-cyan",
+                desc: "Stars appear as single point sources of light because they are trillions of miles away. As their light passes through rapid temperature and density pockets in Earth's moving atmosphere, its rays are bent dynamically. This causes the star's apparent position and intensity to fluctuate wildly (twinkling). Planets, being closer, act as collections of point sources, averaging out this variation so they shine steadily.",
+                tip: "Increase turbulence to watch stars flicker more intensely. Switch 'Star Distance' to watch a Planet stabilize its brightness average!",
+                metric: "Fluctuation Variance"
+            },
+            mirage: {
+                title: "Mirage: Hot Desert Refraction",
+                tag: "Geographical Optics",
+                bgClass: "glow-amber",
+                desc: "On a blazing desert or asphalt road, the surface becomes intensely hot, heating the air immediately above it. Hot air is rarer (lower refractive index) than the cooler, denser air above. Light rays traveling downwards towards the ground from a high object (like a palm tree or the sky) continuously bend away from the normal until they curve upwards, making the viewer perceive a reflection on the ground (like water).",
+                tip: "Adjust Surface Temperature. A hotter road bends light faster and at steeper angles, creating a reflection pool closer to your observer's position.",
+                metric: "Curvature Delta"
+            },
+            fire: {
+                title: "Convective Shimmer above Holi Fires",
+                tag: "Thermodynamics",
+                bgClass: "glow-red",
+                desc: "A roaring bonfire or Holi flames create a turbulent column of extremely hot, low-density air rising rapidly. Because the hot air directly above the fire has a lower refractive index than the cool surrounding air, and is continuously shifting due to convection currents, light passing through this plume bends randomly. This creates the visual effect of background objects rapidly shaking or vibrating.",
+                tip: "Crank up the Thermal Plume Intensity to see rapid localized heat waves wobble and shear background structures dynamically on the viewer's eye.",
+                metric: "Dynamic Jitter Frequency"
+            },
+            horizon: {
+                title: "Advanced Sunrise & Delayed Sunset",
+                tag: "Astrophysics",
+                bgClass: "glow-yellow",
+                desc: "Sunrise is when the Sun crosses above the horizon. However, Earth's atmospheric layers become progressively denser closer to the surface. As solar rays arrive from space, they travel from rarer to denser media, curving downwards following the curvature of the Earth. This optical refraction means we see the Sun about 2 minutes before it physically rises, and for 2 minutes after it sets!",
+                tip: "Adjust Sun Position Angle below the horizon and increase atmospheric thickness to observe how curved light pathways bend over the earth horizon line.",
+                metric: "Horizon Refractive Shift"
+            }
+        };
+
+        // Layout sizing updates
+        function resizeCanvases() {
+            if (!canvas || !graphCanvas) return;
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight - 10; 
+
+            graphCanvas.width = graphCanvas.parentElement.clientWidth;
+            graphCanvas.height = graphCanvas.parentElement.clientHeight;
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Hide all tab content panes and display active one
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-gray-400 hover:text-white";
+            });
+            
+            // Highlight current button with color theme
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                let themeColor = 'bg-sky-500';
+                if (tabId === 'mirage') themeColor = 'bg-amber-500';
+                if (tabId === 'fire') themeColor = 'bg-red-500';
+                if (tabId === 'horizon') themeColor = 'bg-yellow-500';
+                if (tabId === 'quest') themeColor = 'bg-amber-500';
+
+                activeBtn.className = `tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 ${themeColor} text-white shadow-md`;
+            }
+
+            // Toggle main dashboard layout versus quiz quest arena
+            const mainGrid = document.querySelector('main');
+            const questArena = document.getElementById('quest-arena');
+            
+            if (tabId === 'quest') {
+                if (mainGrid) mainGrid.classList.add('hidden');
+                if (questArena) questArena.classList.remove('hidden');
+                initQuiz();
+            } else {
+                if (mainGrid) mainGrid.classList.remove('hidden');
+                if (questArena) questArena.classList.add('hidden');
+                
+                // Hide and show appropriate controller panes
+                const cTwinkle = document.getElementById('ctrl-twinkle');
+                const cMirage = document.getElementById('ctrl-mirage');
+                const cFire = document.getElementById('ctrl-fire');
+                const cHorizon = document.getElementById('ctrl-horizon');
+
+                if (cTwinkle) cTwinkle.classList.add('hidden');
+                if (cMirage) cMirage.classList.add('hidden');
+                if (cFire) cFire.classList.add('hidden');
+                if (cHorizon) cHorizon.classList.add('hidden');
+                
+                const currentCtrl = document.getElementById(`ctrl-${tabId}`);
+                if (currentCtrl) currentCtrl.classList.remove('hidden');
+
+                // Update text meta
+                const meta = activeConceptMeta[tabId];
+                if (meta) {
+                    const cTitle = document.getElementById('concept-title');
+                    const cTag = document.getElementById('concept-tag');
+                    const cDesc = document.getElementById('concept-description');
+                    const cTip = document.getElementById('classroom-tip');
+
+                    if (cTitle) cTitle.innerText = meta.title;
+                    if (cTag) cTag.innerText = meta.tag;
+                    if (cDesc) cDesc.innerText = meta.desc;
+                    if (cTip) cTip.innerText = meta.tip;
+
+                    // Adjust visual styles
+                    const infoCard = document.getElementById('concept-info-card');
+                    if (infoCard) {
+                        infoCard.className = `bg-gray-900/60 border border-gray-800 rounded-2xl p-5 transition-all duration-300 ${meta.bgClass}`;
+                    }
+                }
+                
+                // Reset analytics metrics
+                intensityHistory = [];
+                resizeCanvases();
+            }
+        }
+
+        // Standard Reset Controller
+        function resetToDefaults() {
+            if (currentTab === 'twinkle') {
+                document.getElementById('slider-turbulence').value = 4;
+                document.getElementById('slider-distance').value = 1;
+                document.getElementById('slider-gradient').value = 50;
+            } else if (currentTab === 'mirage') {
+                document.getElementById('slider-mirage-temp').value = 45;
+                document.getElementById('slider-viewer-height').value = 16;
+            } else if (currentTab === 'fire') {
+                document.getElementById('slider-fire-intensity').value = 70;
+            } else if (currentTab === 'horizon') {
+                document.getElementById('slider-sun-pos').value = -3;
+                document.getElementById('slider-atm-thickness').value = 35;
+            }
+            updateSlidersFromDOM();
+        }
+
+        // Read and sync values from range sliders to local params state safely
+        function updateSlidersFromDOM() {
+            const sTurb = document.getElementById('slider-turbulence');
+            const sDist = document.getElementById('slider-distance');
+            const sGrad = document.getElementById('slider-gradient');
+            const sTemp = document.getElementById('slider-mirage-temp');
+            const sView = document.getElementById('slider-viewer-height');
+            const sFire = document.getElementById('slider-fire-intensity');
+            const sSun = document.getElementById('slider-sun-pos');
+            const sThick = document.getElementById('slider-atm-thickness');
+
+            // Twinkle state sync
+            if (sTurb && sDist && sGrad) {
+                simParams.twinkle.turbulence = parseInt(sTurb.value);
+                simParams.twinkle.distance = parseInt(sDist.value);
+                simParams.twinkle.gradient = parseInt(sGrad.value);
+                
+                const distanceLabels = ["Distant (Point Star)", "Medium (Small Disk)", "Planet (Wide Source)"];
+                document.getElementById('val-turbulence').innerText = simParams.twinkle.turbulence + " / 10";
+                document.getElementById('val-distance').innerText = distanceLabels[simParams.twinkle.distance - 1];
+                document.getElementById('val-gradient').innerText = simParams.twinkle.gradient + "%";
+            }
+
+            // Mirage state sync
+            if (sTemp && sView) {
+                simParams.mirage.temp = parseInt(sTemp.value);
+                simParams.mirage.viewerHeight = parseInt(sView.value);
+                document.getElementById('val-mirage-temp').innerText = `${simParams.mirage.temp}°C`;
+                document.getElementById('val-viewer-height').innerText = `${(simParams.mirage.viewerHeight / 10).toFixed(1)} m`;
+            }
+
+            // Fire state sync
+            if (sFire) {
+                simParams.fire.intensity = parseInt(sFire.value);
+                document.getElementById('val-fire-intensity').innerText = simParams.fire.intensity + "%";
+            }
+
+            // Horizon state sync
+            if (sSun && sThick) {
+                simParams.horizon.sunPos = parseFloat(sSun.value);
+                simParams.horizon.atmThickness = parseInt(sThick.value);
+                document.getElementById('val-sun-pos').innerText = `${simParams.horizon.sunPos.toFixed(1)}° Below Horizon`;
+                document.getElementById('val-atm-thickness').innerText = `${simParams.horizon.atmThickness} km Equivalent`;
+            }
+        }
+
+        // Particles system for Holi Fire thermals
+        const fireParticles = [];
+        for (let i = 0; i < 40; i++) {
+            fireParticles.push({
+                x: 0,
+                y: 0,
+                vx: 0,
+                vy: 0,
+                size: 0,
+                alpha: 0,
+                temp: 0
+            });
+        }
+
+        function updateFireParticles(centerX, bottomY, speedScale) {
+            fireParticles.forEach(p => {
+                if (p.alpha <= 0 || p.y < bottomY - 260) {
+                    p.x = centerX + (Math.random() - 0.5) * 60;
+                    p.y = bottomY - 10;
+                    p.vx = (Math.random() - 0.5) * 1.5;
+                    p.vy = -(1 + Math.random() * 2) * (speedScale / 45);
+                    p.size = 10 + Math.random() * 25;
+                    p.alpha = 0.6 + Math.random() * 0.4;
+                } else {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= 0.005 * (speedScale / 50);
+                    p.size += 0.15;
+                }
+            });
+        }
+
+        // Ray tracing calculations & drawing loop
+        let localTime = 0;
+        function runSimulation() {
+            localTime += 0.05;
+            
+            if (ctx) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (currentTab === 'twinkle') {
+                    renderTwinkleSimulation();
+                } else if (currentTab === 'mirage') {
+                    renderMirageSimulation();
+                } else if (currentTab === 'fire') {
+                    renderFireSimulation();
+                } else if (currentTab === 'horizon') {
+                    renderHorizonSimulation();
+                }
+            }
+
+            renderMetricsAndOscilloscope();
+            animationFrameId = requestAnimationFrame(runSimulation);
+        }
+
+        function renderTwinkleSimulation() {
+            const centerX = canvas.width / 2;
+            const skyTop = 50;
+            const eyeY = canvas.height - 80;
+            const eyeX = centerX;
+            const turb = simParams.twinkle.turbulence;
+            const isPlanet = simParams.twinkle.distance > 1;
+
+            // Draw Atmospheric Layer Boundary Labels
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 4; i++) {
+                const layerY = skyTop + (eyeY - skyTop) * (i / 5);
+                ctx.beginPath();
+                ctx.moveTo(30, layerY);
+                ctx.lineTo(canvas.width - 30, layerY);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(156, 163, 175, 0.3)';
+                ctx.font = '9px monospace';
+                ctx.fillText(`Layer ${i} (density index: ${(1.0001 * i + 0.02 * (simParams.twinkle.gradient/100)).toFixed(4)})`, 40, layerY - 4);
+            }
+
+            drawObserverEye(eyeX, eyeY);
+
+            // Animate dynamic atmospheric turbulence waves
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.03)';
+            for (let i = 1; i <= 3; i++) {
+                ctx.beginPath();
+                const offset = localTime * (turb * 0.4);
+                ctx.moveTo(0, skyTop + i * 80);
+                for (let x = 0; x <= canvas.width; x += 20) {
+                    const y = skyTop + i * 80 + Math.sin(x * 0.015 + offset) * (turb * 4);
+                    ctx.lineTo(x, y);
+                }
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.lineTo(0, canvas.height);
+                ctx.fill();
+            }
+
+            const starSourceY = skyTop - 20;
+            const starSourceX = centerX;
+            
+            if (!isPlanet) {
+                ctx.fillStyle = '#fef08a';
+                ctx.shadowColor = '#eab308';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(starSourceX, starSourceY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; 
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText("Celestial Point Star (Distant)", starSourceX - 60, starSourceY - 12);
+            } else {
+                ctx.fillStyle = '#cbd5e1';
+                ctx.shadowColor = '#94a3b8';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(starSourceX, starSourceY, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; 
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText("Extended Planet Disk (Close)", starSourceX - 65, starSourceY - 18);
+            }
+
+            const rayCount = isPlanet ? 8 : 1;
+            let combinedIntensity = 0;
+
+            for (let r = 0; r < rayCount; r++) {
+                const rayStartX = starSourceX + (isPlanet ? (r - (rayCount - 1) / 2) * 3 : 0);
+                
+                ctx.beginPath();
+                ctx.moveTo(rayStartX, starSourceY);
+                
+                let currentX = rayStartX;
+                let currentY = starSourceY;
+                const steps = 60;
+                const stepHeight = (eyeY - starSourceY) / steps;
+                
+                for (let s = 1; s <= steps; s++) {
+                    const targetY = starSourceY + s * stepHeight;
+                    const turbulenceOffset = Math.sin((currentY * 0.05) + localTime * (turb * 0.5) + r) * (turb * 0.8);
+                    const bendStrength = (simParams.twinkle.gradient / 100) * 0.15;
+                    currentX += turbulenceOffset * bendStrength;
+                    currentY = targetY;
+                    ctx.lineTo(currentX, currentY);
+                }
+
+                const distanceToPupil = Math.abs(currentX - eyeX);
+                const rayInSight = distanceToPupil < 15;
+                
+                if (rayInSight) {
+                    ctx.strokeStyle = isPlanet ? 'rgba(56, 189, 248, 0.6)' : 'rgba(250, 204, 21, 0.95)';
+                    ctx.lineWidth = isPlanet ? 1.5 : 2.5;
+                    combinedIntensity += 1.0;
+                } else {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                    ctx.lineWidth = 1;
+                    combinedIntensity += 0.1;
+                }
+                ctx.stroke();
+
+                if (rayInSight) {
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(eyeX, eyeY);
+                    ctx.lineTo(eyeX - (currentX - rayStartX) * 1.5, starSourceY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            const finalIntensityValue = combinedIntensity / rayCount;
+            intensityHistory.push(finalIntensityValue);
+            
+            document.getElementById('canvas-status').innerText = `Observing ${isPlanet ? 'Planet (Averaged signal)' : 'Star (Point Signal)'}`;
+            document.getElementById('dynamic-metric-label').innerText = isPlanet ? "Fluctuation Steady: < 2%" : `Flicker Intensity: ${(turb * 9.5).toFixed(0)}%`;
+            document.getElementById('stat-dispersion').innerText = (0.012 * turb).toFixed(3) + " arcsec";
+            document.getElementById('stat-density').innerText = "1.225 kg/m³ (Standard Sea Level)";
+            document.getElementById('stat-events').innerText = (turb * 1.8).toFixed(1) + " Hz";
+        }
+
+        function renderMirageSimulation() {
+            const roadY = canvas.height - 85;
+            const hotTemp = simParams.mirage.temp;
+            const eyeHeight = simParams.mirage.viewerHeight;
+            
+            ctx.fillStyle = '#1e1b4b'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const tempGradient = ctx.createLinearGradient(0, roadY - 120, 0, canvas.height);
+            tempGradient.addColorStop(0, 'rgba(11, 15, 25, 0.0)');
+            tempGradient.addColorStop(0.5, 'rgba(245, 158, 11, 0.1)');
+            tempGradient.addColorStop(1, 'rgba(245, 158, 11, 0.45)');
+            ctx.fillStyle = tempGradient;
+            ctx.fillRect(0, roadY - 120, canvas.width, 120 + 85);
+
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, roadY);
+            ctx.lineTo(canvas.width, roadY);
+            ctx.stroke();
+
+            ctx.fillStyle = '#fef08a';
+            ctx.font = '10px monospace';
+            ctx.fillText(`ROAD / SAND SURFACE (T = ${hotTemp}°C)`, 25, roadY + 20);
+            ctx.fillText("DENSE AIR (COOl / HIGH n)", 25, 60);
+            ctx.fillText("RARE AIR (HOT / LOW n)", 25, roadY - 20);
+
+            const treeX = 80;
+            const treeY = roadY;
+            drawPalmTree(treeX, treeY);
+
+            const observerX = canvas.width - 120;
+            const observerEyeY = roadY - (eyeHeight * 4);
+            drawObserverEye(observerX, observerEyeY);
+
+            const topOfTreeY = roadY - 105;
+            const rayStartPoints = [topOfTreeY, topOfTreeY + 30, topOfTreeY + 60];
+            let actualVisibleRayCount = 0;
+
+            rayStartPoints.forEach((startY, idx) => {
+                ctx.beginPath();
+                ctx.moveTo(treeX, startY);
+                
+                let cx = treeX;
+                let cy = startY;
+                const steps = 100;
+                const stepX = (observerX - treeX) / steps;
+                let rayAngle = 0.01;
+                let hitRefractionBend = false;
+
+                for (let s = 1; s <= steps; s++) {
+                    const nx = cx + stepX;
+                    const heightAboveGround = roadY - cy;
+                    const tempFactor = (hotTemp - 20) / 40; 
+                    
+                    if (heightAboveGround < 80) {
+                        const bendStrength = Math.max(0, (80 - heightAboveGround) / 80) * 0.0075 * tempFactor;
+                        rayAngle -= bendStrength; 
+                        hitRefractionBend = true;
+                    }
+
+                    const ny = cy + (stepX * rayAngle);
+                    cx = nx;
+                    cy = ny;
+
+                    ctx.lineTo(cx, cy);
+                    if (cy >= roadY) break; 
+                }
+
+                const rayHitsObserver = Math.abs(cy - observerEyeY) < 25;
+                if (rayHitsObserver) {
+                    actualVisibleRayCount++;
+                    ctx.strokeStyle = `rgba(251, 146, 60, ${0.45 + idx * 0.25})`;
+                    ctx.lineWidth = 2.5;
+                } else {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                    ctx.lineWidth = 1;
+                }
+                ctx.stroke();
+
+                if (rayHitsObserver && hitRefractionBend) {
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+                    ctx.lineWidth = 1.2;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(observerX, observerEyeY);
+                    
+                    const angleAtObserver = rayAngle;
+                    const projDistance = (observerX - treeX) * 0.8;
+                    ctx.lineTo(observerX - projDistance, observerEyeY + (projDistance * angleAtObserver));
+                    ctx.stroke();
+                    ctx.setLineDash([]); 
+
+                    ctx.save();
+                    ctx.translate(treeX + 15, roadY + (roadY - startY) * 0.7);
+                    ctx.scale(0.85, -0.65); 
+                    ctx.globalAlpha = 0.35 + ((hotTemp - 20) / 40 * 0.3); 
+                    drawPalmTree(0, 0, true); 
+                    ctx.restore();
+                }
+            });
+
+            intensityHistory.push(actualVisibleRayCount > 0 ? 0.8 + Math.sin(localTime)*0.1 : 0.0);
+            document.getElementById('canvas-status').innerText = actualVisibleRayCount > 0 ? "Mirage Illusion Detected!" : "No reflection angle matched";
+            document.getElementById('dynamic-metric-label').innerText = `Mirage Index: ${(hotTemp * 0.02).toFixed(2)}`;
+            document.getElementById('stat-dispersion').innerText = (hotTemp * 0.15).toFixed(2) + " % Distort";
+            document.getElementById('stat-density').innerText = (1.293 - (hotTemp * 0.003)).toFixed(3) + " kg/m³";
+            document.getElementById('stat-events').innerText = actualVisibleRayCount > 0 ? "Illusion Active" : "Angle too steep";
+        }
+
+        function renderFireSimulation() {
+            const groundY = canvas.height - 85;
+            const fireX = canvas.width / 2;
+            const intensity = simParams.fire.intensity;
+
+            ctx.fillStyle = '#090514';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#110c21';
+            ctx.fillRect(0, groundY, canvas.width, 85);
+            ctx.strokeStyle = '#312e81';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
+            ctx.stroke();
+
+            const towerX = fireX;
+            const towerY = groundY;
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 1;
+            for (let gy = 80; gy < groundY; gy += 25) {
+                ctx.beginPath();
+                ctx.moveTo(50, gy);
+                ctx.lineTo(canvas.width - 50, gy);
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = 'rgba(129, 140, 248, 0.4)';
+            ctx.lineWidth = 2.5;
+            
+            for (let lx = fireX - 160; lx <= fireX + 160; lx += 80) {
+                if (lx === fireX) continue; 
+                
+                ctx.beginPath();
+                ctx.moveTo(lx, groundY);
+                
+                for (let y = groundY; y >= 60; y -= 5) {
+                    const distToHeatColumn = Math.abs(lx - fireX);
+                    let wobble = 0;
+
+                    if (y < groundY - 20 && distToHeatColumn < 100) {
+                        const plumeHeightFactor = Math.max(0, 1 - (groundY - y) / 250); 
+                        wobble = Math.sin(y * 0.08 - localTime * 6) * (intensity * 0.12) * plumeHeightFactor * (1 - distToHeatColumn / 100);
+                    }
+                    ctx.lineTo(lx + wobble, y);
+                }
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(fireX - 35, groundY - 8, 70, 8);
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(fireX - 25, groundY - 14, 50, 6);
+
+            updateFireParticles(fireX, groundY, intensity);
+            
+            fireParticles.forEach(p => {
+                const fireGrad = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, p.size);
+                fireGrad.addColorStop(0, `rgba(239, 68, 68, ${p.alpha * 0.7})`);
+                fireGrad.addColorStop(0.3, `rgba(249, 115, 22, ${p.alpha * 0.4})`);
+                fireGrad.addColorStop(1, 'rgba(253, 224, 71, 0)');
+                
+                ctx.fillStyle = fireGrad;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = '#fde047';
+            for (let s = 0; s < 5; s++) {
+                const sparkX = fireX + Math.sin(localTime + s) * (intensity * 0.4);
+                const sparkY = groundY - 40 - ((localTime * 40 + s * 50) % 180);
+                ctx.fillRect(sparkX, sparkY, 2.5, 2.5);
+            }
+
+            const obsX = canvas.width - 80;
+            const obsY = groundY - 50;
+            drawObserverEye(obsX, obsY);
+
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(fireX - 120, groundY - 120);
+            
+            let currentX = fireX - 120;
+            let currentY = groundY - 120;
+            ctx.moveTo(currentX, currentY);
+            
+            for (let step = 0; step < 20; step++) {
+                currentX += (obsX - (fireX - 120)) / 20;
+                let refractionShift = 0;
+                if (Math.abs(currentX - fireX) < 60) {
+                    refractionShift = Math.sin(localTime * 12 + step) * (intensity * 0.1);
+                }
+                ctx.lineTo(currentX, currentY + refractionShift);
+            }
+            ctx.stroke();
+
+            const intensityFluctuation = 0.5 + Math.sin(localTime * 10) * (intensity / 100) * 0.4;
+            intensityHistory.push(intensityFluctuation);
+
+            document.getElementById('canvas-status').innerText = "Simulating Rising Convective Air Column";
+            document.getElementById('dynamic-metric-label').innerText = `Air Jitter: ${(intensity * 0.35).toFixed(1)} mm/s`;
+            document.getElementById('stat-dispersion').innerText = (intensity * 0.05).toFixed(2) + " refraction index shift";
+            document.getElementById('stat-density').innerText = "Variable: 0.98 - 1.15 kg/m³";
+            document.getElementById('stat-events').innerText = intensity > 50 ? "Heavy Shimmer" : "Mild Heat Waves";
+        }
+
+        function renderHorizonSimulation() {
+            const earthCenterX = canvas.width / 2;
+            const earthCenterY = canvas.height + 400;
+            const earthRadius = 500; 
+            const atmRadius = earthRadius + simParams.horizon.atmThickness * 1.5; 
+
+            const sunAngleDeg = simParams.horizon.sunPos; 
+            const sunAngleRad = (sunAngleDeg * Math.PI) / 180;
+
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            for (let i = 0; i < 15; i++) {
+                ctx.fillRect((i * 77) % canvas.width, (i * 41) % (canvas.height - 150), 1.5, 1.5);
+            }
+
+            const atmGrad = ctx.createRadialGradient(earthCenterX, earthCenterY, earthRadius, earthCenterX, earthCenterY, atmRadius);
+            atmGrad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+            atmGrad.addColorStop(0.5, 'rgba(30, 41, 59, 0.15)');
+            atmGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            
+            ctx.fillStyle = atmGrad;
+            ctx.beginPath();
+            ctx.arc(earthCenterX, earthCenterY, atmRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(earthCenterX, earthCenterY, earthRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            const observerX = earthCenterX;
+            const observerY = earthCenterY - earthRadius;
+            drawObserverEye(observerX, observerY - 15);
+
+            ctx.strokeStyle = 'rgba(244, 63, 94, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, observerY);
+            ctx.lineTo(canvas.width, observerY);
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(244, 63, 94, 0.7)';
+            ctx.font = '9px monospace';
+            ctx.fillText("GEOMETRIC HORIZON LINE", 15, observerY - 5);
+
+            const sunDistance = 320;
+            const sunX = observerX - Math.cos(Math.PI/6 - sunAngleRad) * sunDistance;
+            const sunY = observerY + Math.sin(Math.PI/6 - sunAngleRad) * sunDistance;
+
+            ctx.fillStyle = '#eab308';
+            ctx.shadowColor = '#eab308';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0; 
+            ctx.fillStyle = '#eab308';
+            ctx.font = '10px sans-serif';
+            ctx.fillText("True Sun (Below Horizon)", sunX + 20, sunY + 4);
+
+            ctx.beginPath();
+            ctx.moveTo(sunX, sunY);
+
+            let rayX = sunX;
+            let rayY = sunY;
+            const steps = 80;
+            const stepDeltaX = (observerX - sunX) / steps;
+            let bentTowardsObserver = false;
+
+            ctx.beginPath();
+            ctx.moveTo(sunX, sunY);
+
+            for (let s = 1; s <= steps; s++) {
+                const nextX = rayX + stepDeltaX;
+                const distToCenter = Math.hypot(nextX - earthCenterX, rayY - earthCenterY);
+                let nextY = rayY + (rayY - sunY) / s; 
+
+                if (distToCenter < atmRadius) {
+                    const depthFactor = (atmRadius - distToCenter) / (atmRadius - earthRadius);
+                    const bendForce = Math.min(0.2, depthFactor * 0.15 * (simParams.horizon.atmThickness / 30));
+                    nextY += bendForce * 22; 
+                } else {
+                    nextY = sunY + (nextX - sunX) * ((observerY - sunY) / (observerX - sunX)) * 0.9;
+                }
+
+                rayX = nextX;
+                rayY = nextY;
+                ctx.lineTo(rayX, rayY);
+
+                if (Math.hypot(rayX - observerX, rayY - (observerY - 15)) < 25) {
+                    bentTowardsObserver = true;
+                }
+
+                if (distToCenter <= earthRadius) break; 
+            }
+
+            ctx.strokeStyle = bentTowardsObserver ? '#facc15' : 'rgba(253, 224, 71, 0.18)';
+            ctx.lineWidth = bentTowardsObserver ? 2.5 : 1.2;
+            ctx.stroke();
+
+            if (bentTowardsObserver) {
+                const apparentSunX = sunX;
+                const apparentSunY = observerY - 40; 
+                
+                ctx.strokeStyle = '#f87171';
+                ctx.lineWidth = 1.2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(observerX, observerY - 15);
+                ctx.lineTo(apparentSunX, apparentSunY);
+                ctx.stroke();
+                ctx.setLineDash([]); 
+
+                ctx.fillStyle = '#fef08a';
+                ctx.shadowColor = '#facc15';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(apparentSunX, apparentSunY, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#f87171';
+                ctx.fillText("Apparent Sun (Visible)", apparentSunX - 25, apparentSunY - 20);
+            }
+
+            intensityHistory.push(bentTowardsObserver ? 1.0 : 0.05);
+            document.getElementById('canvas-status').innerText = bentTowardsObserver ? "Early Sunrise Refracted!" : "Sun blocked below horizon";
+            document.getElementById('dynamic-metric-label').innerText = bentTowardsObserver ? "Sunrise Refraction Shift: ~2.1°" : "Shift: 0°";
+            document.getElementById('stat-dispersion').innerText = bentTowardsObserver ? "2.3 Minutes Advanced" : "0 Minutes";
+            document.getElementById('stat-density').innerText = "1.205 kg/m³ (At altitude boundary)";
+            document.getElementById('stat-events').innerText = bentTowardsObserver ? "Sun Visible" : "Dark Horizon";
+        }
+
+        // Modular helper to draw the human eye detector
+        function drawObserverEye(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            ctx.fillStyle = '#312e81';
+            ctx.beginPath();
+            ctx.ellipse(0, 30, 20, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#312e81';
+            ctx.beginPath();
+            ctx.arc(0, 10, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#22d3ee';
+            ctx.strokeStyle = '#0891b2';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(-3, 8, 8, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(-5, 7, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawPalmTree(x, y, reflected = false) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            ctx.strokeStyle = reflected ? '#2d1e10' : '#451a03';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(8, -50, 15, -100);
+            ctx.stroke();
+
+            ctx.fillStyle = reflected ? '#0c2e10' : '#047857';
+            ctx.beginPath();
+            ctx.ellipse(15, -100, 12, 30, Math.PI/4, 0, Math.PI*2);
+            ctx.ellipse(15, -100, 12, 30, -Math.PI/4, 0, Math.PI*2);
+            ctx.ellipse(15, -100, 10, 25, Math.PI/1.3, 0, Math.PI*2);
+            ctx.ellipse(15, -100, 10, 25, -Math.PI/1.3, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function renderMetricsAndOscilloscope() {
+            if (!graphCtx) return;
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            if (intensityHistory.length > maxGraphDataPoints) {
+                intensityHistory.shift();
+            }
+
+            if (intensityHistory.length === 0) return;
+
+            graphCtx.strokeStyle = currentTab === 'twinkle' ? '#38bdf8' : currentTab === 'mirage' ? '#fb923c' : currentTab === 'fire' ? '#ef4444' : '#facc15';
+            graphCtx.lineWidth = 2.5;
+            graphCtx.beginPath();
+
+            const segmentWidth = graphCanvas.width / maxGraphDataPoints;
+            for (let i = 0; i < intensityHistory.length; i++) {
+                const x = i * segmentWidth;
+                const scaledY = graphCanvas.height - (intensityHistory[i] * (graphCanvas.height * 0.7) + (graphCanvas.height * 0.15));
+                
+                if (i === 0) {
+                    graphCtx.moveTo(x, scaledY);
+                } else {
+                    graphCtx.lineTo(x, scaledY);
+                }
+            }
+            graphCtx.stroke();
+
+            graphCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            graphCtx.lineWidth = 1;
+            for (let gridX = 0; gridX < graphCanvas.width; gridX += 50) {
+                graphCtx.beginPath();
+                graphCtx.moveTo(gridX, 0);
+                graphCtx.lineTo(gridX, graphCanvas.height);
+                graphCtx.stroke();
+            }
+            for (let gridY = 0; gridY < graphCanvas.height; gridY += 30) {
+                graphCtx.beginPath();
+                graphCtx.moveTo(0, gridY);
+                graphCtx.lineTo(graphCanvas.width, gridY);
+                graphCtx.stroke();
+            }
+        }
+
+        // Interactive Classroom Quiz Database
+        const quizData = [
+            {
+                q: "Why do stars twinkle whereas planets don't twinkle?",
+                options: [
+                    "Stars are burning chemical elements, while planets reflect solid rocky surface light.",
+                    "Stars are distant point sources whose rays easily flicker through dynamic atmosphere packets. Planets are closer, acting as multiple point sources that average out.",
+                    "Planets have their own protective atmosphere that blocks earth's atmospheric refraction waves.",
+                    "Stars twinkle because their absolute temperature fluctuates every 5 seconds."
+                ],
+                correct: 1,
+                hint: "Remember point source vs extended source. Large planetary disks have multiple rays which cancel out individual flickers!",
+                graphic: "⭐ 🪐"
+            },
+            {
+                q: "A mirage is an optical illusion where water seems to appear on a hot desert. Why does this occur?",
+                options: [
+                    "Ground temperature matches critical boiling point of air moisture.",
+                    "Cool air near the ground reflects light rays coming down from space.",
+                    "The hot surface air is rarer (lower index). Rays going down bend upwards towards the normal, making objects appear reflected inside the ground.",
+                    "Rays traveling from denser to rarer medium block total internal reflections altogether."
+                ],
+                correct: 2,
+                hint: "Hot air = lower density = lower refractive index. Rays curve back upwards, creating virtual upside-down reflections.",
+                graphic: "🌴 🐪"
+            },
+            {
+                q: "When looking past a Holi campfire, background objects appear to wiggle and shake because of:",
+                options: [
+                    "Dynamic variations in refractive index due to convection currents of rising hot air.",
+                    "Soot particles absorbing blue wavelengths of background object colors.",
+                    "Flames physically throwing hot ash particles across our direct line of sight.",
+                    "The gravitational lensing effects of open combustible flames."
+                ],
+                correct: 0,
+                hint: "Convection plumes constantly shift hot and cold air. Shifting density means the refractive index changes rapidly in milliseconds!",
+                graphic: "🔥 🎪"
+            },
+            {
+                q: "How does atmospheric refraction affect sunrise and sunset schedules?",
+                options: [
+                    "It delays sunrise by 5 minutes and advances sunset, shortening total day time.",
+                    "Earth rotation shifts refractive indices to align perfectly with the magnetic north.",
+                    "It lets us see the sun even when below the horizon, advancing sunrise by ~2 mins and delaying sunset by ~2 mins.",
+                    "It blocks sunlight completely for the first few minutes after it emerges."
+                ],
+                correct: 2,
+                hint: "Light traveling from rarer outer space to denser atmosphere curves downwards, bringing the image of the sun UP over the horizon early.",
+                graphic: "🌅 🌍"
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let selectedOptionIndex = null;
+        let perfectScoreCounter = 0;
+
+        function initQuiz() {
+            currentQuizIndex = 0;
+            perfectScoreCounter = 0;
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            selectedOptionIndex = null;
+            const nextBtn = document.getElementById('next-quest-btn');
+            if (nextBtn) {
+                nextBtn.setAttribute('disabled', 'true');
+                nextBtn.className = "px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/10 flex items-center gap-2 opacity-50 cursor-not-allowed";
+            }
+            document.getElementById('quiz-feedback').innerText = "";
+
+            const data = quizData[currentQuizIndex];
+            document.getElementById('quiz-progress-text').innerText = `Challenge ${currentQuizIndex + 1} of ${quizData.length}`;
+            document.getElementById('quest-badge').innerText = `CONGRUENCE LAB MODULE ${currentQuizIndex + 1}`;
+            document.getElementById('quiz-question').innerText = data.q;
+            document.getElementById('quiz-hint').innerText = data.hint;
+
+            document.getElementById('quest-graphic').innerHTML = `
+                <div class="text-6xl select-none animate-pulse">${data.graphic}</div>
+                <div class="absolute bottom-2 text-[10px] text-gray-500 font-mono">Physics Concept Model</div>
+            `;
+
+            const optionsDiv = document.getElementById('quiz-options');
+            optionsDiv.innerHTML = "";
+            data.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl border border-gray-800 bg-gray-950 hover:bg-gray-900 text-xs sm:text-sm text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 hover:border-gray-700";
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-full bg-gray-900 border border-gray-700 flex items-center justify-center text-[11px] font-bold shrink-0 text-gray-400 option-index-circle">${String.fromCharCode(65 + idx)}</span>
+                    <span class="leading-relaxed">${opt}</span>
+                `;
+                btn.onclick = () => selectOption(idx);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function selectOption(idx) {
+            if (selectedOptionIndex !== null) return; 
+
+            selectedOptionIndex = idx;
+            const data = quizData[currentQuizIndex];
+            const options = document.getElementById('quiz-options').children;
+            const feedback = document.getElementById('quiz-feedback');
+
+            if (idx === data.correct) {
+                options[idx].className = "w-full text-left p-4 rounded-xl border border-emerald-500/50 bg-emerald-500/5 text-xs sm:text-sm text-emerald-300 font-medium transition-all duration-200 flex items-start gap-3";
+                options[idx].querySelector('.option-index-circle').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-bold shrink-0";
+                feedback.innerHTML = `<span class="text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Correct physics explanation!</span>`;
+                perfectScoreCounter++;
+            } else {
+                options[idx].className = "w-full text-left p-4 rounded-xl border border-rose-500/50 bg-rose-500/5 text-xs sm:text-sm text-rose-300 font-medium transition-all duration-200 flex items-start gap-3";
+                options[idx].querySelector('.option-index-circle').className = "w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-[11px] font-bold shrink-0";
+                
+                options[data.correct].className = "w-full text-left p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-xs sm:text-sm text-emerald-300 font-medium transition-all duration-200 flex items-start gap-3";
+                options[data.correct].querySelector('.option-index-circle').className = "w-6 h-6 rounded-full bg-emerald-500/40 text-emerald-400 flex items-center justify-center text-[11px] font-bold shrink-0";
+                
+                feedback.innerHTML = `<span class="text-rose-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Incorrect. Review the hint!</span>`;
+            }
+
+            const nextBtn = document.getElementById('next-quest-btn');
+            if (nextBtn) {
+                nextBtn.removeAttribute('disabled');
+                nextBtn.className = "px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/10 flex items-center gap-2 cursor-pointer";
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuizIndex < quizData.length - 1) {
+                currentQuizIndex++;
+                loadQuizQuestion();
+            } else {
+                showCertificate();
+            }
+        }
+
+        function showCertificate() {
+            const certLearner = document.getElementById('cert-learner-name');
+            if (perfectScoreCounter === quizData.length) {
+                certLearner.innerText = "Master Atmospheric Scientist";
+            } else if (perfectScoreCounter >= 2) {
+                certLearner.innerText = "Apprentice Physics Specialist";
+            } else {
+                certLearner.innerText = "Junior Optics Explorer";
+            }
+            
+            const modal = document.getElementById('certificate-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeCertificate() {
+            const modal = document.getElementById('certificate-modal');
+            if (modal) {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
+            switchTab('twinkle'); 
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Assign Canvas variables safely after layout completes
+            canvas = document.getElementById('opticsCanvas');
+            if (canvas) ctx = canvas.getContext('2d');
+            
+            graphCanvas = document.getElementById('graphCanvas');
+            if (graphCanvas) graphCtx = graphCanvas.getContext('2d');
+
+            // Set layout sizes
+            resizeCanvases();
+            window.addEventListener('resize', resizeCanvases);
+
+            // Add dynamic slider input listeners safely
+            const rangeInputIds = [
+                'slider-turbulence', 'slider-distance', 'slider-gradient', 
+                'slider-mirage-temp', 'slider-viewer-height', 'slider-fire-intensity', 
+                'slider-sun-pos', 'slider-atm-thickness'
+            ];
+
+            rangeInputIds.forEach(id => {
+                const sliderEl = document.getElementById(id);
+                if (sliderEl) {
+                    sliderEl.addEventListener('input', updateSlidersFromDOM);
+                }
+            });
+
+            // Run initial sync of parameters
+            updateSlidersFromDOM();
+
+            // Run dynamic ray simulation loops
+            runSimulation();
+        });
+    </script>
+</body>
+</html>
