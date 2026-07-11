@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acoustic Odyssey: Sound Qualities Lab</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+        }
+        /* Custom styled scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- Sticky Header -->
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-900/80 border-b border-slate-800 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-violet-600 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="waves" class="w-6 h-6 text-white animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-violet-400 to-indigo-200 bg-clip-text text-transparent">Acoustic Odyssey</h1>
+                    <p class="text-xs text-slate-400">Section 8.8 Interactive Physics Simulator</p>
+                </div>
+            </div>
+            
+            <!-- Quick Navigation -->
+            <nav class="flex gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button onclick="scrollToSection('synthesizer')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-violet-600 text-white transition-all" id="nav-synth">Synthesizer</button>
+                <button onclick="scrollToSection('decibel')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all" id="nav-decibel">dB & Distance</button>
+                <button onclick="scrollToSection('adder')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all" id="nav-adder">Wave Adder</button>
+                <button onclick="scrollToSection('quiz')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all" id="nav-quiz">Acoustic Quiz</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-8 space-y-12">
+        
+        <!-- Welcome Jumbotron -->
+        <section class="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 p-8 md:p-12 shadow-2xl">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl"></div>
+            
+            <div class="max-w-3xl space-y-4 relative z-10">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20 uppercase tracking-wider">Interactive Classroom</span>
+                <h2 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                    How do we actually <span class="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-300 bg-clip-text text-transparent">perceive Sound Waves</span>?
+                </h2>
+                <p class="text-slate-300 text-base md:text-lg leading-relaxed">
+                    Sound wave properties like frequency and amplitude are objective physical values. But our human response to them is purely subjective. Welcome to your interactive sound lab where we bridge physics concepts with live audio feedback.
+                </p>
+                <div class="flex flex-wrap gap-4 pt-2">
+                    <button onclick="activateAudioEngine()" class="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition duration-300 transform active:scale-95" id="audio-auth-btn">
+                        <i data-lucide="play-circle" class="w-5 h-5"></i>
+                        <span>Initialize Audio System</span>
+                    </button>
+                    <div class="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 px-4 py-3 rounded-xl hidden" id="audio-ready-badge">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span>Web Audio System Active</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 1: SYNTHESIZER -->
+        <section id="synthesizer" class="grid grid-cols-1 lg:grid-cols-12 gap-8 scroll-mt-24">
+            <!-- Controls (Left 7 Columns) -->
+            <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col justify-between space-y-6">
+                <div>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <span class="text-xs font-semibold text-violet-400 tracking-wider uppercase">Lab Module 01</span>
+                            <h3 class="text-2xl font-bold mt-1">Wave Synthesizer & Equalizer</h3>
+                        </div>
+                        <span class="bg-slate-950 px-3 py-1 text-xs rounded-lg border border-slate-800 text-slate-400">Play, Adjust & Listen</span>
+                    </div>
+
+                    <!-- Synth Control Panel -->
+                    <div class="space-y-6">
+                        <!-- Pitch / Frequency Selector -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                    <i data-lucide="music" class="w-4 h-4 text-violet-400"></i>
+                                    Pitch (Frequency)
+                                </label>
+                                <span class="text-xs bg-violet-500/10 text-violet-400 border border-violet-500/25 px-2 py-0.5 rounded" id="freq-display">440 Hz</span>
+                            </div>
+                            <input type="range" id="freq-slider" min="100" max="2000" step="1" value="440" class="w-full accent-violet-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                            <p class="text-xs text-slate-400">Higher frequency = higher pitch, sharper/shrilier sound. Female voices and flute notes have higher pitches than male voices or bass instruments.</p>
+                        </div>
+
+                        <!-- Loudness / Intensity / Amplitude Selector -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                    <i data-lucide="volume-2" class="w-4 h-4 text-indigo-400"></i>
+                                    Loudness (Amplitude)
+                                </label>
+                                <span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 px-2 py-0.5 rounded" id="amp-display">50% Volume</span>
+                            </div>
+                            <input type="range" id="amp-slider" min="0" max="100" step="1" value="50" class="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                            <div class="flex justify-between text-xs text-slate-400">
+                                <span id="calculated-intensity">Intensity: $I = 2.50 \times 10^{-7} \text{ W/m}^2$</span>
+                                <span id="calculated-db">Loudness: $54.0 \text{ dB}$</span>
+                            </div>
+                        </div>
+
+                        <!-- Timbre Waveform Selector -->
+                        <div class="space-y-3">
+                            <label class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                <i data-lucide="guitar" class="w-4 h-4 text-emerald-400"></i>
+                                Timbre (Waveform Overtones)
+                            </label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <button onclick="selectWaveform('sine')" id="wave-sine" class="bg-violet-600/20 border border-violet-500/30 text-white rounded-xl p-3 flex flex-col items-center gap-1.5 transition duration-200">
+                                    <svg class="w-8 h-8 stroke-current text-violet-400 fill-none" viewBox="0 0 24 24">
+                                        <path d="M2 12 Q 5 2, 8 12 T 14 12 T 20 12" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="text-xs font-medium">Sine (Pure Tone)</span>
+                                </button>
+                                <button onclick="selectWaveform('triangle')" id="wave-triangle" class="bg-slate-950 border border-slate-800 text-slate-400 rounded-xl p-3 flex flex-col items-center gap-1.5 transition duration-200 hover:border-slate-700">
+                                    <svg class="w-8 h-8 stroke-current text-emerald-400 fill-none" viewBox="0 0 24 24">
+                                        <path d="M2 12 L 6 4 L 12 20 L 18 4 L 22 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span class="text-xs font-medium">Triangle (Flute)</span>
+                                </button>
+                                <button onclick="selectWaveform('sawtooth')" id="wave-sawtooth" class="bg-slate-950 border border-slate-800 text-slate-400 rounded-xl p-3 flex flex-col items-center gap-1.5 transition duration-200 hover:border-slate-700">
+                                    <svg class="w-8 h-8 stroke-current text-sky-400 fill-none" viewBox="0 0 24 24">
+                                        <path d="M2 12 L 8 4 L 8 20 L 14 4 L 14 20 L 22 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span class="text-xs font-medium">Sawtooth (Violin)</span>
+                                </button>
+                                <button onclick="selectWaveform('square')" id="wave-square" class="bg-slate-950 border border-slate-800 text-slate-400 rounded-xl p-3 flex flex-col items-center gap-1.5 transition duration-200 hover:border-slate-700">
+                                    <svg class="w-8 h-8 stroke-current text-rose-400 fill-none" viewBox="0 0 24 24">
+                                        <path d="M2 12 L 6 12 L 6 4 L 12 4 L 12 20 L 18 20 L 18 12 L 22 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span class="text-xs font-medium">Square (Clarinet)</span>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-400">Timbre defines sound "quality". Even if pitch and volume are identical, a violin feels completely different from a flute because of overtones embedded in its unique wave shape.</p>
+                        </div>
+
+                        <!-- Equalizer Equal Controls (Treble / Bass) -->
+                        <div class="pt-4 border-t border-slate-800 grid grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-xs font-semibold text-slate-300">Bass Knob (Low Hz)</label>
+                                    <span class="text-[10px] bg-slate-950 text-slate-400 border border-slate-800 px-1.5 py-0.5 rounded" id="bass-display">0 dB</span>
+                                </div>
+                                <input type="range" id="bass-slider" min="-12" max="12" step="1" value="0" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-xs font-semibold text-slate-300">Treble Knob (High Hz)</label>
+                                    <span class="text-[10px] bg-slate-950 text-slate-400 border border-slate-800 px-1.5 py-0.5 rounded" id="treble-display">0 dB</span>
+                                </div>
+                                <input type="range" id="treble-slider" min="-12" max="12" step="1" value="0" class="w-full accent-violet-500 bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Sound Notification Box (Instead of alert) -->
+                <div id="status-message" class="mt-4 p-3 bg-indigo-950/40 border border-indigo-900/40 rounded-xl text-indigo-300 text-xs flex items-center gap-3">
+                    <i data-lucide="info" class="w-4 h-4 flex-shrink-0 text-indigo-400"></i>
+                    <span>Press the play/stop trigger to produce sound waves. Wear headphones at moderate volume!</span>
+                </div>
+            </div>
+
+            <!-- Visualization Screen (Right 5 Columns) -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <!-- Live Oscilloscope Screen -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between flex-grow min-h-[320px]">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span class="text-sm font-semibold tracking-wide text-slate-300">Acoustic Oscilloscope</span>
+                        </div>
+                        <button onclick="toggleSoundPlayback()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-xl transition duration-200 flex items-center gap-2" id="play-trigger-btn">
+                            <i data-lucide="play" class="w-3.5 h-3.5" id="play-btn-icon"></i>
+                            <span id="play-btn-text">Start Sound</span>
+                        </button>
+                    </div>
+
+                    <!-- Canvas Oscilloscope -->
+                    <div class="bg-slate-950 rounded-2xl relative border border-slate-800/80 flex-grow flex items-center justify-center overflow-hidden min-h-[200px]">
+                        <canvas id="oscilloscope-canvas" class="absolute inset-0 w-full h-full"></canvas>
+                        <!-- Mathematical Overlay -->
+                        <div class="absolute bottom-2 left-3 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg text-[10px] text-slate-400 font-mono space-y-0.5">
+                            <div>Function: $y(t) = A \sin(2\pi f t)$</div>
+                            <div id="math-overlay-val">f = 440 Hz, A = 0.50</div>
+                        </div>
+                    </div>
+
+                    <!-- Educational Summary Inside Synth -->
+                    <div class="mt-4 p-4 bg-slate-950/50 rounded-2xl border border-slate-800/50 space-y-2">
+                        <span class="text-xs font-bold text-slate-300 block">Waveform Perception Rules:</span>
+                        <ul class="text-[11px] text-slate-400 space-y-1 list-disc list-inside">
+                            <li><strong>Frequency ($f$):</strong> Tells us high vs low pitch.</li>
+                            <li><strong>Amplitude ($A$):</strong> Tells us high vs low intensity / loudness.</li>
+                            <li><strong>Complexity:</strong> Harmonics and phase generate timbre.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 2: DECIBEL SCALE & DISTANCE EXPLORER -->
+        <section id="decibel" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 scroll-mt-24 space-y-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <span class="text-xs font-semibold text-violet-400 tracking-wider uppercase">Lab Module 02</span>
+                    <h3 class="text-2xl font-bold mt-1">Loudness, Intensity Scale & Inverse Square Law</h3>
+                    <p class="text-sm text-slate-400 max-w-2xl mt-1">Loudness is perceived logarithmically: $L_{dB} = 10 \log_{10}(I/I_0)$. Move the sound source or slider below to explore intensities!</p>
+                </div>
+            </div>
+
+            <!-- Double Column: Source Meter & Distance Simulation -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Source Meter (Left 5 cols) -->
+                <div class="lg:col-span-5 bg-slate-950 border border-slate-800/80 rounded-2xl p-6 space-y-4">
+                    <h4 class="text-sm font-semibold text-slate-300">Decibel Levels & Danger Zones</h4>
+                    
+                    <!-- Vertical Decibel Meter Selection List -->
+                    <div class="space-y-2 max-h-[340px] overflow-y-auto pr-2" id="db-source-list">
+                        <!-- Items injected dynamically in JS for clean handling -->
+                    </div>
+
+                    <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs rounded-xl flex items-start gap-2 hidden" id="danger-warning">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5"></i>
+                        <span><strong>Hearing Hazard:</strong> Sounds exceeding 85-90 dB can trigger early long-term hearing degradation. Protect your ears!</span>
+                    </div>
+                </div>
+
+                <!-- Inverse Square Simulation (Right 7 cols) -->
+                <div class="lg:col-span-7 bg-slate-950 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between space-y-6">
+                    <div class="space-y-2">
+                        <h4 class="text-sm font-semibold text-slate-300">Distance Attenuation Simulation</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Sound intensity $I$ follows the **Inverse Square Law**: $I \propto \frac{1}{r^2}$. As you move further from a point source, the power spreads over the surface area of a sphere!
+                        </p>
+                    </div>
+
+                    <!-- Interactive Arena (Stylized Visual) -->
+                    <div class="relative h-32 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-between px-8">
+                        <!-- Sound Waves expanding from source -->
+                        <div class="absolute left-10 flex items-center justify-center">
+                            <div class="relative flex items-center justify-center">
+                                <div id="source-pulse" class="absolute w-12 h-12 rounded-full border border-violet-500/40 animate-ping"></div>
+                                <div class="bg-violet-600 p-3 rounded-full relative z-10">
+                                    <i data-lucide="megaphone" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dotted tracking line -->
+                        <div class="absolute inset-x-24 border-t border-dashed border-slate-700/80"></div>
+
+                        <!-- Listener avatar moving on line -->
+                        <div id="listener-avatar" class="absolute transition-all duration-300 ease-out" style="left: 40%">
+                            <div class="flex flex-col items-center">
+                                <div class="bg-indigo-600 p-2 rounded-full shadow-lg border border-indigo-400">
+                                    <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Distance Slider -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-semibold text-slate-300">Distance from Source ($r$)</label>
+                            <span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 px-2 py-0.5 rounded" id="distance-display">4.0 meters</span>
+                        </div>
+                        <input type="range" id="distance-slider" min="1.0" max="30.0" step="0.5" value="4.0" class="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                        
+                        <!-- Mathematical Verification Card -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 grid grid-cols-2 gap-4 text-xs">
+                            <div class="space-y-1">
+                                <span class="text-slate-400">Source Intensity (at 1m):</span>
+                                <div class="font-semibold text-slate-200" id="source-intensity-display">$1.0 \times 10^{-3} \text{ W/m}^2$ (90 dB)</div>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-slate-400">Perceived Intensity (at $r$):</span>
+                                <div class="font-bold text-emerald-400" id="perceived-intensity-display">$6.25 \times 10^{-5} \text{ W/m}^2$ (78 dB)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 3: DECIBEL ADDER (Example 8.5) -->
+        <section id="adder" class="grid grid-cols-1 lg:grid-cols-12 gap-8 scroll-mt-24">
+            <!-- Theory & Live Sandbox Formula -->
+            <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col justify-between space-y-6">
+                <div class="space-y-4">
+                    <span class="text-xs font-semibold text-violet-400 tracking-wider uppercase">Lab Module 03</span>
+                    <h3 class="text-2xl font-bold">The Wave Adder (Decibel Combination)</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Why does adding a $60 \text{ dB}$ sound and a $55 \text{ dB}$ sound **not** equal $115 \text{ dB}$? 
+                        Because decibels are logarithmic! To add them, we must first convert dB back to physical intensity ($I$), combine them, and recalculate decibels. 
+                    </p>
+                    
+                    <!-- Sandbox Controls -->
+                    <div class="grid grid-cols-2 gap-4 pt-4">
+                        <div class="space-y-2">
+                            <label class="text-xs font-semibold text-slate-300">Sound Wave 1 ($L_1$)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="db-input-1" value="60" min="0" max="150" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm w-full text-white text-center focus:border-violet-500 outline-none">
+                                <span class="text-xs text-slate-400">dB</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-semibold text-slate-300">Sound Wave 2 ($L_2$)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="db-input-2" value="55" min="0" max="150" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm w-full text-white text-center focus:border-violet-500 outline-none">
+                                <span class="text-xs text-slate-400">dB</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Combines perfectly IN PHASE option -->
+                    <div class="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                        <div class="space-y-0.5">
+                            <div class="text-xs font-bold text-slate-300">Constructive In-Phase Addition</div>
+                            <div class="text-[10px] text-slate-400">Amplitudes sum up perfectly: $A_{total} = A_1 + A_2$</div>
+                        </div>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-wide">Enabled</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-800">
+                    <button onclick="calculateSoundAddition()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold py-3 px-6 rounded-xl transition duration-200 shadow-md">
+                        Calculate Combined Sound Levels
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step by Step Calculation Result (Right 5 cols) -->
+            <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between min-h-[350px]">
+                <div>
+                    <h4 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-4 h-4 text-violet-400"></i>
+                        Mathematical Proof
+                    </h4>
+
+                    <!-- Equations & Calculation Step Block -->
+                    <div class="space-y-4 text-xs">
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                            <span class="text-slate-400 block font-semibold">1. Convert dB to Intensity ($I/I_0$):</span>
+                            <div class="font-mono text-slate-200" id="step-intensity-1">$I_1 = 10^6 \cdot I_0$</div>
+                            <div class="font-mono text-slate-200" id="step-intensity-2">$I_2 = 10^{5.5} \cdot I_0 \approx 3.16 \cdot 10^5 \cdot I_0$</div>
+                        </div>
+
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                            <span class="text-slate-400 block font-semibold">2. Amplitude Synthesis (In-Phase):</span>
+                            <div class="text-slate-300 italic">Since $I \propto A^2$, we have $A \propto \sqrt{I}$</div>
+                            <div class="font-mono text-emerald-400" id="step-amplitude">$A_{total} = \sqrt{I_1} + \sqrt{I_2}$</div>
+                        </div>
+
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                            <span class="text-slate-400 block font-semibold">3. Calculate Combined Intensity & Decibel:</span>
+                            <div class="font-mono text-violet-400" id="step-final-db">Combined Output = 63.6 dB</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simple comparison explanation -->
+                <div class="mt-4 p-3 bg-violet-950/20 border border-violet-900/30 rounded-xl">
+                    <p class="text-[11px] text-violet-300 leading-relaxed">
+                        Even though energy levels jump significantly, human hearing perceives this as only a minor increase! This demonstrates the logarithmic nature of the ear.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 4: ACOUSTIC QUIZ CHALLENGE -->
+        <section id="quiz" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 scroll-mt-24 space-y-6">
+            <div class="max-w-2xl">
+                <span class="text-xs font-semibold text-violet-400 tracking-wider uppercase">Quick Revision</span>
+                <h3 class="text-2xl font-bold mt-1">Acoustic Mastery Challenge</h3>
+                <p class="text-sm text-slate-400">Put your physics knowledge to the test! Answer these conceptual sound questions.</p>
+            </div>
+
+            <!-- Interactive Quiz Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Question 1 -->
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <span class="text-xs bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-indigo-400 font-bold">Question 1</span>
+                        <h4 class="text-sm font-semibold text-slate-200">If the frequency of a guitar tone doubles, what parameter changes?</h4>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="checkQuizAnswer(1, 'a', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            A) The loudness doubles
+                        </button>
+                        <button onclick="checkQuizAnswer(1, 'b', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            B) The pitch (sharpness) increases
+                        </button>
+                        <button onclick="checkQuizAnswer(1, 'c', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            C) The sound travel speed doubles
+                        </button>
+                    </div>
+                    <div class="quiz-feedback text-[11px] text-slate-400 min-h-[1.5rem] mt-2"></div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <span class="text-xs bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-indigo-400 font-bold">Question 2</span>
+                        <h4 class="text-sm font-semibold text-slate-200">Why can you tell a friend's voice over a phone call instantly?</h4>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="checkQuizAnswer(2, 'a', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            A) Because of the pitch/frequency
+                        </button>
+                        <button onclick="checkQuizAnswer(2, 'b', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            B) Because of the unique Decibel level
+                        </button>
+                        <button onclick="checkQuizAnswer(2, 'c', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            C) Because of the voice's Timbre (mixture of tones & overtones)
+                        </button>
+                    </div>
+                    <div class="quiz-feedback text-[11px] text-slate-400 min-h-[1.5rem] mt-2"></div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <span class="text-xs bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-indigo-400 font-bold">Question 3</span>
+                        <h4 class="text-sm font-semibold text-slate-200">How much more intensity of sound is in a 40 dB sound compared to 20 dB?</h4>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="checkQuizAnswer(3, 'a', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            A) Twice as much intensity
+                        </button>
+                        <button onclick="checkQuizAnswer(3, 'b', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            B) 100 times the intensity ($10^2$)
+                        </button>
+                        <button onclick="checkQuizAnswer(3, 'c', this)" class="w-full text-left text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl transition">
+                            C) 10 times the intensity
+                        </button>
+                    </div>
+                    <div class="quiz-feedback text-[11px] text-slate-400 min-h-[1.5rem] mt-2"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 text-slate-500 py-6 mt-12 text-xs">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <p>© 2026 Acoustic Odyssey. Built for Science & Physics Students.</p>
+                <p class="text-[10px] mt-0.5">Reference: Physics Textbook section 8.8 (Sound Qualities)</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span>Designed for Interactive Learning</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Audio & UI Logic Scripts -->
+    <script>
+        // Lucide Icons activation
+        lucide.createIcons();
+
+        // SCROLL HELPER
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Highlight current button
+            const navSynth = document.getElementById('nav-synth');
+            const navDecibel = document.getElementById('nav-decibel');
+            const navAdder = document.getElementById('nav-adder');
+            const navQuiz = document.getElementById('nav-quiz');
+            
+            [navSynth, navDecibel, navAdder, navQuiz].forEach(btn => {
+                if (btn) btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
+            });
+            
+            const activeBtn = document.getElementById(`nav-${id}`);
+            if (activeBtn) {
+                activeBtn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-violet-600 text-white transition-all";
+            }
+        }
+
+        // PHYSICS & WEB AUDIO VARIABLES
+        let audioCtx = null;
+        let mainOscillator = null;
+        let gainNode = null;
+        let bassFilter = null;
+        let trebleFilter = null;
+        let isPlaying = false;
+        let currentWaveform = 'sine';
+
+        // Threshold constant
+        const I0 = 1e-12; // 10^-12 W/m^2
+
+        // Predefined Decibel Sources
+        const dbSources = [
+            { db: 150, title: "Jet Aeroplane", desc: "Rupture of eardrum / Extremely unsafe", color: "rose-500" },
+            { db: 110, title: "Car Horn (1m)", desc: "Strongly painful threshold", color: "rose-400" },
+            { db: 80, title: "Diesel Train (30m)", desc: "Average noisy factory level", color: "amber-500" },
+            { db: 70, title: "Highway Traffic", desc: "Uncomfortable over long duration", color: "amber-400" },
+            { db: 60, title: "Restaurant Chat", desc: "Normal conversational tone", color: "emerald-500" },
+            { db: 40, title: "Quiet Urban Room", desc: "Average household background", color: "emerald-400" },
+            { db: 20, title: "Leaves Whispering", desc: "Almost quiet sanctuary atmosphere", color: "indigo-400" },
+            { db: 0, title: "Threshold of Hearing", desc: "The absolute limit of healthy human hearing", color: "indigo-300" }
+        ];
+
+        // Active State Selection tracking
+        let selectedDbSource = dbSources[3]; // Highway traffic by default
+
+        // ----------------------------------------------------
+        // INITIALIZE AUDIO AUDIOENGINE
+        // ----------------------------------------------------
+        function activateAudioEngine() {
+            if (audioCtx) return; // Already init
+            
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Construct Web Audio pipeline:
+                // Oscillator -> Bass BiquadFilter -> Treble BiquadFilter -> Gain -> Destination
+                mainOscillator = audioCtx.createOscillator();
+                bassFilter = audioCtx.createBiquadFilter();
+                trebleFilter = audioCtx.createBiquadFilter();
+                gainNode = audioCtx.createGain();
+
+                // Configure EQ Nodes
+                bassFilter.type = "lowshelf";
+                bassFilter.frequency.value = 200; // Bass frequencies are under 200Hz
+                bassFilter.gain.value = 0; // Starts flat
+
+                trebleFilter.type = "highshelf";
+                trebleFilter.frequency.value = 2000; // Treble boosted at 2kHz+
+                trebleFilter.gain.value = 0;
+
+                // Connecting chain
+                mainOscillator.connect(bassFilter);
+                bassFilter.connect(trebleFilter);
+                trebleFilter.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                // Set initial parameters
+                mainOscillator.type = currentWaveform;
+                mainOscillator.frequency.value = parseFloat(document.getElementById('freq-slider').value);
+                
+                // Safe volume scaling to not harm ears
+                const volSliderVal = parseFloat(document.getElementById('amp-slider').value);
+                gainNode.gain.value = isPlaying ? (volSliderVal / 100) * 0.15 : 0; 
+
+                // Start Oscillator
+                mainOscillator.start();
+
+                // UI adjustments
+                document.getElementById('audio-auth-btn').classList.add('hidden');
+                document.getElementById('audio-ready-badge').classList.remove('hidden');
+                
+                updateStatusText("Audio system active. Adjust parameters and click Start Sound!");
+                startVisualizer();
+            } catch (error) {
+                console.error("Failed to setup audio engine: ", error);
+                updateStatusText("Web Audio API is not supported in this browser version.");
+            }
+        }
+
+        // PLAYBACK TOGGLE
+        function toggleSoundPlayback() {
+            if (!audioCtx) {
+                activateAudioEngine();
+                // If activation failed
+                if (!audioCtx) return;
+            }
+
+            // Resume audio context if suspended
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isPlaying = !isPlaying;
+            
+            const playBtnText = document.getElementById('play-btn-text');
+            const playBtnIcon = document.getElementById('play-btn-icon');
+            
+            if (isPlaying) {
+                playBtnText.textContent = "Stop Sound";
+                playBtnIcon.setAttribute('data-lucide', 'square');
+                // Set immediate amplitude
+                updateAmplitude();
+            } else {
+                playBtnText.textContent = "Start Sound";
+                playBtnIcon.setAttribute('data-lucide', 'play');
+                // Zero gain
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            }
+            lucide.createIcons();
+        }
+
+        // WAVEFORM SELECTION
+        function selectWaveform(type) {
+            currentWaveform = type;
+            
+            // Clean active classes
+            ['sine', 'triangle', 'sawtooth', 'square'].forEach(w => {
+                const btn = document.getElementById(`wave-${w}`);
+                btn.className = "bg-slate-950 border border-slate-800 text-slate-400 rounded-xl p-3 flex flex-col items-center gap-1.5 transition duration-200 hover:border-slate-700";
+            });
+
+            // Set active class styling dynamically
+            let activeColor = "border-violet-500/30 text-white bg-violet-600/20";
+            if (type === 'triangle') activeColor = "border-emerald-500/30 text-white bg-emerald-600/20";
+            if (type === 'sawtooth') activeColor = "border-sky-500/30 text-white bg-sky-600/20";
+            if (type === 'square') activeColor = "border-rose-500/30 text-white bg-rose-600/20";
+
+            document.getElementById(`wave-${type}`).className = `${activeColor} border rounded-xl p-3 flex flex-col items-center gap-1.5 transition duration-200`;
+
+            if (mainOscillator) {
+                mainOscillator.type = type;
+            }
+            updateStatusText(`Timbre switched to ${type.toUpperCase()}. Notice the change in acoustic tone/complexity!`);
+        }
+
+        // REAL-TIME PARAMETER HANDLERS
+        const freqSlider = document.getElementById('freq-slider');
+        const ampSlider = document.getElementById('amp-slider');
+        const bassSlider = document.getElementById('bass-slider');
+        const trebleSlider = document.getElementById('treble-slider');
+
+        freqSlider.addEventListener('input', () => {
+            const freqVal = freqSlider.value;
+            document.getElementById('freq-display').textContent = `${freqVal} Hz`;
+            if (mainOscillator) {
+                mainOscillator.frequency.setValueAtTime(freqVal, audioCtx.currentTime);
+            }
+            updateMathOverlay();
+        });
+
+        ampSlider.addEventListener('input', updateAmplitude);
+
+        function updateAmplitude() {
+            const ampVal = ampSlider.value;
+            document.getElementById('amp-display').textContent = `${ampVal}% Volume`;
+            
+            // Physical computation mapping for student context
+            // Max volume corresponds to an intensity of 10^-5 W/m^2 (70 dB)
+            const fraction = ampVal / 100;
+            const physicalIntensity = Math.max(fraction * 1e-5, I0);
+            
+            // Calculate corresponding dB
+            const calculatedDb = 10 * Math.log10(physicalIntensity / I0);
+
+            // Display values formatted neatly
+            document.getElementById('calculated-intensity').innerHTML = `Intensity: $I = ${physicalIntensity.toExponential(2)} \\text{ W/m}^2$`;
+            document.getElementById('calculated-db').innerHTML = `Loudness: $${calculatedDb.toFixed(1)} \\text{ dB}$`;
+
+            if (gainNode && isPlaying) {
+                // Safety volume limiter
+                gainNode.gain.setValueAtTime(fraction * 0.15, audioCtx.currentTime);
+            }
+            updateMathOverlay();
+        }
+
+        // EQ Knobs
+        bassSlider.addEventListener('input', () => {
+            const val = bassSlider.value;
+            document.getElementById('bass-display').textContent = `${val > 0 ? '+' : ''}${val} dB`;
+            if (bassFilter) {
+                bassFilter.gain.setValueAtTime(val, audioCtx.currentTime);
+            }
+        });
+
+        trebleSlider.addEventListener('input', () => {
+            const val = trebleSlider.value;
+            document.getElementById('treble-display').textContent = `${val > 0 ? '+' : ''}${val} dB`;
+            if (trebleFilter) {
+                trebleFilter.gain.setValueAtTime(val, audioCtx.currentTime);
+            }
+        });
+
+        function updateMathOverlay() {
+            const freqVal = freqSlider.value;
+            const ampVal = ampSlider.value / 100;
+            document.getElementById('math-overlay-val').textContent = `f = ${freqVal} Hz, A = ${ampVal.toFixed(2)}`;
+        }
+
+        function updateStatusText(txt) {
+            const msgBox = document.getElementById('status-message');
+            msgBox.innerHTML = `<i data-lucide="info" class="w-4 h-4 flex-shrink-0 text-indigo-400"></i><span>${txt}</span>`;
+            lucide.createIcons();
+        }
+
+        // ----------------------------------------------------
+        // WAVE OSCILLOSCOPE RENDERER (Canvas)
+        // ----------------------------------------------------
+        const canvas = document.getElementById('oscilloscope-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let phase = 0;
+        function startVisualizer() {
+            function draw() {
+                requestAnimationFrame(draw);
+                
+                // Clear background
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Grid lines for standard acoustic visual depth
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1;
+                // Horizontal center line
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height / 2);
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+
+                const freq = parseFloat(freqSlider.value);
+                const amp = parseFloat(ampSlider.value) / 100 * (canvas.height * 0.35);
+
+                ctx.beginPath();
+                ctx.lineWidth = 3;
+                
+                // Dynamic styling dependent on waveform setting
+                if (currentWaveform === 'sine') ctx.strokeStyle = '#8b5cf6'; // Violet
+                else if (currentWaveform === 'triangle') ctx.strokeStyle = '#10b981'; // Emerald
+                else if (currentWaveform === 'sawtooth') ctx.strokeStyle = '#0ea5e9'; // Sky
+                else if (currentWaveform === 'square') ctx.strokeStyle = '#f43f5e'; // Rose
+
+                // Map sound wave generation
+                for (let x = 0; x < canvas.width; x++) {
+                    const normX = x / canvas.width;
+                    const cycle = normX * (freq / 80); // Scales frequency mapping visualizer nicely
+                    
+                    let yVal = 0;
+                    const theta = (cycle * 2 * Math.PI) - phase;
+
+                    if (currentWaveform === 'sine') {
+                        yVal = Math.sin(theta);
+                    } else if (currentWaveform === 'triangle') {
+                        yVal = (Math.abs((theta % (2 * Math.PI)) - Math.PI) / Math.PI) * 2 - 1;
+                    } else if (currentWaveform === 'sawtooth') {
+                        yVal = -((theta % (2 * Math.PI)) / Math.PI - 1);
+                    } else if (currentWaveform === 'square') {
+                        yVal = Math.sin(theta) >= 0 ? 1 : -1;
+                    }
+
+                    const y = (canvas.height / 2) + (yVal * amp * (isPlaying ? 1.0 : 0.05)); // Slight movement when stopped
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+
+                // Phase updates speed corresponding to pitch
+                if (isPlaying) {
+                    phase += (freq / 400) * 0.2;
+                } else {
+                    phase += 0.01; // Tiny passive hover
+                }
+            }
+            draw();
+        }
+
+        // Initialize Passive Canvas preview prior to Audio Setup
+        startVisualizer();
+
+
+        // ----------------------------------------------------
+        // LAB 2: DECIBEL LIST AND DISTANCE COMPUTATION
+        // ----------------------------------------------------
+        function buildDbSourceList() {
+            const listContainer = document.getElementById('db-source-list');
+            listContainer.innerHTML = '';
+
+            dbSources.forEach((src, idx) => {
+                const isActive = src.db === selectedDbSource.db;
+                const activeClasses = isActive 
+                    ? 'border-indigo-500 bg-indigo-950/20 text-slate-100' 
+                    : 'border-slate-800/60 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900 text-slate-400';
+
+                const cardHtml = `
+                    <div onclick="selectDbSourceItem(${idx})" class="p-3 rounded-xl border ${activeClasses} flex justify-between items-center cursor-pointer transition duration-150">
+                        <div class="space-y-1">
+                            <span class="text-xs font-bold text-slate-200">${src.title}</span>
+                            <p class="text-[10px] text-slate-400 font-medium">${src.desc}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold px-2 py-1 rounded bg-${src.color}/10 text-${src.color} border border-${src.color}/20">${src.db} dB</span>
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+
+            // Danger warning indicator
+            const dangerWarning = document.getElementById('danger-warning');
+            if (selectedDbSource.db >= 85) {
+                dangerWarning.classList.remove('hidden');
+            } else {
+                dangerWarning.classList.add('hidden');
+            }
+        }
+
+        function selectDbSourceItem(idx) {
+            selectedDbSource = dbSources[idx];
+            buildDbSourceList();
+            calculateDistanceAttenuation();
+        }
+
+        // Inverse Square Law Attenuation calculation
+        const distanceSlider = document.getElementById('distance-slider');
+        
+        distanceSlider.addEventListener('input', () => {
+            const dist = parseFloat(distanceSlider.value);
+            document.getElementById('distance-display').textContent = `${dist.toFixed(1)} meters`;
+            
+            // Adjust placement of human icon visually
+            // map slider 1m to 30m range into left percent (24% to 80%)
+            const leftPct = 24 + ((dist - 1) / (30 - 1)) * 56;
+            document.getElementById('listener-avatar').style.left = `${leftPct}%`;
+
+            calculateDistanceAttenuation();
+        });
+
+        function calculateDistanceAttenuation() {
+            const r = parseFloat(distanceSlider.value);
+            const sourceDb = selectedDbSource.db;
+            
+            // Get Intensity at source (r = 1m)
+            const I_source = I0 * Math.pow(10, sourceDb / 10);
+            
+            // Intensity varies inversely with square of distance: I = I_source / r^2
+            const I_perceived = I_source / (r * r);
+            
+            // Perceived Db conversion
+            let db_perceived = 10 * Math.log10(I_perceived / I0);
+            if (db_perceived < 0) db_perceived = 0; // Guard floor
+
+            // Rendering updates
+            document.getElementById('source-intensity-display').innerHTML = `$${I_source.toExponential(2)} \\text{ W/m}^2$ (${sourceDb} dB)`;
+            document.getElementById('perceived-intensity-display').innerHTML = `$${I_perceived.toExponential(2)} \\text{ W/m}^2$ (${db_perceived.toFixed(1)} dB)`;
+        }
+
+        // Initialize Decibel Section
+        buildDbSourceList();
+        calculateDistanceAttenuation();
+
+
+        // ----------------------------------------------------
+        // LAB 3: DECIBEL ADDER (Example 8.5)
+        // ----------------------------------------------------
+        function calculateSoundAddition() {
+            const db1 = parseFloat(document.getElementById('db-input-1').value) || 0;
+            const db2 = parseFloat(document.getElementById('db-input-2').value) || 0;
+
+            // Step 1: Compute Intensities relative to I0
+            const relative_I1 = Math.pow(10, db1 / 10);
+            const relative_I2 = Math.pow(10, db2 / 10);
+
+            document.getElementById('step-intensity-1').innerHTML = `$I_1 = 10^{${(db1/10).toFixed(1)}} \\cdot I_0 \\approx ${relative_I1.toExponential(2)} \\cdot I_0$`;
+            document.getElementById('step-intensity-2').innerHTML = `$I_2 = 10^{${(db2/10).toFixed(1)}} \\cdot I_0 \\approx ${relative_I2.toExponential(2)} \\cdot I_0$`;
+
+            // Step 2: Since they combine in phase, amplitudes combine linearly
+            // Amplitude A is proportional to sqrt(Intensity I)
+            const A1 = Math.sqrt(relative_I1);
+            const A2 = Math.sqrt(relative_I2);
+            const A_total = A1 + A2;
+
+            document.getElementById('step-amplitude').innerHTML = `$A_{\\text{total}} = \\sqrt{I_1} + \\sqrt{I_2} \\approx ${A1.toFixed(1)} + ${A2.toFixed(1)} = ${A_total.toFixed(1)}$`;
+
+            // Step 3: Intensity total = A_total^2
+            const relative_I_total = A_total * A_total;
+            const final_db = 10 * Math.log10(relative_I_total);
+
+            document.getElementById('step-final-db').innerHTML = `Combined Output = ${final_db.toFixed(1)} dB`;
+        }
+
+        // Run default computation immediately on load
+        calculateSoundAddition();
+
+
+        // ----------------------------------------------------
+        // LAB 4: ACOUSTIC QUIZ CHALLENGE
+        // ----------------------------------------------------
+        function checkQuizAnswer(questionNum, answerSelected, elementBtn) {
+            // Find parent question container to isolate feedback
+            const container = elementBtn.parentElement;
+            const feedbackBox = container.nextElementSibling;
+            
+            // Highlight styling cleanup
+            const btns = container.querySelectorAll('button');
+            btns.forEach(btn => {
+                btn.className = "w-full text-left text-xs bg-slate-900 border border-slate-800 text-slate-300 px-3 py-2.5 rounded-xl transition cursor-not-allowed";
+                btn.disabled = true; // Block multiple inputs
+            });
+
+            if (questionNum === 1) {
+                if (answerSelected === 'b') {
+                    elementBtn.className = "w-full text-left text-xs bg-emerald-950 border border-emerald-500 text-emerald-200 px-3 py-2.5 rounded-xl transition font-semibold";
+                    feedbackBox.innerHTML = `<span class="text-emerald-400 font-bold">✓ Correct!</span> Sharper/shrill tones indicate an increased pitch. Speed remains constant.`;
+                } else {
+                    elementBtn.className = "w-full text-left text-xs bg-rose-950 border border-rose-500 text-rose-200 px-3 py-2.5 rounded-xl transition font-semibold";
+                    feedbackBox.innerHTML = `<span class="text-rose-400 font-bold">✗ Incorrect.</span> Correct: <strong>B</strong>. Higher frequency strictly maps to high subjective pitch perception.`;
+                }
+            } else if (questionNum === 2) {
+                if (answerSelected === 'c') {
+                    elementBtn.className = "w-full text-left text-xs bg-emerald-950 border border-emerald-500 text-emerald-200 px-3 py-2.5 rounded-xl transition font-semibold";
+                    feedbackBox.innerHTML = `<span class="text-emerald-400 font-bold">✓ Correct!</span> Voice uniqueness is determined by its unique Timbre (harmonics / overtones combination).`;
+                } else {
+                    elementBtn.className = "w-full text-left text-xs bg-rose-950 border border-rose-500 text-rose-200 px-3 py-2.5 rounded-xl transition font-semibold";
+                    feedbackBox.innerHTML = `<span class="text-rose-400 font-bold">✗ Incorrect.</span> Correct: <strong>C</strong>. Sound quality depends on modern mixtures of tones and overtones (Timbre).`;
+                }
+            } else if (questionNum === 3) {
+                if (answerSelected === 'b') {
+                    elementBtn.className = "w-full text-left text-xs bg-emerald-950 border border-emerald-500 text-emerald-200 px-3 py-2.5 rounded-xl transition font-semibold";
+                    feedbackBox.innerHTML = `<span class="text-emerald-400 font-bold">✓ Correct!</span> An increase of +20 dB represents $10^2$ (or 100 times) more physical intensity. Great math!`;
+                } else {
+                    elementBtn.className = "w-full text-left text-xs bg-rose-950 border border-rose-500 text-rose-200 px-3 py-2.5 rounded-xl transition font-semibold";
+                    feedbackBox.innerHTML = `<span class="text-rose-400 font-bold">✗ Incorrect.</span> Correct: <strong>B</strong>. Every +10 dB step multiplies physical wave intensity by exactly 10.`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
