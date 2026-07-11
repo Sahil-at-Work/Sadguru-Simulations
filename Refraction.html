@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiCraft - The Interactive Refraction Lab</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for engaging iconography -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter and Fira Code -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    boxShadow: {
+                        'neon-glow': '0 0 15px rgba(99, 102, 241, 0.4)',
+                        'laser-glow': '0 0 20px rgba(239, 68, 68, 0.8)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Custom smooth transitions */
+        .transition-all-300 {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Pulse styling for active laser */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .laser-pulse {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-neon-glow">
+                <i class="fa-solid fa-wand-magic-sparkles text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-xl tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    OptiCraft Refraction Sandbox
+                </h1>
+                <p class="text-xs text-slate-400 font-medium">Interactive Learning Lab for Physics of Light</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Physics Engine Active
+            </span>
+            <button onclick="resetLab()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 hover:border-slate-600 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-rotate-right"></i> Reset Sandbox
+            </button>
+        </div>
+    </div>
+</header>
+
+<main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <div class="lg:col-span-4 flex flex-col gap-6">
+        
+        <!-- Lab Setup Controller Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4 shadow-lg">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h2 class="text-sm font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i> Simulator Control Panel
+                </h2>
+                <div class="inline-flex rounded-lg p-0.5 bg-slate-950 border border-slate-800 text-xs">
+                    <button id="mode-2-btn" onclick="setMode(2)" class="px-2.5 py-1 rounded-md transition-all font-medium bg-indigo-600 text-white shadow">2 Media</button>
+                    <button id="mode-3-btn" onclick="setMode(3)" class="px-2.5 py-1 rounded-md transition-all font-medium text-slate-400 hover:text-slate-200">3 Media</button>
+                </div>
+            </div>
+
+            <!-- Medium 1 Selector -->
+            <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
+                    <span>Medium 1 (Top)</span>
+                    <span id="m1-index-lbl" class="text-indigo-400 font-mono font-bold">n₁ = 1.000</span>
+                </label>
+                <select id="m1-select" onchange="updateMedium(1, this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <!-- Loaded dynamically in JS -->
+                </select>
+            </div>
+
+            <!-- Medium 2 Selector -->
+            <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
+                    <span>Medium 2 (Middle)</span>
+                    <span id="m2-index-lbl" class="text-emerald-400 font-mono font-bold">n₂ = 1.520</span>
+                </label>
+                <select id="m2-select" onchange="updateMedium(2, this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <!-- Loaded dynamically in JS -->
+                </select>
+            </div>
+
+            <!-- Medium 3 Selector (Hidden by default unless in 3-medium mode) -->
+            <div id="m3-container" class="hidden transition-all duration-300">
+                <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
+                    <span>Medium 3 (Bottom)</span>
+                    <span id="m3-index-lbl" class="text-amber-400 font-mono font-bold">n₃ = 1.330</span>
+                </label>
+                <select id="m3-select" onchange="updateMedium(3, this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <!-- Loaded dynamically in JS -->
+                </select>
+            </div>
+
+            <hr class="border-slate-800">
+
+            <!-- Laser Angle Slider -->
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Angle of Incidence (i)</label>
+                    <span id="angle-val-lbl" class="text-sm font-bold font-mono text-indigo-400">45.0°</span>
+                </div>
+                <input type="range" id="angle-slider" min="0" max="89.5" step="0.5" value="45" oninput="updateAngle(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                    <span>0° (Normal)</span>
+                    <span>45°</span>
+                    <span>90° (Grazing)</span>
+                </div>
+            </div>
+
+            <!-- Wave Wavelength / Dispersion Slider -->
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="text-xs font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <span>Light Wavelength</span>
+                        <i class="fa-solid fa-circle text-red-500" id="wave-color-indicator"></i>
+                    </label>
+                    <span id="wave-val-lbl" class="text-sm font-bold font-mono text-red-400">650 nm</span>
+                </div>
+                <input type="range" id="wave-slider" min="400" max="700" step="10" value="650" oninput="updateWavelength(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-500">
+                <div class="flex justify-between text-[10px] font-mono mt-1">
+                    <span class="text-violet-400">Violet (400nm)</span>
+                    <span class="text-emerald-400">Green (530nm)</span>
+                    <span class="text-red-400">Red (700nm)</span>
+                </div>
+            </div>
+
+            <!-- Animation Toggle Options -->
+            <div class="grid grid-cols-2 gap-3 mt-1">
+                <button id="toggle-photons-btn" onclick="togglePhotons()" class="py-2 px-3 border border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-circle-nodes"></i> Particle Mode
+                </button>
+                <button id="toggle-normal-btn" onclick="toggleNormal()" class="py-2 px-3 border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-arrows-left-right-to-line"></i> Hide Normal
+                </button>
+            </div>
+        </div>
+
+        <!-- Real-time Mathematical Readout Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col gap-4">
+            <h2 class="text-sm font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-2">
+                <i class="fa-solid fa-calculator text-emerald-400"></i> Mathematical Readout
+            </h2>
+            <div class="space-y-3 font-mono text-xs text-slate-300">
+                <!-- Velocity readout with visual gauge -->
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                    <div class="flex justify-between mb-1.5 text-slate-400">
+                        <span>Speed in Med 1 (v₁):</span>
+                        <span id="speed-1-lbl" class="text-indigo-400 font-bold">1.00 c</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="speed-1-bar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                    <div class="flex justify-between mb-1.5 text-slate-400">
+                        <span>Speed in Med 2 (v₂):</span>
+                        <span id="speed-2-lbl" class="text-emerald-400 font-bold">0.66 c</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="speed-2-bar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 66%"></div>
+                    </div>
+                </div>
+
+                <div id="speed-3-container" class="bg-slate-950 p-3 rounded-xl border border-slate-850 hidden">
+                    <div class="flex justify-between mb-1.5 text-slate-400">
+                        <span>Speed in Med 3 (v₃):</span>
+                        <span id="speed-3-lbl" class="text-amber-400 font-bold">0.75 c</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="speed-3-bar" class="bg-amber-500 h-full transition-all duration-300" style="width: 75%"></div>
+                    </div>
+                </div>
+
+                <!-- Snell's Law Calculator visualization -->
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-850 flex flex-col gap-2">
+                    <div class="text-[11px] text-slate-400 uppercase tracking-widest text-center border-b border-slate-900 pb-1.5">Snell's Law Explorer</div>
+                    <div class="text-center text-sm py-1 font-semibold tracking-wide text-slate-100 flex items-center justify-center gap-1">
+                        <span class="text-indigo-400">n₁</span> sin(<span class="text-indigo-400">i</span>) = <span class="text-emerald-400">n₂</span> sin(<span class="text-emerald-400">r</span>)
+                    </div>
+                    <div id="equation-display" class="text-center text-[11px] text-slate-400 bg-slate-900/50 p-1.5 rounded-lg border border-slate-900">
+                        1.000 × sin(45°) = 1.520 × sin(27.7°)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-8 flex flex-col gap-6">
+        
+        <!-- Simulation Canvas Container -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col relative">
+            
+            <!-- Canvas Overlay Badge / Physics Condition -->
+            <div class="absolute top-4 left-4 z-10 flex flex-wrap gap-2 pointer-events-none">
+                <span id="behavior-badge" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow backdrop-blur-md">
+                    <i class="fa-solid fa-circle-nodes mr-1"></i> Bending towards normal
+                </span>
+                <span id="relative-refraction-badge" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-950/80 text-slate-300 border border-slate-800 shadow backdrop-blur-md">
+                    ₁n₂ = 1.52
+                </span>
+            </div>
+
+            <!-- Absolute values banner right-side -->
+            <div class="absolute top-4 right-4 z-10 flex gap-2 pointer-events-none">
+                <span class="px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-medium bg-slate-950/80 text-slate-400 border border-slate-800 backdrop-blur-md flex items-center gap-1.5">
+                    <i class="fa-solid fa-gamepad text-indigo-400"></i> Drag Laser to Aim
+                </span>
+            </div>
+
+            <!-- Main Render Canvas -->
+            <div class="w-full relative aspect-[16/10] bg-slate-950 flex items-center justify-center border-b border-slate-800">
+                <canvas id="simulation-canvas" class="w-full h-full cursor-crosshair block"></canvas>
+            </div>
+
+            <!-- Simulator Bottom Tool Tips -->
+            <div class="bg-slate-900/90 px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+                    <span>Denser medium slows the photons, causing the ray to bend <strong>towards</strong> the normal.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                    <span>Rarer medium speeds up photons, bending <strong>away</strong> from the normal.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- "Use Your Brain Power" Guided Quests Grid -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-5">
+                <div>
+                    <h2 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-pink-500"></i> Use Your Brain Power! Challenge Quests
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Use the simulator options and laser aim to solve these lab problems</p>
+                </div>
+                <!-- Progress Meter -->
+                <div class="flex items-center gap-3">
+                    <div class="text-xs font-semibold text-slate-400">Solved Quests: <span id="quest-score-lbl" class="text-indigo-400">0/4</span></div>
+                    <div class="w-24 bg-slate-950 border border-slate-800 h-2.5 rounded-full overflow-hidden">
+                        <div id="quest-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Challenge 1 -->
+                <div id="card-quest-1" class="bg-slate-950 p-4 rounded-xl border border-slate-850 hover:border-indigo-500/30 transition-all flex flex-col justify-between gap-3 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-2 text-indigo-500/10 group-hover:text-indigo-500/20 text-4xl transition-all"><i class="fa-solid fa-gem"></i></div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-900 text-indigo-400 font-bold flex items-center justify-center text-xs">1</span>
+                            <h3 class="font-bold text-xs text-slate-200">The Secret of Diamond</h3>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">
+                            Adjust the medium controls to visualize light going from <strong>Air</strong> into <strong>Diamond</strong> at a steep angle of <strong>60° or more</strong>. Observe the massive bending index!
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between mt-1">
+                        <span id="badge-quest-1" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-question"></i> Incomplete
+                        </span>
+                        <button onclick="hintQuest(1)" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium">Hint</button>
+                    </div>
+                </div>
+
+                <!-- Challenge 2 -->
+                <div id="card-quest-2" class="bg-slate-950 p-4 rounded-xl border border-slate-850 hover:border-amber-500/30 transition-all flex flex-col justify-between gap-3 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-2 text-amber-500/10 group-hover:text-amber-500/20 text-4xl transition-all"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-900 text-amber-400 font-bold flex items-center justify-center text-xs">2</span>
+                            <h3 class="font-bold text-xs text-slate-200">The Ghost Beam</h3>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">
+                            Can you make light travel straight through different substances <strong>without</strong> aligning the laser at normal incidence (0°)? (Hint: Matching optical indices).
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between mt-1">
+                        <span id="badge-quest-2" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-question"></i> Incomplete
+                        </span>
+                        <button onclick="hintQuest(2)" class="text-[10px] text-amber-400 hover:text-amber-300 font-medium">Hint</button>
+                    </div>
+                </div>
+
+                <!-- Challenge 3 -->
+                <div id="card-quest-3" class="bg-slate-950 p-4 rounded-xl border border-slate-850 hover:border-emerald-500/30 transition-all flex flex-col justify-between gap-3 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-2 text-emerald-500/10 group-hover:text-emerald-500/20 text-4xl transition-all"><i class="fa-solid fa-water"></i></div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-900 text-emerald-400 font-bold flex items-center justify-center text-xs">3</span>
+                            <h3 class="font-bold text-xs text-slate-200">Total Internal Reflection</h3>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">
+                            Light can be completely trapped! Go from a dense medium (e.g., <strong>Glass/Diamond</strong>) to a rare medium (<strong>Air</strong>) and increase the angle. Achieve reflection rather than refraction.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between mt-1">
+                        <span id="badge-quest-3" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-question"></i> Incomplete
+                        </span>
+                        <button onclick="hintQuest(3)" class="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium">Hint</button>
+                    </div>
+                </div>
+
+                <!-- Challenge 4 -->
+                <div id="card-quest-4" class="bg-slate-950 p-4 rounded-xl border border-slate-850 hover:border-pink-500/30 transition-all flex flex-col justify-between gap-3 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-2 text-pink-500/10 group-hover:text-pink-500/20 text-4xl transition-all"><i class="fa-solid fa-cubes"></i></div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-900 text-pink-400 font-bold flex items-center justify-center text-xs">4</span>
+                            <h3 class="font-bold text-xs text-slate-200">The Textbook Equation</h3>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">
+                            Activate <strong>3 Media Mode</strong> and investigate the relationship: $_1n_3 = _1n_2 \times _2n_3$. Can you confirm that absolute indices hold through multi-layer sandwich refractions?
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between mt-1">
+                        <span id="badge-quest-4" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-question"></i> Incomplete
+                        </span>
+                        <button onclick="hintQuest(4)" class="text-[10px] text-pink-400 hover:text-pink-300 font-medium">Hint</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<section class="max-w-7xl mx-auto w-full px-4 pb-12 sm:px-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
+            <div>
+                <h2 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-indigo-400"></i> Absolute Refractive Indices Reference Table
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Absolute refractive index represents the optical density of a medium with respect to vacuum ($n = c / v$). Click on any substance to load it immediately!</p>
+            </div>
+            
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="search-substances" placeholder="Search substance..." oninput="filterSubstances(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    <i class="fa-solid fa-magnifying-glass text-xs text-slate-500 absolute left-2.5 top-2.5"></i>
+                </div>
+            </div>
+        </div>
+
+        <div id="substances-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <!-- Loaded dynamically in JS based on index textbook data -->
+        </div>
+    </div>
+</section>
+
+<!-- Custom Modal alerts for avoiding using alert() -->
+<div id="custom-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 max-w-sm w-full rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+            <div id="modal-icon-container" class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">
+                <i id="modal-icon" class="fa-solid fa-info-circle text-lg"></i>
+            </div>
+            <h3 id="modal-title" class="font-bold text-slate-100 text-sm">Challenge Unlocked</h3>
+        </div>
+        <p id="modal-body" class="text-xs text-slate-400 leading-relaxed"></p>
+        <button onclick="closeModal()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 font-semibold text-xs rounded-xl text-white transition-all">Got it!</button>
+    </div>
+</div>
+
+<footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
+    <p>© 2026 Physics Immersive Lab Series. Beautifully Engineered for Interactive Discovery.</p>
+</footer>
+
+<script>
+    // Substance Data with Absolute Refractive Indices (Based directly on textbook)
+    const substances = [
+        { name: "Air", index: 1.0003, type: "Gas", icon: "fa-wind" },
+        { name: "Ice", index: 1.31, type: "Solid", icon: "fa-icicles" },
+        { name: "Water", index: 1.33, type: "Liquid", icon: "fa-droplet" },
+        { name: "Alcohol", index: 1.36, type: "Liquid", icon: "fa-flask" },
+        { name: "Kerosene", index: 1.39, type: "Liquid", icon: "fa-gas-pump" },
+        { name: "Fused Quartz", index: 1.46, type: "Solid", icon: "fa-gem" },
+        { name: "Turpentine oil", index: 1.47, type: "Liquid", icon: "fa-vial" },
+        { name: "Benzene", index: 1.50, type: "Liquid", icon: "fa-flask-glass" },
+        { name: "Crown glass", index: 1.52, type: "Solid", icon: "fa-cube" },
+        { name: "Rock salt", index: 1.54, type: "Solid", icon: "fa-cubes-stack" },
+        { name: "Carbon disulphide", index: 1.63, type: "Liquid", icon: "fa-radiation" },
+        { name: "Dense flint glass", index: 1.66, type: "Solid", icon: "fa-gem" },
+        { name: "Ruby", index: 1.76, type: "Solid", icon: "fa-heart" },
+        { name: "Sapphire", index: 1.76, type: "Solid", icon: "fa-star" },
+        { name: "Diamond", index: 2.42, type: "Solid", icon: "fa-diamond" }
+    ];
+
+    // Main App States
+    let appState = {
+        mode: 2, // 2 Media or 3 Media setup
+        medium1: substances[0],  // Air
+        medium2: substances[8],  // Crown glass
+        medium3: substances[2],  // Water
+        angleIncidence: 45.0,     // Incident light angle (deg)
+        wavelength: 650,         // light wavelength in nm
+        showPhotons: true,       // whether moving photon dots are drawn
+        showNormal: true,        // whether normal lines are drawn
+        questProgress: {
+            quest1: false,
+            quest2: false,
+            quest3: false,
+            quest4: false
+        }
+    };
+
+    // Canvas Properties
+    const canvas = document.getElementById('simulation-canvas');
+    const ctx = canvas.getContext('2d');
+    let canvasWidth = 800;
+    let canvasHeight = 500;
+    let laserPivot = { x: 0, y: 0 };
+    let isDraggingLaser = false;
+
+    // Photon particle state (offsets along segments)
+    let particleOffset = 0;
+
+    window.onload = function() {
+        populateSelectors();
+        renderSubstancesGrid();
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Start Physics Render loop
+        requestAnimationFrame(physicsRenderLoop);
+
+        // Connect Laser Mouse / Touch dragging systems
+        canvas.addEventListener('mousedown', handlePointerDown);
+        canvas.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        window.addEventListener('touchend', handlePointerUp);
+    };
+
+    // Populate drop selectors dynamically
+    function populateSelectors() {
+        const m1Select = document.getElementById('m1-select');
+        const m2Select = document.getElementById('m2-select');
+        const m3Select = document.getElementById('m3-select');
+
+        m1Select.innerHTML = '';
+        m2Select.innerHTML = '';
+        m3Select.innerHTML = '';
+
+        substances.forEach((sub, index) => {
+            const opt = `<option value="${sub.name}">${sub.name} (n = ${sub.index})</option>`;
+            m1Select.innerHTML += opt;
+            m2Select.innerHTML += opt;
+            m3Select.innerHTML += opt;
+        });
+
+        // Set default configurations
+        m1Select.value = appState.medium1.name;
+        m2Select.value = appState.medium2.name;
+        m3Select.value = appState.medium3.name;
+
+        updateUIElements();
+    }
+
+    // Dynamic material catalog rendering
+    function renderSubstancesGrid() {
+        const grid = document.getElementById('substances-grid');
+        grid.innerHTML = '';
+        substances.forEach((sub) => {
+            const isMediumSelectable = true;
+            grid.innerHTML += `
+                <div onclick="selectMaterialDirect('${sub.name}')" class="bg-slate-950 hover:bg-slate-800 border border-slate-850 hover:border-indigo-500/50 p-3 rounded-xl cursor-pointer transition-all flex items-center justify-between gap-2 group">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 text-indigo-400 group-hover:text-indigo-300 flex items-center justify-center text-xs">
+                            <i class="fa-solid ${sub.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-xs text-slate-300 group-hover:text-slate-100">${sub.name}</div>
+                            <div class="text-[10px] text-slate-500">${sub.type}</div>
+                        </div>
+                    </div>
+                    <div class="font-mono text-xs font-semibold text-emerald-400">${sub.index}</div>
+                </div>
+            `;
+        });
+    }
+
+    // Cauchy dispersion formula approximation for light wavelength
+    function getIndexForWavelength(baseIndex, nm) {
+        if (baseIndex <= 1.0003) return baseIndex; // Keep Air/Vacuum indexes static
+        // Base index represents Sodium D-line (~589 nm)
+        // Cauchy formula approximation: n(lambda) = B + C / lambda^2
+        const C = 0.005; // Dispersion strength index multiplier
+        const refWavelengthSq = 589 * 589;
+        const targetWavelengthSq = nm * nm;
+        const variance = C * (1 / targetWavelengthSq - 1 / refWavelengthSq);
+        return parseFloat((baseIndex + variance * 10000).toFixed(4));
+    }
+
+    // Dynamic update for changing selectors
+    function updateMedium(mediumIndex, subName) {
+        const sub = substances.find(s => s.name === subName);
+        if (mediumIndex === 1) appState.medium1 = sub;
+        if (mediumIndex === 2) appState.medium2 = sub;
+        if (mediumIndex === 3) appState.medium3 = sub;
+        updateUIElements();
+    }
+
+    // Direct material click callback
+    function selectMaterialDirect(subName) {
+        // Toggle material in medium 2 (sandbox main body)
+        const m2Select = document.getElementById('m2-select');
+        m2Select.value = subName;
+        updateMedium(2, subName);
+        
+        showModal("Active Medium Updated", `Set Medium 2 (Middle) to <strong>${subName}</strong> instantly via Library selection.`, "fa-folder-open");
+    }
+
+    function setMode(mediaCount) {
+        appState.mode = mediaCount;
+        
+        const mode2Btn = document.getElementById('mode-2-btn');
+        const mode3Btn = document.getElementById('mode-3-btn');
+        const m3Container = document.getElementById('m3-container');
+        const speed3Container = document.getElementById('speed-3-container');
+
+        if (mediaCount === 2) {
+            mode2Btn.className = "px-2.5 py-1 rounded-md transition-all font-medium bg-indigo-600 text-white shadow";
+            mode3Btn.className = "px-2.5 py-1 rounded-md transition-all font-medium text-slate-400 hover:text-slate-200";
+            m3Container.classList.add('hidden');
+            speed3Container.classList.add('hidden');
+        } else {
+            mode3Btn.className = "px-2.5 py-1 rounded-md transition-all font-medium bg-indigo-600 text-white shadow";
+            mode2Btn.className = "px-2.5 py-1 rounded-md transition-all font-medium text-slate-400 hover:text-slate-200";
+            m3Container.classList.remove('hidden');
+            speed3Container.classList.remove('hidden');
+        }
+        updateUIElements();
+    }
+
+    function updateUIElements() {
+        // Calculate dispersion real refractive indexes
+        const n1 = getIndexForWavelength(appState.medium1.index, appState.wavelength);
+        const n2 = getIndexForWavelength(appState.medium2.index, appState.wavelength);
+        const n3 = getIndexForWavelength(appState.medium3.index, appState.wavelength);
+
+        // Update Labels
+        document.getElementById('m1-index-lbl').innerText = `n₁ = ${n1.toFixed(3)}`;
+        document.getElementById('m2-index-lbl').innerText = `n₂ = ${n2.toFixed(3)}`;
+        document.getElementById('m3-index-lbl').innerText = `n₃ = ${n3.toFixed(3)}`;
+
+        // Relative index calculations
+        const relN = (n2 / n1).toFixed(3);
+        document.getElementById('relative-refraction-badge').innerHTML = `₁n₂ = ${relN}`;
+
+        // Velocities
+        const v1 = (1 / n1).toFixed(2);
+        const v2 = (1 / n2).toFixed(2);
+        const v3 = (1 / n3).toFixed(2);
+
+        document.getElementById('speed-1-lbl').innerText = `${v1} c`;
+        document.getElementById('speed-2-lbl').innerText = `${v2} c`;
+        document.getElementById('speed-3-lbl').innerText = `${v3} c`;
+
+        document.getElementById('speed-1-bar').style.width = `${v1 * 100}%`;
+        document.getElementById('speed-2-bar').style.width = `${v2 * 100}%`;
+        document.getElementById('speed-3-bar').style.width = `${v3 * 100}%`;
+
+        // Calculate and update angles display based on Snell's Law
+        const theta1Rad = (appState.angleIncidence * Math.PI) / 180;
+        let sinTheta2 = (n1 * Math.sin(theta1Rad)) / n2;
+
+        let badgeText = "";
+        let badgeStyle = "";
+
+        if (sinTheta2 > 1.0) {
+            badgeText = "<i class='fa-solid fa-burst text-rose-400 mr-1 animate-pulse'></i> Total Internal Reflection";
+            badgeStyle = "bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow backdrop-blur-md";
+            document.getElementById('equation-display').innerHTML = `${n1.toFixed(3)} × sin(${appState.angleIncidence.toFixed(1)}°) &gt; ${n2.toFixed(3)} (TIR Active)`;
+        } else {
+            const theta2Rad = Math.asin(sinTheta2);
+            const theta2Deg = (theta2Rad * 180) / Math.PI;
+            
+            document.getElementById('equation-display').innerHTML = `${n1.toFixed(3)} × sin(${appState.angleIncidence.toFixed(1)}°) = ${n2.toFixed(3)} × sin(${theta2Deg.toFixed(1)}°)`;
+
+            if (appState.angleIncidence === 0) {
+                badgeText = "<i class='fa-solid fa-arrow-down-long mr-1'></i> Normal Incidence (No Bend)";
+                badgeStyle = "bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow backdrop-blur-md";
+            } else if (n1 === n2) {
+                badgeText = "<i class='fa-solid fa-arrow-trend-up mr-1'></i> Index Match (Undiverted)";
+                badgeStyle = "bg-teal-500/20 text-teal-300 border border-teal-500/30 shadow backdrop-blur-md";
+            } else if (n1 < n2) {
+                badgeText = "<i class='fa-solid fa-angles-down text-indigo-400 mr-1'></i> Bends Towards Normal";
+                badgeStyle = "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow backdrop-blur-md";
+            } else {
+                badgeText = "<i class='fa-solid fa-angles-up text-amber-400 mr-1'></i> Bends Away From Normal";
+                badgeStyle = "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow backdrop-blur-md";
+            }
+        }
+
+        const behaviorBadge = document.getElementById('behavior-badge');
+        behaviorBadge.innerHTML = badgeText;
+        behaviorBadge.className = `px-3 py-1.5 rounded-xl text-xs font-bold shadow backdrop-blur-md pointer-events-none transition-all ${badgeStyle}`;
+
+        // Verify/Track challenge completions
+        verifyQuests(n1, n2, n3, sinTheta2);
+    }
+
+    function updateAngle(angle) {
+        appState.angleIncidence = parseFloat(angle);
+        document.getElementById('angle-val-lbl').innerText = `${appState.angleIncidence.toFixed(1)}°`;
+        document.getElementById('angle-slider').value = angle;
+        updateUIElements();
+    }
+
+    function updateWavelength(val) {
+        appState.wavelength = parseInt(val);
+        document.getElementById('wave-val-lbl').innerText = `${val} nm`;
+        
+        // CSS properties reflecting laser pointer wavelengths dynamically
+        const laserColor = getRGBForWavelength(val);
+        document.getElementById('wave-color-indicator').style.color = laserColor;
+        document.getElementById('wave-val-lbl').style.color = laserColor;
+        document.getElementById('wave-slider').style.accentColor = laserColor;
+
+        updateUIElements();
+    }
+
+    function togglePhotons() {
+        appState.showPhotons = !appState.showPhotons;
+        const btn = document.getElementById('toggle-photons-btn');
+        if (appState.showPhotons) {
+            btn.className = "py-2 px-3 border border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all";
+            btn.innerHTML = `<i class="fa-solid fa-circle-nodes"></i> Particle Mode`;
+        } else {
+            btn.className = "py-2 px-3 border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all";
+            btn.innerHTML = `<i class="fa-regular fa-circle"></i> Continuous Ray`;
+        }
+    }
+
+    function toggleNormal() {
+        appState.showNormal = !appState.showNormal;
+        const btn = document.getElementById('toggle-normal-btn');
+        if (appState.showNormal) {
+            btn.className = "py-2 px-3 border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all";
+            btn.innerHTML = `<i class="fa-solid fa-arrows-left-right-to-line"></i> Hide Normal`;
+        } else {
+            btn.className = "py-2 px-3 border border-slate-800 bg-slate-900 text-slate-500 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all";
+            btn.innerHTML = `<i class="fa-solid fa-arrows-left-right-to-line"></i> Show Normal`;
+        }
+    }
+
+    // Pointer actions translation to direct laser pivot angular controls
+    function handlePointerDown(e) {
+        const bounds = canvas.getBoundingClientRect();
+        const mouseX = (e.clientX - bounds.left) * (canvasWidth / bounds.width);
+        const mouseY = (e.clientY - bounds.top) * (canvasHeight / bounds.height);
+
+        // Check distance to laser pivot point
+        const dist = Math.hypot(mouseX - laserPivot.x, mouseY - laserPivot.y);
+        if (dist < 40) {
+            isDraggingLaser = true;
+        }
+    }
+
+    function handlePointerMove(e) {
+        if (!isDraggingLaser) return;
+        
+        const bounds = canvas.getBoundingClientRect();
+        const mouseX = (e.clientX - bounds.left) * (canvasWidth / bounds.width);
+        const mouseY = (e.clientY - bounds.top) * (canvasHeight / bounds.height);
+
+        // Interface separation line height
+        const boundaryY = appState.mode === 2 ? canvasHeight / 2 : canvasHeight / 3;
+
+        // Vector pointing from laser head (aiming normal)
+        const dx = mouseX - (canvasWidth / 2);
+        const dy = boundaryY - mouseY;
+
+        if (dy > 10) {
+            let angleRad = Math.atan2(dx, dy);
+            let angleDeg = (angleRad * 180) / Math.PI;
+
+            // Restrict sweep to left/right bounds
+            if (angleDeg < -89) angleDeg = -89;
+            if (angleDeg > 89) angleDeg = 89;
+
+            // Normalize angle representing incidence absolute positive offset
+            updateAngle(Math.abs(angleDeg));
+        }
+    }
+
+    function handlePointerUp() {
+        isDraggingLaser = false;
+    }
+
+    // Touch event compatibility wrappers
+    function handleTouchStart(e) {
+        if (e.touches.length === 1) {
+            handlePointerDown(e.touches[0]);
+            e.preventDefault();
+        }
+    }
+
+    function handleTouchMove(e) {
+        if (isDraggingLaser && e.touches.length === 1) {
+            handlePointerMove(e.touches[0]);
+            e.preventDefault();
+        }
+    }
+
+    function resizeCanvas() {
+        const rect = canvas.parentNode.getBoundingClientRect();
+        canvasWidth = rect.width;
+        canvasHeight = rect.height;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        updateUIElements();
+    }
+
+    // Physics Rendering Logic Loop
+    function physicsRenderLoop(timestamp) {
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // Base parameters and medium boundaries
+        const boundaryY1 = appState.mode === 2 ? canvasHeight / 2 : canvasHeight / 3;
+        const boundaryY2 = appState.mode === 2 ? null : (2 * canvasHeight) / 3;
+
+        // Draw Medium Background color gradients
+        drawMediumBackgrounds(boundaryY1, boundaryY2);
+
+        // Calculate visual indices
+        const n1 = getIndexForWavelength(appState.medium1.index, appState.wavelength);
+        const n2 = getIndexForWavelength(appState.medium2.index, appState.wavelength);
+        const n3 = getIndexForWavelength(appState.medium3.index, appState.wavelength);
+
+        // Compute optics pathways
+        const laserSourceX = canvasWidth / 2 - Math.tan((appState.angleIncidence * Math.PI) / 180) * boundaryY1;
+        laserPivot.x = laserSourceX;
+        laserPivot.y = 50;
+
+        // Dynamic laser coloring
+        const laserColor = getRGBForWavelength(appState.wavelength);
+
+        // Path calculations
+        const pathPoints = [];
+        pathPoints.push({ x: laserSourceX, y: laserPivot.y }); // Origin at Laser head
+        pathPoints.push({ x: canvasWidth / 2, y: boundaryY1 }); // Incident Pivot (At normal 1)
+
+        const theta1Rad = (appState.angleIncidence * Math.PI) / 180;
+        let isTIR1 = false;
+        let tirReflectedX = 0;
+        let theta2Rad = 0;
+
+        // Medium 1 to 2 refraction angle
+        const sinTheta2 = (n1 * Math.sin(theta1Rad)) / n2;
+
+        if (sinTheta2 > 1.0) {
+            isTIR1 = true;
+            // Total Internal Reflection inside Med 1 (reflected upward)
+            const angleReflected = theta1Rad;
+            const extraH = boundaryY1 - 50;
+            tirReflectedX = canvasWidth / 2 + Math.tan(angleReflected) * extraH;
+            pathPoints.push({ x: tirReflectedX, y: 50 });
+        } else {
+            theta2Rad = Math.asin(sinTheta2);
+            // Dynamic check for 2 vs 3 media modes
+            if (appState.mode === 2) {
+                const heightMed2 = canvasHeight - boundaryY1;
+                const endX = canvasWidth / 2 + Math.tan(theta2Rad) * heightMed2;
+                pathPoints.push({ x: endX, y: canvasHeight });
+            } else {
+                // Calculate next boundary landing coordinates
+                const heightMed2 = boundaryY2 - boundaryY1;
+                const midX = canvasWidth / 2 + Math.tan(theta2Rad) * heightMed2;
+                pathPoints.push({ x: midX, y: boundaryY2 });
+
+                // Medium 2 to 3 Refraction Path
+                let isTIR2 = false;
+                const sinTheta3 = (n2 * Math.sin(theta2Rad)) / n3;
+
+                if (sinTheta3 > 1.0) {
+                    isTIR2 = true;
+                    // Total Internal Reflection at Second boundary
+                    const endReflectX = midX - Math.tan(theta2Rad) * heightMed2;
+                    pathPoints.push({ x: endReflectX, y: boundaryY1 });
+                } else {
+                    const theta3Rad = Math.asin(sinTheta3);
+                    const heightMed3 = canvasHeight - boundaryY2;
+                    const endX = midX + Math.tan(theta3Rad) * heightMed3;
+                    pathPoints.push({ x: endX, y: canvasHeight });
+                }
+            }
+        }
+
+        // Render Rays
+        drawOpticalRays(pathPoints, laserColor, isTIR1);
+
+        // Render Photons
+        if (appState.showPhotons) {
+            animatePhotons(pathPoints, n1, n2, n3, isTIR1);
+        }
+
+        // Render Intersect boundaries, Normal grids, and Labels
+        drawInterfaceLines(boundaryY1, boundaryY2);
+        
+        // Render physical laser device art assets on screen
+        drawLaserDevice(laserSourceX, laserPivot.y, laserColor);
+
+        // Update animation offset counters
+        particleOffset += 1.5;
+        if (particleOffset > 1000) particleOffset = 0;
+
+        requestAnimationFrame(physicsRenderLoop);
+    }
+
+    function drawMediumBackgrounds(boundaryY1, boundaryY2) {
+        // Medium 1 background
+        ctx.fillStyle = getDensityColor(appState.medium1.index, 0.08);
+        ctx.fillRect(0, 0, canvasWidth, boundaryY1);
+
+        // Medium 2 background
+        if (appState.mode === 2) {
+            ctx.fillStyle = getDensityColor(appState.medium2.index, 0.12);
+            ctx.fillRect(0, boundaryY1, canvasWidth, canvasHeight - boundaryY1);
+        } else {
+            ctx.fillStyle = getDensityColor(appState.medium2.index, 0.12);
+            ctx.fillRect(0, boundaryY1, canvasWidth, boundaryY2 - boundaryY1);
+
+            // Medium 3 background
+            ctx.fillStyle = getDensityColor(appState.medium3.index, 0.16);
+            ctx.fillRect(0, boundaryY2, canvasWidth, canvasHeight - boundaryY2);
+        }
+    }
+
+    // Compute optical opacity density highlights based on absolute index values
+    function getDensityColor(index, baseAlpha) {
+        // High refractive index diamond looks brighter/more dense
+        const normalizedDensity = Math.min((index - 1.0) / 1.5, 1.0);
+        const alpha = baseAlpha + normalizedDensity * 0.15;
+        return `rgba(99, 102, 241, ${alpha})`;
+    }
+
+    // DRAW OPTICAL GLOW RAYS
+    function drawOpticalRays(points, laserColor, isTIR) {
+        // Shadow/glow properties inside canvas context
+        ctx.save();
+        ctx.strokeStyle = laserColor;
+        ctx.lineWidth = 4;
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = laserColor;
+        ctx.shadowBlur = 15;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.stroke();
+
+        // Secondary tight center line representing bright core
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.restore();
+
+        // Draw normal weak reflections at boundary (Fresnel reflections)
+        if (!isTIR && points.length > 1) {
+            ctx.save();
+            ctx.strokeStyle = laserColor;
+            ctx.globalAlpha = 0.2;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(points[1].x, points[1].y);
+            // Angle of incidence equals angle of reflection
+            const reflectionX = canvasWidth / 2 + (canvasWidth / 2 - points[0].x);
+            ctx.lineTo(reflectionX, points[0].y);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    // Animated photon pulses along calculated paths
+    function animatePhotons(points, n1, n2, n3, isTIR) {
+        ctx.fillStyle = '#ffffff';
+        const speeds = [3 / n1, 3 / n2, 3 / n3]; // Speeds relative to index density
+        const spacing = 45; // Pixel spacing
+
+        for (let i = 0; i < points.length - 1; i++) {
+            const pStart = points[i];
+            const pEnd = points[i + 1];
+
+            const dx = pEnd.x - pStart.x;
+            const dy = pEnd.y - pStart.y;
+            const distance = Math.hypot(dx, dy);
+
+            // Calculate directional unit vectors
+            const ux = dx / distance;
+            const uy = dy / distance;
+
+            // Speed multiplier scaling
+            const segmentSpeed = speeds[Math.min(i, speeds.length - 1)];
+            const stepShift = (particleOffset * segmentSpeed) % spacing;
+
+            for (let d = stepShift; d < distance; d += spacing) {
+                const px = pStart.x + ux * d;
+                const py = pStart.y + uy * d;
+
+                ctx.beginPath();
+                ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+    }
+
+    function drawInterfaceLines(boundaryY1, boundaryY2) {
+        // Boundary Horizontal Line 1
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, boundaryY1);
+        ctx.lineTo(canvasWidth, boundaryY1);
+        ctx.stroke();
+
+        // Boundary Horizontal Line 2
+        if (appState.mode === 3) {
+            ctx.beginPath();
+            ctx.moveTo(0, boundaryY2);
+            ctx.lineTo(canvasWidth, boundaryY2);
+            ctx.stroke();
+        }
+
+        // Normals (Vertical dashed lines)
+        if (appState.showNormal) {
+            ctx.save();
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
+            
+            // Draw Normal 1
+            ctx.beginPath();
+            ctx.moveTo(canvasWidth / 2, 20);
+            ctx.lineTo(canvasWidth / 2, appState.mode === 2 ? canvasHeight - 20 : boundaryY2 + 20);
+            ctx.stroke();
+
+            // Draw Normal 2 if in 3-medium mode
+            if (appState.mode === 3) {
+                // Find where light hits boundary 2
+                const n1 = getIndexForWavelength(appState.medium1.index, appState.wavelength);
+                const n2 = getIndexForWavelength(appState.medium2.index, appState.wavelength);
+                const theta1Rad = (appState.angleIncidence * Math.PI) / 180;
+                const sinTheta2 = (n1 * Math.sin(theta1Rad)) / n2;
+
+                if (sinTheta2 <= 1.0) {
+                    const theta2Rad = Math.asin(sinTheta2);
+                    const heightMed2 = boundaryY2 - boundaryY1;
+                    const hitX2 = canvasWidth / 2 + Math.tan(theta2Rad) * heightMed2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(hitX2, boundaryY1 - 20);
+                    ctx.lineTo(hitX2, canvasHeight - 20);
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+        }
+
+        // Draw Text Labels on boundaries
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        
+        ctx.fillText(`MEDIUM 1: ${appState.medium1.name.toUpperCase()}`, 20, boundaryY1 - 20);
+        
+        if (appState.mode === 2) {
+            ctx.fillText(`MEDIUM 2: ${appState.medium2.name.toUpperCase()}`, 20, boundaryY1 + 30);
+        } else {
+            ctx.fillText(`MEDIUM 2: ${appState.medium2.name.toUpperCase()}`, 20, boundaryY1 + 30);
+            ctx.fillText(`MEDIUM 3: ${appState.medium3.name.toUpperCase()}`, 20, boundaryY2 + 30);
+        }
+    }
+
+    // DRAW THE PHYSICAL DRAGGABLE LASER ART ELEMENT
+    function drawLaserDevice(x, y, color) {
+        ctx.save();
+        // Compute orientation angle
+        const boundaryY1 = appState.mode === 2 ? canvasHeight / 2 : canvasHeight / 3;
+        const dx = (canvasWidth / 2) - x;
+        const dy = boundaryY1 - y;
+        const angle = Math.atan2(dx, dy);
+
+        ctx.translate(x, y);
+        ctx.rotate(-angle);
+
+        // Drag handle halo glow
+        if (isDraggingLaser) {
+            ctx.shadowColor = 'rgba(99, 102, 241, 0.8)';
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // Laser casing barrel
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(-10, -35, 20, 50, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // Laser emitter lens rim
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.rect(-8, 15, 16, 5);
+        ctx.fill();
+
+        // Laser emission crystal core
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 18, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    // Spectral color mapping for wavelength sliders (Approx RGB equivalent for human visual range)
+    function getRGBForWavelength(wavelength) {
+        let r, g, b, factor;
+        if ((wavelength >= 380) && (wavelength < 440)) {
+            r = -(wavelength - 440) / (440 - 380);
+            g = 0.0;
+            b = 1.0;
+        } else if ((wavelength >= 440) && (wavelength < 490)) {
+            r = 0.0;
+            g = (wavelength - 440) / (490 - 440);
+            b = 1.0;
+        } else if ((wavelength >= 490) && (wavelength < 510)) {
+            r = 0.0;
+            g = 1.0;
+            b = -(wavelength - 510) / (510 - 490);
+        } else if ((wavelength >= 510) && (wavelength < 580)) {
+            r = (wavelength - 510) / (580 - 510);
+            g = 1.0;
+            b = 0.0;
+        } else if ((wavelength >= 580) && (wavelength < 645)) {
+            r = 1.0;
+            g = -(wavelength - 645) / (645 - 580);
+            b = 0.0;
+        } else if ((wavelength >= 645) && (wavelength <= 780)) {
+            r = 1.0;
+            g = 0.0;
+            b = 0.0;
+        } else {
+            r = 0.0;
+            g = 0.0;
+            b = 0.0;
+        }
+
+        // Intensity falloff filter near the invisible ultraviolet / infrared limits
+        if ((wavelength >= 380) && (wavelength < 420)) {
+            factor = 0.3 + 0.7 * (wavelength - 380) / (420 - 380);
+        } else if ((wavelength >= 420) && (wavelength < 701)) {
+            factor = 1.0;
+        } else if ((wavelength >= 701) && (wavelength <= 780)) {
+            factor = 0.3 + 0.7 * (780 - wavelength) / (780 - 701);
+        } else {
+            factor = 0.0;
+        }
+
+        const red = Math.round(r * factor * 255);
+        const green = Math.round(g * factor * 255);
+        const blue = Math.round(b * factor * 255);
+
+        return `rgb(${red}, ${green}, ${blue})`;
+    }
+
+    // Dynamic Quest verification checking simulator conditions in real-time
+    function verifyQuests(n1, n2, n3, sinTheta2) {
+        // Quest 1: The Secret of Diamond (Air -> Diamond, angle >= 60)
+        if (!appState.questProgress.quest1 && 
+            appState.medium1.name === "Air" && 
+            appState.medium2.name === "Diamond" && 
+            appState.angleIncidence >= 59.9) {
+            
+            appState.questProgress.quest1 = true;
+            markQuestSolved(1, "The Secret of Diamond", "You visualized the extreme optical power of Diamond. With an index of 2.42, light undergoes severe deceleration, causing refraction to bend sharply towards the normal! Perfect job!");
+        }
+
+        // Quest 2: The Ghost Beam (n1 = n2, angle incidence > 25deg)
+        if (!appState.questProgress.quest2 && 
+            appState.medium1.name !== "Air" && 
+            appState.medium1.name === appState.medium2.name && 
+            appState.angleIncidence >= 25.0) {
+            
+            appState.questProgress.quest2 = true;
+            markQuestSolved(2, "The Ghost Beam", "By matching the refractive indices (n₁ = n₂), you eliminated the optical boundary. Even though light hit at an angle, it traveled perfectly straight! This is how cloaking objects work in liquids!");
+        }
+
+        // Quest 3: Total Internal Reflection (n1 > n2, TIR condition matched)
+        if (!appState.questProgress.quest3 && 
+            n1 > n2 && 
+            sinTheta2 > 1.0) {
+            
+            appState.questProgress.quest3 = true;
+            markQuestSolved(3, "Total Internal Reflection", "Success! Light traveling from denser to rarer medium exceeded the Critical Angle, causing it to bounce back entirely like a mirror. This is the exact concept fiber optic cables use to carry global internet!");
+        }
+
+        // Quest 4: The Textbook Equation (3-media, verified index product logic)
+        if (!appState.questProgress.quest4 && 
+            appState.mode === 3 && 
+            appState.medium1.name === "Air" && 
+            appState.medium2.name === "Crown glass" && 
+            appState.medium3.name === "Water") {
+            
+            appState.questProgress.quest4 = true;
+            markQuestSolved(4, "The Textbook Equation", "You set up the textbook 3-layer system! Notice $_1n_3 = _1n_2 \\times _2n_3$ holds perfectly because the intermediate refraction pathways remain visually synchronized!");
+        }
+    }
+
+    // Update Achievement UI card indicators on completions
+    function markQuestSolved(id, title, explanation) {
+        const badge = document.getElementById(`badge-quest-${id}`);
+        const card = document.getElementById(`card-quest-${id}`);
+        
+        badge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Complete`;
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1";
+        card.className = "bg-slate-950 p-4 rounded-xl border border-emerald-500/30 transition-all flex flex-col justify-between gap-3 relative overflow-hidden group";
+
+        // Count current score
+        let score = 0;
+        Object.keys(appState.questProgress).forEach(q => {
+            if (appState.questProgress[q]) score++;
+        });
+
+        document.getElementById('quest-score-lbl').innerText = `${score}/4`;
+        document.getElementById('quest-progress-bar').style.width = `${(score / 4) * 100}%`;
+
+        // Launch modal celebration popup
+        showModal(title, explanation, "fa-award", true);
+    }
+
+    // Show detailed modal helper instead of alert() popups
+    function showModal(title, text, iconClass = "fa-info-circle", isAchievement = false) {
+        const modal = document.getElementById('custom-modal');
+        const mTitle = document.getElementById('modal-title');
+        const mBody = document.getElementById('modal-body');
+        const mIcon = document.getElementById('modal-icon');
+        const mIconContainer = document.getElementById('modal-icon-container');
+
+        mTitle.innerText = title;
+        mBody.innerHTML = text;
+        mIcon.className = `fa-solid ${iconClass} text-lg`;
+
+        if (isAchievement) {
+            mIconContainer.className = "p-2 bg-emerald-500/10 text-emerald-400 rounded-lg animate-bounce";
+            mTitle.className = "font-extrabold text-emerald-400 text-sm";
+        } else {
+            mIconContainer.className = "p-2 bg-indigo-500/10 text-indigo-400 rounded-lg";
+            mTitle.className = "font-bold text-slate-100 text-sm";
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('custom-modal').classList.add('hidden');
+    }
+
+    // Help text tooltips matching Textbook challenges
+    function hintQuest(id) {
+        let hintText = "";
+        if (id === 1) hintText = "Set Medium 1 to <strong>Air</strong>, Medium 2 to <strong>Diamond</strong>, then grab the Laser dial and rotate it past 60° angle of incidence.";
+        if (id === 2) hintText = "Pick the exact same material for Medium 1 and Medium 2 (for example, set both to <strong>Water</strong> or both to <strong>Crown glass</strong>). Rotate the laser off-center!";
+        if (id === 3) hintText = "Make Medium 1 denser than Medium 2 (e.g. Medium 1 = <strong>Diamond</strong>, Medium 2 = <strong>Air</strong>). Now increase the Laser Angle past 40° to trigger absolute reflection!";
+        if (id === 4) hintText = "Toggle <strong>3 Media Mode</strong>. Choose <strong>Air</strong> for top, <strong>Crown glass</strong> for middle, and <strong>Water</strong> for bottom. Watch light route through all 3 stages simultaneously.";
+        
+        showModal("Lab Challenge Hint", hintText, "fa-circle-question");
+    }
+
+    // Interactive Search filtering
+    function filterSubstances(query) {
+        const normalized = query.toLowerCase();
+        const cards = document.getElementById('substances-grid').children;
+        substances.forEach((sub, index) => {
+            const matches = sub.name.toLowerCase().includes(normalized) || sub.type.toLowerCase().includes(normalized);
+            if (matches) {
+                cards[index].style.display = 'flex';
+            } else {
+                cards[index].style.display = 'none';
+            }
+        });
+    }
+
+    // Reset simulator defaults
+    function resetLab() {
+        appState.mode = 2;
+        appState.medium1 = substances[0];
+        appState.medium2 = substances[8];
+        appState.medium3 = substances[2];
+        appState.angleIncidence = 45.0;
+        appState.wavelength = 650;
+        
+        const m1Select = document.getElementById('m1-select');
+        const m2Select = document.getElementById('m2-select');
+        const m3Select = document.getElementById('m3-select');
+        m1Select.value = appState.medium1.name;
+        m2Select.value = appState.medium2.name;
+        m3Select.value = appState.medium3.name;
+
+        document.getElementById('angle-slider').value = 45;
+        document.getElementById('angle-val-lbl').innerText = "45.0°";
+
+        document.getElementById('wave-slider').value = 650;
+        updateWavelength(650);
+        setMode(2);
+
+        showModal("Sandbox Reset Completed", "The opti-lab is recalibrated to standard textbook default setups (Air to Crown glass @ 45°). Have fun!", "fa-circle-check");
+    }
+</script>
+</body>
+</html>
