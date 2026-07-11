@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Wave Mechanics & Sound Simulation</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fira-code {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Hide scrollbars but keep functionality */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Wave animation effect for cards */
+        .glowing-border {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-slate-955 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+<!-- Navigation and Top Bar -->
+<header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-4 lg:px-8 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 animate-pulse">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">SonicWave Sandbox</h1>
+            <p class="text-[10px] text-indigo-400 font-medium tracking-widest uppercase">Chapter 8: Waves & Sound • Interactive Lab</p>
+        </div>
+    </div>
+
+    <!-- Active Navigation Tabs -->
+    <nav class="hidden md:flex bg-slate-900/90 border border-slate-800 p-1 rounded-xl">
+        <button onclick="switchTab('lab')" id="tab-btn-lab" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 bg-indigo-600 text-white shadow">
+            1D Wave Lab
+        </button>
+        <button onclick="switchTab('ripple')" id="tab-btn-ripple" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-white hover:bg-slate-800/50">
+            2D Ripple Tank
+        </button>
+        <button onclick="switchTab('matcher')" id="tab-btn-matcher" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-white hover:bg-slate-800/50">
+            Wave Matcher Game
+        </button>
+        <button onclick="switchTab('concepts')" id="tab-btn-concepts" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-white hover:bg-slate-800/50">
+            Concepts & Recall
+        </button>
+    </nav>
+
+    <!-- Interactive Sound Synthesis Toggle -->
+    <div class="flex items-center space-x-2">
+        <button id="audio-toggle-btn" onclick="toggleAudioEngine()" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition-all duration-200 cursor-pointer">
+            <span id="audio-status-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+            <span id="audio-status-text">Audio: Muted</span>
+        </button>
+        <!-- Mobile menu hint -->
+        <span class="text-xs text-slate-500 hidden xl:inline">Press [SPACE] to pause simulation</span>
+    </div>
+</header>
+
+<!-- Mobile Navigation Bar -->
+<div class="md:hidden flex bg-slate-900 border-b border-slate-800 overflow-x-auto whitespace-nowrap p-2 scrollbar-none">
+    <button onclick="switchTab('lab')" id="mob-tab-btn-lab" class="mob-tab-btn px-4 py-1.5 rounded-lg text-xs font-bold mr-2 bg-indigo-600 text-white">1D Wave Lab</button>
+    <button onclick="switchTab('ripple')" id="mob-tab-btn-ripple" class="mob-tab-btn px-4 py-1.5 rounded-lg text-xs font-bold mr-2 text-slate-400">2D Ripple Tank</button>
+    <button onclick="switchTab('matcher')" id="mob-tab-btn-matcher" class="mob-tab-btn px-4 py-1.5 rounded-lg text-xs font-bold mr-2 text-slate-400">Wave Matcher Game</button>
+    <button onclick="switchTab('concepts')" id="mob-tab-btn-concepts" class="mob-tab-btn px-4 py-1.5 rounded-lg text-xs font-bold text-slate-400">Concepts</button>
+</div>
+
+<!-- Main App Container -->
+<main class="flex-grow p-4 lg:p-6 max-w-7xl mx-auto w-full grid grid-cols-1 gap-6">
+
+    <!-- Active Tab Panel 1: 1D Wave Lab -->
+    <section id="panel-lab" class="tab-panel grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Canvas & Visualization Area (Left Column) -->
+        <div class="lg:col-span-8 flex flex-col space-y-4">
+            <!-- Simulated Wave Window -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col relative glowing-border backdrop-blur-md">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        <h3 class="text-sm font-bold tracking-wide uppercase text-slate-200">Real-Time Wave Oscillator</h3>
+                    </div>
+                    <!-- Legend Indicators -->
+                    <div class="flex items-center space-x-4 text-xs text-slate-400">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+                            <span>Particles</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block animate-ping"></span>
+                            <span>Source</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                            <span>Tracked Peak</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <div class="relative w-full aspect-[21/9] bg-slate-950 rounded-xl overflow-hidden border border-slate-800/80 group">
+                    <canvas id="waveCanvas" class="w-full h-full cursor-crosshair block"></canvas>
+                    
+                    <!-- Dynamic Readouts Overlaid on Canvas -->
+                    <div class="absolute bottom-3 left-3 bg-slate-950/85 backdrop-blur-sm border border-slate-800 px-3 py-2 rounded-lg text-xs flex flex-wrap gap-4 text-slate-300">
+                        <div>Wave Velocity (<span class="text-indigo-400 font-bold">v</span>): <span id="val-v" class="fira-code font-bold">330</span> m/s</div>
+                        <div>Frequency (<span class="text-emerald-400 font-bold">f</span>): <span id="val-f" class="fira-code font-bold">2.0</span> Hz</div>
+                        <div>Wavelength (<span class="text-amber-400 font-bold">&lambda;</span>): <span id="val-lambda" class="fira-code font-bold">165.0</span> m</div>
+                    </div>
+
+                    <!-- Spatial Phase Marker Tooltip Tool -->
+                    <div id="canvas-phase-tooltip" class="absolute hidden bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg shadow-xl text-xs pointer-events-none z-10 text-slate-200 max-w-[200px]">
+                        <div class="font-bold border-b border-slate-800 pb-1 mb-1 text-indigo-300 flex justify-between">
+                            <span>Phase Probe</span>
+                            <span id="probe-idx">#12</span>
+                        </div>
+                        <div>Displacement: <span id="probe-y" class="fira-code font-bold">0.00</span> m</div>
+                        <div>Phase angle: <span id="probe-angle-rad" class="fira-code font-bold text-emerald-400">0.00 rad</span></div>
+                        <div class="text-[10px] text-slate-400 mt-1">Oscillation Step: <span id="probe-phase-deg">0</span>&deg;</div>
+                    </div>
+                </div>
+
+                <!-- Control Buttons for Simulation Playback -->
+                <div class="flex items-center justify-between mt-4">
+                    <div class="flex items-center space-x-2">
+                        <button id="sim-play-btn" onclick="togglePlayState()" class="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/10 cursor-pointer transition-all duration-150">
+                            <!-- Pause Icon initially -->
+                            <svg id="play-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                            <svg id="pause-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </button>
+                        <button onclick="resetSimulation()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer transition-all duration-150">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 3v3H16"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Double Periodicity Demonstration Controller -->
+                    <div class="flex items-center space-x-2 bg-slate-950 border border-slate-800/80 p-1.5 rounded-xl">
+                        <span class="text-[11px] font-bold text-slate-400 px-2 tracking-wider uppercase">Visual Mode:</span>
+                        <button id="mode-btn-spatial" onclick="setVisualMode('spatial')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-indigo-400">
+                            Spatial (x-axis)
+                        </button>
+                        <button id="mode-btn-temporal" onclick="setVisualMode('temporal')" class="px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white">
+                            Temporal (Time)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical Insights & Double Periodicity Diagrams -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Spatial Displacements Block (Fig 8.1 a representation) -->
+                <div class="bg-slate-900/50 border border-slate-850 p-4 rounded-xl flex flex-col">
+                    <h4 class="text-xs font-bold tracking-wider text-slate-400 uppercase mb-2 flex items-center justify-between">
+                        <span>Spatial Analysis (Displacement vs Distance)</span>
+                        <span class="text-amber-400 fira-code text-[10px]">T = Fixed Instant</span>
+                    </h4>
+                    <p class="text-xs text-slate-300 mb-3 leading-relaxed">
+                        This captures a <strong>frozen snapshot</strong> of the whole medium. Note how the wave repeats itself perfectly over consecutive cycles. The spacing between equivalent phase states is the <strong>wavelength (&lambda;)</strong>.
+                    </p>
+                    <div class="mt-auto pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Spatial Periodicity:</span>
+                        <span class="font-bold text-indigo-400 fira-code">y(x) = A &bull; sin(kx)</span>
+                    </div>
+                </div>
+
+                <!-- Temporal Displacements Block (Fig 8.1 b representation) -->
+                <div class="bg-slate-900/50 border border-slate-850 p-4 rounded-xl flex flex-col">
+                    <h4 class="text-xs font-bold tracking-wider text-slate-400 uppercase mb-2 flex items-center justify-between">
+                        <span>Temporal Analysis (Displacement vs Time)</span>
+                        <span class="text-emerald-400 fira-code text-[10px]">X = Fixed Position</span>
+                    </h4>
+                    <p class="text-xs text-slate-300 mb-3 leading-relaxed">
+                        Tracking just <strong>one single particle</strong> over a time axis. The particle simply bobbles up-and-down (transverse) or left-and-right (longitudinal). The time required for one oscillation is the <strong>time period (T)</strong>.
+                    </p>
+                    <div class="mt-auto pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Temporal Periodicity:</span>
+                        <span class="font-bold text-emerald-400 fira-code">y(t) = A &bull; sin(&omega;t)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls & Sliders (Right Column) -->
+        <div class="lg:col-span-4 flex flex-col space-y-6">
+            <!-- Dynamic Parameter Sliders Panel -->
+            <div class="bg-slate-900/85 border border-slate-800 rounded-2xl p-5 flex flex-col space-y-5 glowing-border backdrop-blur-md">
+                <div class="border-b border-slate-800 pb-2">
+                    <h3 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Oscillation Parameters</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">Real-time control parameters of the wave packet</p>
+                </div>
+
+                <!-- Slider for Wave Speed / Medium selection -->
+                <div class="flex flex-col space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-300 flex justify-between">
+                        <span>Wave Propagation Medium</span>
+                        <span id="selected-medium-lbl" class="text-indigo-400 font-bold uppercase text-[11px]">Air (330 m/s)</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        <button onclick="selectMedium('air', 330)" class="med-btn px-2.5 py-2 text-xs font-bold rounded-lg border border-indigo-600 bg-indigo-600/10 text-indigo-300 hover:bg-indigo-600/20">
+                            Air (330 m/s)
+                        </button>
+                        <button onclick="selectMedium('water', 1500)" class="med-btn px-2.5 py-2 text-xs font-bold rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:bg-slate-800">
+                            Water (1500 m/s)
+                        </button>
+                        <button onclick="selectMedium('glass', 4500)" class="med-btn px-2.5 py-2 text-xs font-bold rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:bg-slate-800">
+                            Glass (4500 m/s)
+                        </button>
+                        <button onclick="selectMedium('vacuum', 0)" class="med-btn px-2.5 py-2 text-xs font-bold rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:bg-slate-800">
+                            Vacuum (Soundless)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Waveform Style -->
+                <div class="flex flex-col space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-300">Wave Structure Pattern</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="wave-type-transverse" onclick="setWaveType('transverse')" class="px-3 py-2 rounded-lg border border-indigo-500 bg-indigo-500/15 text-indigo-300 text-xs font-bold">
+                            Transverse Wave
+                        </button>
+                        <button id="wave-type-longitudinal" onclick="setWaveType('longitudinal')" class="px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs font-bold hover:bg-slate-800/50">
+                            Longitudinal Wave
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-normal mt-1">
+                        * Sound waves in fluids are purely <strong>longitudinal</strong>, characterized by rarefactions & compressions of molecules.
+                    </p>
+                </div>
+
+                <!-- Slider for Frequency -->
+                <div class="flex flex-col space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label for="slide-frequency" class="text-xs font-semibold text-slate-300">Source Frequency (f)</label>
+                        <span class="fira-code text-xs text-emerald-400 font-bold bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-900/40"><span id="lbl-frequency">2.0</span> Hz</span>
+                    </div>
+                    <input type="range" id="slide-frequency" min="0.5" max="5.0" step="0.1" value="2.0" oninput="updateWaveParam('frequency', this.value)" class="w-full accent-emerald-500 cursor-pointer">
+                    <p class="text-[10px] text-slate-400 leading-normal">
+                        * Changing frequency automatically adapts the <strong>wavelength</strong>! Observe how higher frequencies result in compressed wave crests.
+                    </p>
+                </div>
+
+                <!-- Slider for Amplitude -->
+                <div class="flex flex-col space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label for="slide-amplitude" class="text-xs font-semibold text-slate-300">Wave Amplitude (A)</label>
+                        <span class="fira-code text-xs text-indigo-400 font-bold bg-indigo-950/50 px-2 py-0.5 rounded border border-indigo-900/40"><span id="lbl-amplitude">40</span> m</span>
+                    </div>
+                    <input type="range" id="slide-amplitude" min="5" max="80" step="1" value="40" oninput="updateWaveParam('amplitude', this.value)" class="w-full accent-indigo-500 cursor-pointer">
+                </div>
+
+                <!-- Core Equation Box -->
+                <div class="bg-indigo-950/30 border border-indigo-850 p-4 rounded-xl flex flex-col space-y-2 relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-indigo-900/30 font-bold text-6xl pointer-events-none select-none select-none">v</div>
+                    <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Primary Mechanics Proof</span>
+                    <div class="flex items-center justify-between font-mono text-base font-bold text-white tracking-wide">
+                        <div>v = f &bull; &lambda;</div>
+                        <div id="equation-val" class="text-slate-300 font-normal text-xs bg-slate-900/60 px-2.5 py-1 rounded">330 = 2.0 &times; 165.0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Educational Phase Unit Circle (Real-time Math Visualizer) -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col space-y-3 relative glowing-border backdrop-blur-md">
+                <h4 class="text-xs font-bold text-purple-400 tracking-wider uppercase flex items-center justify-between">
+                    <span>Phase Vector (Angle Representation)</span>
+                    <span id="circle-angle-deg" class="fira-code text-[11px] text-purple-300">0&deg;</span>
+                </h4>
+                <div class="flex items-center space-x-4">
+                    <div class="w-24 h-24 rounded-full border-2 border-slate-800 flex items-center justify-center relative bg-slate-950 shadow-inner">
+                        <div id="vector-phase-line" class="absolute w-12 h-0.5 bg-purple-500 origin-left left-1/2 top-1/2 transform rotate-0"></div>
+                        <div class="absolute w-2 h-2 rounded-full bg-purple-400 left-1/2 top-1/2 -ml-1 -mt-1"></div>
+                    </div>
+                    <div class="flex-1 flex flex-col text-xs text-slate-300 space-y-1">
+                        <p class="leading-relaxed">
+                            A wave cyclic phase is best described as an angle. Hovering along the main wave captures exact vector angles corresponding to localized particle heights.
+                        </p>
+                        <div class="grid grid-cols-2 gap-1 mt-1 text-[10px] text-slate-400">
+                            <div>0&deg; / 2&pi; : Equilibrium</div>
+                            <div>90&deg; / &pi;/2 : Max Crest</div>
+                            <div>180&deg; / &pi; : Equilibrium</div>
+                            <div>270&deg; / 3&pi;/2 : Max Trough</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Active Tab Panel 2: 2D Ripple Tank -->
+    <section id="panel-ripple" class="tab-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Interactive 2D Ripple Tank Sandbox -->
+        <div class="lg:col-span-8 flex flex-col space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col glowing-border relative backdrop-blur-md">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-sm font-bold tracking-wide uppercase text-indigo-300">2D Fluid Ripple Tank Simulator</h3>
+                        <p class="text-xs text-slate-400">Click anywhere on the simulation grid to drop virtual stones</p>
+                    </div>
+                    <button onclick="clearRipples()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer">
+                        Clear Water Tank
+                    </button>
+                </div>
+
+                <div class="relative w-full aspect-square md:aspect-[16/9] bg-slate-950 border border-slate-800/80 rounded-xl overflow-hidden cursor-crosshair">
+                    <canvas id="rippleCanvas" class="w-full h-full block"></canvas>
+                    
+                    <div class="absolute top-4 left-4 bg-slate-900/90 border border-slate-700 p-3 rounded-lg text-xs max-w-sm pointer-events-none">
+                        <span class="font-bold text-amber-400 block mb-1">Observation Target</span>
+                        Notice how the ripples disperse in concentric wavefront circles. This represents <strong>energy propagating outwards</strong> while individual molecules stay in place.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Explanations -->
+        <div class="lg:col-span-4 flex flex-col space-y-5">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col space-y-4 glowing-border backdrop-blur-md">
+                <h4 class="text-xs font-bold tracking-wider text-indigo-400 uppercase">Ripple Sandbox Mechanics</h4>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    When a stone drops, elastic displacement triggers mechanical wave dispersion. Ripples expand with velocity relative to the medium's elastic coefficients and inertias.
+                </p>
+
+                <div class="bg-indigo-950/30 border border-indigo-850 p-3 rounded-xl flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div class="text-[11px] text-slate-300 space-y-1">
+                        <span class="font-bold text-white block">Mechanical Wave Properties:</span>
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li><strong>Inertia & Elasticity</strong>: Essential properties of any medium for propagation.</li>
+                            <li><strong>Energy Transfer</strong>: No actual matter flows across boundaries.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <span class="text-xs font-semibold text-slate-400 block">Damping Friction Factor</span>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" id="slide-damping" min="0.95" max="0.995" step="0.005" value="0.985" onchange="updateDamping(this.value)" class="w-full accent-indigo-500 cursor-pointer">
+                    </div>
+                    <p class="text-[10px] text-slate-400">
+                        Higher damping mimics a higher viscosity fluid (e.g., glycerin vs. water), forcing faster amplitude decay.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Active Tab Panel 3: Wave Matcher Game -->
+    <section id="panel-matcher" class="tab-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Interactive Gaming Workspace -->
+        <div class="lg:col-span-8 flex flex-col space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col glowing-border backdrop-blur-md relative">
+                <!-- Level Indicator -->
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h3 class="text-sm font-bold tracking-wide uppercase text-indigo-300">Phase Matcher Challenge</h3>
+                        <p class="text-xs text-slate-400">Adapt your controls to match the target blueprint wave (dotted line)!</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-amber-400">Score: <span id="game-score">0</span></span>
+                        <button onclick="generateNewTargetGame()" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-semibold cursor-pointer">
+                            Generate Challenge
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative w-full aspect-[21/9] bg-slate-950 border border-slate-800/80 rounded-xl overflow-hidden">
+                    <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+                    <div class="absolute top-3 right-3 flex items-center space-x-4 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded text-xs text-slate-400">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="inline-block w-4 h-0.5 border-t-2 border-dashed border-red-500"></span>
+                            <span>Target</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="inline-block w-4 h-0.5 border-t-2 border-indigo-500"></span>
+                            <span>Your Wave</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Modal Overlay for Win Condition -->
+                <div id="game-win-banner" class="hidden absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center space-y-3 z-20 rounded-2xl text-center px-4">
+                    <span class="text-5xl">🏆</span>
+                    <h3 class="text-2xl font-black text-emerald-400 tracking-wider">WAVE PHASE MATCHED PERFECTLY!</h3>
+                    <p class="text-sm text-slate-300 max-w-md">
+                        Superb visual tracking! You aligned the frequency, amplitude, and speed coefficients correctly to achieve constructive visual resonance.
+                    </p>
+                    <button onclick="nextGameLevel()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg cursor-pointer">
+                        Advance to Next Wave
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Sandbox Adjusters -->
+        <div class="lg:col-span-4 flex flex-col space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col space-y-4 glowing-border backdrop-blur-md">
+                <h4 class="text-xs font-bold text-indigo-400 uppercase">Mechanical Wave Shifter</h4>
+                <p class="text-xs text-slate-300">
+                    Match the red target by manipulating your wave dimensions. Watch out for phase inversions and stretching limits!
+                </p>
+
+                <!-- Game Adjuster: Frequency -->
+                <div class="flex flex-col space-y-1">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-300">Your Frequency</span>
+                        <span class="fira-code text-indigo-400"><span id="lbl-game-freq">2.0</span> Hz</span>
+                    </div>
+                    <input type="range" id="slide-game-freq" min="1.0" max="4.0" step="0.1" value="2.0" oninput="updateGameParam('frequency', this.value)" class="w-full accent-indigo-500 cursor-pointer">
+                </div>
+
+                <!-- Game Adjuster: Amplitude -->
+                <div class="flex flex-col space-y-1">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-300">Your Amplitude</span>
+                        <span class="fira-code text-indigo-400"><span id="lbl-game-amp">30</span> m</span>
+                    </div>
+                    <input type="range" id="slide-game-amp" min="10" max="60" step="1" value="30" oninput="updateGameParam('amplitude', this.value)" class="w-full accent-indigo-500 cursor-pointer">
+                </div>
+
+                <!-- Game Adjuster: Velocity / Phase Offset -->
+                <div class="flex flex-col space-y-1">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-300">Your Phase Phase Offset</span>
+                        <span class="fira-code text-indigo-400"><span id="lbl-game-phase">0.0</span> rad</span>
+                    </div>
+                    <input type="range" id="slide-game-phase" min="0" max="6.28" step="0.1" value="0.0" oninput="updateGameParam('phase', this.value)" class="w-full accent-indigo-500 cursor-pointer">
+                </div>
+
+                <div class="border-t border-slate-800 pt-3 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Match Accuracy:</span>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="game-accuracy-bar" class="bg-amber-500 h-full" style="width: 10%"></div>
+                        </div>
+                        <span id="game-accuracy-percent" class="font-bold text-slate-300">10%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Active Tab Panel 4: Concepts & Recall -->
+    <section id="panel-concepts" class="tab-panel hidden flex flex-col space-y-6">
+        <!-- Concepts Hub Headers -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Theory Block 1: Wave Classifications -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 relative overflow-hidden glowing-border">
+                <h3 class="text-lg font-bold text-white mb-3">1. Three Classes of Physical Waves</h3>
+                <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+                    <div>
+                        <span class="font-bold text-indigo-400 text-sm block">I. Mechanical Waves</span>
+                        Requires physical elastic matter for propagating energy (Sound waves, seismic movements, stretched strings). Cannot pass through empty vacuum space.
+                    </div>
+                    <div>
+                        <span class="font-bold text-indigo-400 text-sm block">II. Electromagnetic Waves</span>
+                        Oscillating electric & magnetic orthogonal vectors. Medium matter isn't needed. (Light waves, Radio signals, X-rays).
+                    </div>
+                    <div>
+                        <span class="font-bold text-indigo-400 text-sm block">III. Matter Waves</span>
+                        Quantum particle waves associated with moving mass molecules. (De Broglie wave dynamics).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Concept Recall Check -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 glowing-border">
+                <h3 class="text-lg font-bold text-white mb-3 flex items-center space-x-2">
+                    <span class="w-5 h-5 rounded bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs font-black">?</span>
+                    <span>Can You Recall? (Interactive Quiz)</span>
+                </h3>
+
+                <!-- Self Assessment Interface -->
+                <div class="space-y-4">
+                    <!-- Question Item -->
+                    <div class="border border-slate-800/80 p-3.5 rounded-xl bg-slate-950/40">
+                        <p class="text-xs font-bold text-white mb-2">Q1. Can mechanical sound waves travel through empty vacuum space?</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="checkRecallAnswer(1, true)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors cursor-pointer">Yes, of course</button>
+                            <button onclick="checkRecallAnswer(1, false)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors cursor-pointer">No, impossible</button>
+                        </div>
+                        <div id="recall-feedback-1" class="hidden mt-2 p-2 bg-slate-900 border border-slate-800 text-[11px] rounded leading-relaxed"></div>
+                    </div>
+
+                    <!-- Question Item -->
+                    <div class="border border-slate-800/80 p-3.5 rounded-xl bg-slate-950/40">
+                        <p class="text-xs font-bold text-white mb-2">Q2. What defines the physical pitch attribute of a Sound Wave?</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="checkRecallAnswer(2, 'amp')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors cursor-pointer">Its Wave Amplitude</button>
+                            <button onclick="checkRecallAnswer(2, 'freq')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors cursor-pointer">Its Wave Frequency</button>
+                        </div>
+                        <div id="recall-feedback-2" class="hidden mt-2 p-2 bg-slate-900 border border-slate-800 text-[11px] rounded leading-relaxed"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wave Characteristic Parameters Guide Card -->
+        <div class="bg-slate-900/40 border border-slate-850 p-6 rounded-2xl">
+            <h3 class="text-md font-bold text-slate-200 mb-4 border-b border-slate-800 pb-2 uppercase tracking-wider">Wave Properties Reference Matrix</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs leading-relaxed text-slate-300">
+                <div class="flex flex-col space-y-1">
+                    <span class="font-bold text-indigo-400">Amplitude (A)</span>
+                    <p>The maximum peak deviation of any particle away from its rest position. Measured in standard metric meters (m).</p>
+                </div>
+                <div class="flex flex-col space-y-1">
+                    <span class="font-bold text-indigo-400">Double Periodicity</span>
+                    <p>Waves repeat in dual domains: time and space. The distance cycle represents spatial &lambda;, whereas temporal repeat represents T.</p>
+                </div>
+                <div class="flex flex-col space-y-1">
+                    <span class="font-bold text-indigo-400">Wavelength (&lambda;)</span>
+                    <p>Linear spatial distance between successive particles vibrating in identical harmonic phase profiles.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="mt-auto border-t border-slate-900 bg-slate-950/40 py-4 text-center text-[11px] text-slate-500">
+    Designed for students exploring Chapter 8 (Waves and Sound). Real-time Canvas engine programmed via physics vector math.
+</footer>
+
+<script>
+// Application Global States
+let activeTab = 'lab';
+let isPlaying = true;
+let audioCtx = null;
+let oscillatorNode = null;
+let gainNode = null;
+let isAudioActive = false;
+
+// Physics Parameters Model
+const waveParams = {
+    amplitude: 40,
+    frequency: 2.0,
+    speed: 330, // in generic m/s units mapped to pixel scale coordinates
+    phase: 0.0,
+    wavelength: 165.0,
+    waveType: 'transverse', // transverse, longitudinal
+    visualMode: 'spatial' // spatial, temporal
+};
+
+// Canvas references
+let waveCanvas, waveCtx;
+let rippleCanvas, rippleCtx;
+let gameCanvas, gameCtx;
+
+// Animation Frames
+let waveAnimFrame, rippleAnimFrame, gameAnimFrame;
+
+// Drop Stone Ripple array
+let ripples = [];
+
+// Game Target details
+let gameTarget = {
+    amplitude: 45,
+    frequency: 3.1,
+    phase: 1.5,
+    accuracy: 0
+};
+let gameScore = 0;
+
+window.onload = function() {
+    initCanvases();
+    setupListeners();
+    generateNewTargetGame();
+    animateWave();
+    animateRipple();
+    animateGame();
+};
+
+function initCanvases() {
+    waveCanvas = document.getElementById('waveCanvas');
+    waveCtx = waveCanvas.getContext('2d');
+    rippleCanvas = document.getElementById('rippleCanvas');
+    rippleCtx = rippleCanvas.getContext('2d');
+    gameCanvas = document.getElementById('gameCanvas');
+    gameCtx = gameCanvas.getContext('2d');
+
+    resizeCanvases();
+}
+
+function resizeCanvases() {
+    const parentWidthWave = waveCanvas.parentElement.clientWidth;
+    const parentHeightWave = waveCanvas.parentElement.clientHeight;
+    waveCanvas.width = parentWidthWave * window.devicePixelRatio;
+    waveCanvas.height = parentHeightWave * window.devicePixelRatio;
+    waveCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const parentWidthRipple = rippleCanvas.parentElement.clientWidth;
+    const parentHeightRipple = rippleCanvas.parentElement.clientHeight;
+    rippleCanvas.width = parentWidthRipple * window.devicePixelRatio;
+    rippleCanvas.height = parentHeightRipple * window.devicePixelRatio;
+    rippleCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const parentWidthGame = gameCanvas.parentElement.clientWidth;
+    const parentHeightGame = gameCanvas.parentElement.clientHeight;
+    gameCanvas.width = parentWidthGame * window.devicePixelRatio;
+    gameCanvas.height = parentHeightGame * window.devicePixelRatio;
+    gameCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+
+window.addEventListener('resize', () => {
+    resizeCanvases();
+});
+
+function setupListeners() {
+    // Spatial Phase Marker dynamics on canvas hover
+    waveCanvas.addEventListener('mousemove', handleWaveCanvasHover);
+    waveCanvas.addEventListener('mouseleave', () => {
+        document.getElementById('canvas-phase-tooltip').classList.add('hidden');
+    });
+
+    // Ripple click listeners
+    rippleCanvas.addEventListener('click', handleRippleCanvasClick);
+
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            togglePlayState();
+        }
+    });
+}
+
+function switchTab(tabId) {
+    activeTab = tabId;
+    
+    // UI tabs active classes updates
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+        btn.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-slate-800/50');
+    });
+    document.querySelectorAll('.mob-tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('text-slate-400');
+    });
+
+    // Turn active tab on desktop
+    const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+    if (targetBtn) {
+        targetBtn.classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-slate-800/50');
+        targetBtn.classList.add('bg-indigo-600', 'text-white', 'shadow');
+    }
+
+    // Mobile tabs trigger
+    const mobTargetBtn = document.getElementById(`mob-tab-btn-${tabId}`);
+    if (mobTargetBtn) {
+        mobTargetBtn.classList.remove('text-slate-400');
+        mobTargetBtn.classList.add('bg-indigo-600', 'text-white');
+    }
+
+    // Hide show panel targets
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.add('hidden');
+    });
+    document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+
+    // Force layouts updates
+    resizeCanvases();
+}
+
+let timeOffset = 0;
+function animateWave() {
+    if (!waveCanvas || !waveCtx) return;
+
+    const width = waveCanvas.width / window.devicePixelRatio;
+    const height = waveCanvas.height / window.devicePixelRatio;
+    
+    waveCtx.fillStyle = '#020617';
+    waveCtx.fillRect(0, 0, width, height);
+
+    // Grid System
+    drawGrid(waveCtx, width, height);
+
+    // Draw baseline
+    waveCtx.strokeStyle = '#334155';
+    waveCtx.lineWidth = 1;
+    waveCtx.beginPath();
+    waveCtx.moveTo(40, height / 2);
+    waveCtx.lineTo(width - 40, height / 2);
+    waveCtx.stroke();
+
+    // Calculate dynamic wavelength from v = f * lambda
+    // Scaled for display purposes:
+    // Wave speed parameter directly maps physical scale to display
+    waveParams.wavelength = waveParams.frequency > 0 ? (waveParams.speed / waveParams.frequency) : 0;
+    
+    const scaleLambda = waveParams.wavelength * 0.45; // Display scale modifier
+    const amplitude = waveParams.amplitude;
+    const omega = 2 * Math.PI * waveParams.frequency;
+    const k = (2 * Math.PI) / scaleLambda;
+
+    if (isPlaying) {
+        timeOffset += 0.016; // Approx 60 FPS
+    }
+
+    // Generate Wave particles
+    const particleCount = 42;
+    const waveStartX = 80;
+    const waveEndX = width - 80;
+    const segmentLength = (waveEndX - waveStartX) / particleCount;
+
+    // Draw solid propagation guide-line
+    waveCtx.strokeStyle = 'rgba(79, 70, 229, 0.4)';
+    waveCtx.lineWidth = 2.5;
+    waveCtx.beginPath();
+
+    for (let i = 0; i <= width; i += 2) {
+        if (i < waveStartX || i > waveEndX) continue;
+        const xCoord = i - waveStartX;
+        let yDisp = 0;
+
+        if (waveParams.visualMode === 'spatial') {
+            yDisp = amplitude * Math.sin(k * xCoord - omega * timeOffset);
+        } else {
+            // Temporal: Freeze space factor, show time oscillations
+            yDisp = amplitude * Math.sin(omega * (timeOffset - xCoord/waveParams.speed));
+        }
+
+        if (i === waveStartX) waveCtx.moveTo(i, height / 2 + yDisp);
+        else waveCtx.lineTo(i, height / 2 + yDisp);
+    }
+    waveCtx.stroke();
+
+    // Draw Individual mechanical particles
+    for (let j = 0; j <= particleCount; j++) {
+        const defaultX = waveStartX + (j * segmentLength);
+        const relativeX = defaultX - waveStartX;
+        let displacedX = defaultX;
+        let displacedY = height / 2;
+
+        const phaseOffsetAngle = k * relativeX - omega * timeOffset;
+        const displacement = amplitude * Math.sin(phaseOffsetAngle);
+
+        if (waveParams.waveType === 'transverse') {
+            displacedY = height / 2 + displacement;
+        } else {
+            // Longitudinal Particle Displacement
+            displacedX = defaultX + displacement * 0.75;
+        }
+
+        // Color coding single particles for pedagogical visual focus
+        if (j === 0) {
+            // Source Oscillator
+            waveCtx.fillStyle = '#f59e0b';
+            waveCtx.beginPath();
+            waveCtx.arc(displacedX, displacedY, 8, 0, Math.PI * 2);
+            waveCtx.fill();
+        } else if (j === 15) {
+            // Highlighted particle for phase tracking
+            waveCtx.fillStyle = '#ef4444';
+            waveCtx.beginPath();
+            waveCtx.arc(displacedX, displacedY, 6, 0, Math.PI * 2);
+            waveCtx.fill();
+            // Pulse wave line to baseline
+            waveCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+            waveCtx.setLineDash([3, 3]);
+            waveCtx.beginPath();
+            waveCtx.moveTo(displacedX, displacedY);
+            waveCtx.lineTo(displacedX, height / 2);
+            waveCtx.stroke();
+            waveCtx.setLineDash([]);
+        } else {
+            waveCtx.fillStyle = '#3b82f6';
+            waveCtx.beginPath();
+            waveCtx.arc(displacedX, displacedY, 4, 0, Math.PI * 2);
+            waveCtx.fill();
+        }
+    }
+
+    // Draw dynamic spatial ruler for 1 wavelength
+    drawWavelengthRuler(waveCtx, waveStartX, height / 2, scaleLambda);
+
+    // Call update to UI text components
+    updateUIPanelTexts();
+
+    waveAnimFrame = requestAnimationFrame(animateWave);
+}
+
+function drawGrid(ctx, width, height) {
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 0.5;
+    const spacing = 40;
+    
+    for (let x = 0; x < width; x += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+    }
+    for (let y = 0; y < height; y += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+}
+
+function drawWavelengthRuler(ctx, startX, baselineY, scaleLambda) {
+    // Only display if spatial is active
+    if (waveParams.visualMode !== 'spatial') return;
+
+    const rulerY = baselineY - 70;
+    const endX = startX + scaleLambda;
+
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 1.5;
+
+    // Draw horizontal bracket
+    ctx.beginPath();
+    ctx.moveTo(startX, rulerY);
+    ctx.lineTo(endX, rulerY);
+    // Left Tick
+    ctx.moveTo(startX, rulerY - 6);
+    ctx.lineTo(startX, rulerY + 6);
+    // Right Tick
+    ctx.moveTo(endX, rulerY - 6);
+    ctx.lineTo(endX, rulerY + 6);
+    ctx.stroke();
+
+    // Ruler Text
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 10px Fira Code';
+    ctx.fillText('Wavelength (λ)', startX + (scaleLambda / 2) - 40, rulerY - 10);
+}
+
+function handleWaveCanvasHover(e) {
+    const tooltip = document.getElementById('canvas-phase-tooltip');
+    if (!tooltip) return;
+
+    // Get cursor bounding inside element coordinates
+    const rect = waveCanvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const waveStartX = 80;
+    const waveEndX = waveCanvas.width / window.devicePixelRatio - 80;
+
+    if (mouseX >= waveStartX && mouseX <= waveEndX) {
+        tooltip.classList.remove('hidden');
+        tooltip.style.left = `${mouseX + 15}px`;
+        tooltip.style.top = `${mouseY + 15}px`;
+
+        // Calculate metrics representing this local x spatial location
+        const relativeX = mouseX - waveStartX;
+        const scaleLambda = (waveParams.speed / waveParams.frequency) * 0.45;
+        const omega = 2 * Math.PI * waveParams.frequency;
+        const k = (2 * Math.PI) / scaleLambda;
+
+        const phaseVal = k * relativeX - omega * timeOffset;
+        const displacement = waveParams.amplitude * Math.sin(phaseVal);
+
+        // Map relative phase angle value scaled 0 to 2pi
+        const angleRad = (phaseVal % (2 * Math.PI) + (2 * Math.PI)) % (2 * Math.PI);
+        const angleDeg = Math.round(angleRad * (180 / Math.PI));
+
+        document.getElementById('probe-y').innerText = `${(displacement/20).toFixed(2)} `;
+        document.getElementById('probe-angle-rad').innerText = `${angleRad.toFixed(2)} rad`;
+        document.getElementById('probe-phase-deg').innerText = angleDeg;
+        document.getElementById('probe-idx').innerText = `X = ${relativeX.toFixed(0)}m`;
+
+        // Rotate helper unit circle indicator vector line
+        const vectorLine = document.getElementById('vector-phase-line');
+        if (vectorLine) {
+            vectorLine.style.transform = `rotate(${-angleDeg}deg)`;
+        }
+        document.getElementById('circle-angle-deg').innerText = `${angleDeg}°`;
+    } else {
+        tooltip.classList.add('hidden');
+    }
+}
+
+function updateUIPanelTexts() {
+    document.getElementById('val-v').innerText = waveParams.speed;
+    document.getElementById('val-f').innerText = waveParams.frequency.toFixed(1);
+    document.getElementById('val-lambda').innerText = waveParams.wavelength.toFixed(1);
+
+    document.getElementById('lbl-frequency').innerText = waveParams.frequency.toFixed(1);
+    document.getElementById('lbl-amplitude').innerText = waveParams.amplitude;
+
+    const mathTextStr = `${waveParams.speed} = ${waveParams.frequency.toFixed(1)} &times; ${waveParams.wavelength.toFixed(1)}`;
+    document.getElementById('equation-val').innerHTML = mathTextStr;
+}
+
+function updateWaveParam(param, value) {
+    if (param === 'frequency') {
+        waveParams.frequency = parseFloat(value);
+        if (isAudioActive && oscillatorNode) {
+            // Update physical pitch dynamically for sensory engagement!
+            oscillatorNode.frequency.setValueAtTime(waveParams.frequency * 150, audioCtx.currentTime);
+        }
+    } else if (param === 'amplitude') {
+        waveParams.amplitude = parseInt(value);
+    }
+}
+
+function selectMedium(mediumKey, speedVal) {
+    waveParams.speed = speedVal;
+    
+    // UI selections active state toggle
+    document.querySelectorAll('.med-btn').forEach(btn => {
+        btn.classList.remove('border-indigo-600', 'bg-indigo-600/10', 'text-indigo-300');
+        btn.classList.add('border-slate-800', 'bg-slate-950', 'text-slate-400');
+    });
+
+    event.target.classList.remove('border-slate-800', 'bg-slate-950', 'text-slate-400');
+    event.target.classList.add('border-indigo-600', 'bg-indigo-600/10', 'text-indigo-300');
+
+    document.getElementById('selected-medium-lbl').innerText = `${mediumKey} (${speedVal} m/s)`;
+}
+
+function setWaveType(type) {
+    waveParams.waveType = type;
+    const btnTrans = document.getElementById('wave-type-transverse');
+    const btnLongi = document.getElementById('wave-type-longitudinal');
+
+    if (type === 'transverse') {
+        btnTrans.className = "px-3 py-2 rounded-lg border border-indigo-500 bg-indigo-500/15 text-indigo-300 text-xs font-bold";
+        btnLongi.className = "px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs font-bold hover:bg-slate-800/50";
+    } else {
+        btnTrans.className = "px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 text-xs font-bold hover:bg-slate-800/50";
+        btnLongi.className = "px-3 py-2 rounded-lg border border-indigo-500 bg-indigo-500/15 text-indigo-300 text-xs font-bold";
+    }
+}
+
+function setVisualMode(mode) {
+    waveParams.visualMode = mode;
+    const btnSpatial = document.getElementById('mode-btn-spatial');
+    const btnTemporal = document.getElementById('mode-btn-temporal');
+
+    if (mode === 'spatial') {
+        btnSpatial.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-indigo-400";
+        btnTemporal.className = "px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white";
+    } else {
+        btnSpatial.className = "px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white";
+        btnTemporal.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-indigo-400";
+    }
+}
+
+function togglePlayState() {
+    isPlaying = !isPlaying;
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+
+    if (isPlaying) {
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+    } else {
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+    }
+}
+
+function resetSimulation() {
+    timeOffset = 0;
+    isPlaying = true;
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    playIcon.classList.add('hidden');
+    pauseIcon.classList.remove('hidden');
+}
+
+function toggleAudioEngine() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (!isAudioActive) {
+        // Create nodes
+        oscillatorNode = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+
+        // Setup pitch (map frequency scaled up to audible registers)
+        oscillatorNode.type = 'sine';
+        oscillatorNode.frequency.setValueAtTime(waveParams.frequency * 150, audioCtx.currentTime);
+
+        // Gentle volume setting
+        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+        oscillatorNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillatorNode.start();
+
+        isAudioActive = true;
+        document.getElementById('audio-status-text').innerText = "Audio: Playing";
+        document.getElementById('audio-status-dot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+        document.getElementById('audio-toggle-btn').className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold transition-all duration-200 cursor-pointer";
+    } else {
+        oscillatorNode.stop();
+        oscillatorNode.disconnect();
+        isAudioActive = false;
+        document.getElementById('audio-status-text').innerText = "Audio: Muted";
+        document.getElementById('audio-status-dot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-ping";
+        document.getElementById('audio-toggle-btn').className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition-all duration-200 cursor-pointer";
+    }
+}
+
+let dampingCoefficient = 0.985;
+function handleRippleCanvasClick(e) {
+    const rect = rippleCanvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Drop new stone ripples source points
+    ripples.push({
+        x: clickX,
+        y: clickY,
+        radius: 0,
+        maxRadius: Math.max(rippleCanvas.width, rippleCanvas.height) / 2,
+        amplitude: 1.0,
+        speed: 3.5
+    });
+}
+
+function clearRipples() {
+    ripples = [];
+}
+
+function updateDamping(value) {
+    dampingCoefficient = parseFloat(value);
+}
+
+function animateRipple() {
+    if (!rippleCanvas || !rippleCtx) return;
+
+    const width = rippleCanvas.width / window.devicePixelRatio;
+    const height = rippleCanvas.height / window.devicePixelRatio;
+
+    rippleCtx.fillStyle = '#020617';
+    rippleCtx.fillRect(0, 0, width, height);
+
+    // Draw background ripples water grid lines
+    rippleCtx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+    rippleCtx.lineWidth = 1;
+    const spacing = 30;
+    for (let x = 0; x < width; x += spacing) {
+        rippleCtx.beginPath();
+        rippleCtx.moveTo(x, 0);
+        rippleCtx.lineTo(x, height);
+        rippleCtx.stroke();
+    }
+    for (let y = 0; y < height; y += spacing) {
+        rippleCtx.beginPath();
+        rippleCtx.moveTo(0, y);
+        rippleCtx.lineTo(width, y);
+        rippleCtx.stroke();
+    }
+
+    // Process and draw expand circles ripples propagation
+    ripples.forEach((wave, index) => {
+        wave.radius += wave.speed;
+        wave.amplitude *= dampingCoefficient; // Real frictional dampening!
+
+        // Multi ring draw for high realistic dispersion effect
+        for (let ring = 0; ring < 3; ring++) {
+            const currentRadius = wave.radius - (ring * 18);
+            if (currentRadius <= 0) continue;
+
+            const radialPercent = currentRadius / wave.maxRadius;
+            if (radialPercent >= 1.0) continue;
+
+            const alpha = wave.amplitude * (1.0 - radialPercent);
+            
+            rippleCtx.strokeStyle = `rgba(99, 102, 241, ${alpha})`;
+            rippleCtx.lineWidth = 4 * (1.0 - radialPercent);
+            rippleCtx.beginPath();
+            rippleCtx.arc(wave.x, wave.y, currentRadius, 0, Math.PI * 2);
+            rippleCtx.stroke();
+        }
+    });
+
+    // Strip dead wave elements
+    ripples = ripples.filter(w => w.amplitude > 0.05 && w.radius < w.maxRadius);
+
+    rippleAnimFrame = requestAnimationFrame(animateRipple);
+}
+
+const gameWaveConfig = {
+    amplitude: 30,
+    frequency: 2.0,
+    phase: 0.0,
+    speed: 330
+};
+
+function generateNewTargetGame() {
+    // Generate randomized challenges
+    gameTarget.amplitude = 20 + Math.random() * 30;
+    gameTarget.frequency = 1.5 + Math.random() * 2.0;
+    gameTarget.phase = Math.random() * Math.PI * 1.5;
+
+    // Push targets indicators to game sliders
+    document.getElementById('game-win-banner').classList.add('hidden');
+}
+
+function updateGameParam(param, val) {
+    const floatVal = parseFloat(val);
+    if (param === 'frequency') {
+        gameWaveConfig.frequency = floatVal;
+        document.getElementById('lbl-game-freq').innerText = floatVal.toFixed(1);
+    } else if (param === 'amplitude') {
+        gameWaveConfig.amplitude = floatVal;
+        document.getElementById('lbl-game-amp').innerText = floatVal.toFixed(0);
+    } else if (param === 'phase') {
+        gameWaveConfig.phase = floatVal;
+        document.getElementById('lbl-game-phase').innerText = floatVal.toFixed(1);
+    }
+}
+
+function animateGame() {
+    if (!gameCanvas || !gameCtx) return;
+
+    const width = gameCanvas.width / window.devicePixelRatio;
+    const height = gameCanvas.height / window.devicePixelRatio;
+
+    gameCtx.fillStyle = '#020617';
+    gameCtx.fillRect(0, 0, width, height);
+
+    drawGrid(gameCtx, width, height);
+
+    // Draw baseline
+    gameCtx.strokeStyle = '#334155';
+    gameCtx.lineWidth = 0.5;
+    gameCtx.beginPath();
+    gameCtx.moveTo(0, height / 2);
+    gameCtx.lineTo(width, height / 2);
+    gameCtx.stroke();
+
+    const scaleLambdaTarget = (gameWaveConfig.speed / gameTarget.frequency) * 0.45;
+    const scaleLambdaGame = (gameWaveConfig.speed / gameWaveConfig.frequency) * 0.45;
+
+    const kTarget = (2 * Math.PI) / scaleLambdaTarget;
+    const kGame = (2 * Math.PI) / scaleLambdaGame;
+
+    // Draw Target Dotted Wave
+    gameCtx.strokeStyle = '#ef4444';
+    gameCtx.lineWidth = 2;
+    gameCtx.setLineDash([5, 5]);
+    gameCtx.beginPath();
+    for (let x = 0; x < width; x += 3) {
+        const yVal = height/2 + gameTarget.amplitude * Math.sin(kTarget * x - gameTarget.phase);
+        if (x === 0) gameCtx.moveTo(x, yVal);
+        else gameCtx.lineTo(x, yVal);
+    }
+    gameCtx.stroke();
+    gameCtx.setLineDash([]);
+
+    // Draw Player Interactive Wave
+    gameCtx.strokeStyle = '#6366f1';
+    gameCtx.lineWidth = 3;
+    gameCtx.beginPath();
+    for (let x = 0; x < width; x += 3) {
+        const yVal = height/2 + gameWaveConfig.amplitude * Math.sin(kGame * x - gameWaveConfig.phase);
+        if (x === 0) gameCtx.moveTo(x, yVal);
+        else gameCtx.lineTo(x, yVal);
+    }
+    gameCtx.stroke();
+
+    // Verify fitting metric parameters comparison algorithm
+    checkAccuracyFit();
+
+    gameAnimFrame = requestAnimationFrame(animateGame);
+}
+
+function checkAccuracyFit() {
+    const diffAmp = Math.abs(gameWaveConfig.amplitude - gameTarget.amplitude);
+    const diffFreq = Math.abs(gameWaveConfig.frequency - gameTarget.frequency);
+    
+    // Phase matching handles 2pi modular wrap-arounds beautifully
+    const diffPhase = Math.abs((gameWaveConfig.phase % (2*Math.PI)) - (gameTarget.phase % (2*Math.PI)));
+
+    // Weighted matching accuracy metric
+    const maxDiffAmp = 50;
+    const maxDiffFreq = 3.0;
+    const maxDiffPhase = Math.PI;
+
+    const scoreAmp = Math.max(0, 1 - diffAmp / maxDiffAmp);
+    const scoreFreq = Math.max(0, 1 - diffFreq / maxDiffFreq);
+    const scorePhase = Math.max(0, 1 - diffPhase / maxDiffPhase);
+
+    const matchPercent = Math.round(((scoreAmp * 0.4) + (scoreFreq * 0.4) + (scorePhase * 0.2)) * 100);
+
+    document.getElementById('game-accuracy-bar').style.width = `${matchPercent}%`;
+    document.getElementById('game-accuracy-percent').innerText = `${matchPercent}%`;
+
+    // Match criteria met threshold
+    if (matchPercent > 94) {
+        document.getElementById('game-win-banner').classList.remove('hidden');
+    }
+}
+
+function nextGameLevel() {
+    gameScore += 10;
+    document.getElementById('game-score').innerText = gameScore;
+    generateNewTargetGame();
+}
+
+function checkRecallAnswer(qNum, value) {
+    const feedback1 = document.getElementById('recall-feedback-1');
+    const feedback2 = document.getElementById('recall-feedback-2');
+
+    if (qNum === 1) {
+        feedback1.classList.remove('hidden');
+        if (value === false) {
+            feedback1.className = "mt-2 p-2.5 bg-emerald-950/40 border border-emerald-900/60 text-xs rounded text-emerald-300 leading-relaxed";
+            feedback1.innerHTML = "<strong>Correct!</strong> Mechanical waves require material particle collision vectors. Space has no molecules; therefore sound has absolutely nothing to travel through.";
+        } else {
+            feedback1.className = "mt-2 p-2.5 bg-rose-950/40 border border-rose-900/60 text-xs rounded text-rose-300 leading-relaxed";
+            feedback1.innerHTML = "<strong>Incorrect</strong>. Sound is a mechanical compression wave. Without matter particles to transfer elastic forces, it fails to propagate.";
+        }
+    } else if (qNum === 2) {
+        feedback2.classList.remove('hidden');
+        if (value === 'freq') {
+            feedback2.className = "mt-2 p-2.5 bg-emerald-950/40 border border-emerald-900/60 text-xs rounded text-emerald-300 leading-relaxed";
+            feedback2.innerHTML = "<strong>Correct!</strong> Sound pitch is determined purely by frequency. High frequency = High Pitch (Shrill tone), Low Frequency = Low Pitch (Deep Bass).";
+        } else {
+            feedback2.className = "mt-2 p-2.5 bg-rose-950/40 border border-rose-900/60 text-xs rounded text-rose-300 leading-relaxed";
+            feedback2.innerHTML = "<strong>Incorrect</strong>. Amplitude is associated with sound <strong>loudness</strong>. The pitch frequency determines high vs. low musical octaves.";
+        }
+    }
+}
+</script>
+</body>
+</html>
