@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaveCanvas - Interactive Wave Speed Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        canvas {
+            touch-action: none;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+        input[type="range"] {
+            accent-color: #38bdf8;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-sky-500/30 selection:text-sky-200">
+
+    <!-- Premium Navigation Header -->
+    <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-sky-500 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-sky-500/10">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">WaveCanvas <span class="text-sky-400 text-sm font-semibold px-2 py-0.5 bg-sky-950/50 rounded-full border border-sky-800/50">v2.0</span></h1>
+                    <p class="text-xs text-slate-400">Interactive Wave Speed & Environmental Mechanics Explorer</p>
+                </div>
+            </div>
+            
+            <!-- Simulation Mode Selector Tabs -->
+            <nav class="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
+                <button onclick="switchTab('string')" id="tab-string-btn" class="px-4 py-2 text-xs font-semibold rounded-lg transition-all bg-sky-500 text-slate-950 shadow-md shadow-sky-500/15">
+                    String Waves
+                </button>
+                <button onclick="switchTab('sound')" id="tab-sound-btn" class="px-4 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white">
+                    Sound Speed Lab
+                </button>
+                <button onclick="switchTab('concert')" id="tab-concert-btn" class="px-4 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white">
+                    The Concert Race
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="max-w-7xl mx-auto p-4 md:p-8 grid lg:grid-cols-12 gap-8 flex-1 w-full">
+        
+        <!-- Left Simulation/Canvas Window (8 Columns) -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Main Rendering Box -->
+            <div class="relative bg-slate-900/40 rounded-2xl border border-slate-800/80 p-4 shadow-2xl backdrop-blur overflow-hidden">
+                <div class="absolute top-4 left-4 z-10 flex gap-2">
+                    <span id="badge-mode" class="px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-sky-500/10 text-sky-400 rounded-full border border-sky-500/20">
+                        Transverse Wave Mode
+                    </span>
+                    <button onclick="triggerPulse()" id="pulseBtn" class="px-3 py-1 text-xs font-bold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 rounded-full border border-indigo-500/30 transition-all flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span> Trigger Pulse
+                    </button>
+                </div>
+
+                <div class="absolute top-4 right-4 z-10 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 text-right">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Calculated Velocity (v)</div>
+                    <div id="velocityDisplay" class="text-xl font-bold text-emerald-400 code-font">31.62 m/s</div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <canvas id="physicsCanvas" class="w-full h-[380px] rounded-xl border border-slate-800/60 shadow-inner"></canvas>
+            </div>
+
+            <!-- Contextual Learning Panel (Adapts to Active Tab) -->
+            <div class="bg-slate-900/30 p-6 rounded-2xl border border-slate-800/80 backdrop-blur flex flex-col gap-4">
+                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <span class="p-1 rounded bg-sky-500/10 text-sky-400">💡</span> Core Physical Insights
+                </h3>
+                
+                <!-- String wave insight -->
+                <div id="insight-string" class="space-y-2 text-sm text-slate-300">
+                    <p>The speed of a transverse wave along a stretched string is determined directly by the dynamic balancing of two competing parameters: the restoring force (supplied by tension <strong class="text-sky-400">T</strong>) and the inertial property (supplied by linear mass density <strong class="text-sky-400 font-mono">m = M/L</strong>).</p>
+                    <div class="bg-slate-950/40 p-3 rounded-lg border border-slate-800 code-font text-center text-base font-semibold text-emerald-300 flex items-center justify-center gap-2">
+                        v = <span class="border-l-2 pl-1">√</span>(<span class="underline decoration-indigo-400">T</span> / <span class="underline decoration-indigo-400">m</span>)
+                    </div>
+                </div>
+
+                <!-- Sound wave insight -->
+                <div id="insight-sound" class="space-y-2 text-sm text-slate-300 hidden">
+                    <p>Newton's initial formula assumed wave propagation is isothermal ($v = \sqrt{P/\rho}$). However, Laplace corrected this, showing compression happens too rapidly for heat transfer, making it adiabatic ($v = \sqrt{\gamma P/\rho}$). Experiment with temperature and pressure below to watch the physical changes.</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-950/40 p-3 rounded-lg border border-slate-800 text-center">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Newton's Formula</div>
+                            <div class="text-sm font-semibold text-rose-400 code-font font-bold">v = √(P / ρ) ≈ 279.9 m/s</div>
+                        </div>
+                        <div class="bg-slate-950/40 p-3 rounded-lg border border-slate-800 text-center">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Laplace's Corrected Formula</div>
+                            <div class="text-sm font-semibold text-emerald-400 code-font font-bold">v = √(γP / ρ) ≈ 332.3 m/s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Concert Race insight -->
+                <div id="insight-concert" class="space-y-2 text-sm text-slate-300 hidden">
+                    <p>This is a live representation of the textbook's **Example 8.2**. Radio signals travel at the speed of light ($c = 3 \times 10^8\text{ m/s}$), while physical sound waves travel at roughly $330\text{ m/s}$. Watch how physical distance changes the absolute winner of this race!</p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Controller Sidebar (4 Columns) -->
+        <section id="sidebar-controls" class="lg:col-span-4 flex flex-col gap-6">
+
+            <!-- TAB 1: String Controls -->
+            <div id="controls-string" class="space-y-5">
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800/80 space-y-4">
+                    <h2 class="text-sm font-bold tracking-wider text-slate-400 uppercase">String Controls</h2>
+                    
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300 font-semibold">Tension (T)</span>
+                            <span class="text-sky-400 font-bold font-mono" id="label-tension">50 N</span>
+                        </div>
+                        <input type="range" id="input-tension" min="10" max="200" value="50" class="w-full">
+                        <p class="text-[10px] text-slate-500 mt-1">Increasing tension raises restoring forces, accelerating particles.</p>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300 font-semibold">Linear Mass Density (m)</span>
+                            <span class="text-sky-400 font-bold font-mono" id="label-density">0.05 kg/m</span>
+                        </div>
+                        <input type="range" id="input-density" min="0.01" max="0.2" step="0.01" value="0.05" class="w-full">
+                        <p class="text-[10px] text-slate-500 mt-1">Heavier strings have more inertia, slowing wave propagation.</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/40 p-5 rounded-2xl border border-slate-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Try This Challenge:</h3>
+                    <p class="text-xs text-slate-300">Set the Tension to exactly <span class="text-emerald-400 font-bold">100 N</span> and Linear Density to <span class="text-emerald-400 font-bold">0.04 kg/m</span>. What wave velocity do you observe?</p>
+                    <button onclick="setChallenge(100, 0.04)" class="w-full py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-xs font-semibold rounded-lg transition-all border border-slate-700/60">Auto-Configure Challenge</button>
+                </div>
+            </div>
+
+            <!-- TAB 2: Sound Controls -->
+            <div id="controls-sound" class="space-y-5 hidden">
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800/80 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-bold tracking-wider text-slate-400 uppercase">Atmosphere Lab</h2>
+                        <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-[10px]">
+                            <button id="btn-newton" onclick="setThermodynamics('newton')" class="px-2 py-1 rounded font-bold transition-all bg-rose-500/20 text-rose-300 border border-rose-500/30">Newton</button>
+                            <button id="btn-laplace" onclick="setThermodynamics('laplace')" class="px-2 py-1 rounded font-bold transition-all bg-sky-500 text-slate-950 ml-1">Laplace</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300 font-semibold">Temperature (t)</span>
+                            <span class="text-sky-400 font-bold font-mono" id="label-temp">20 °C</span>
+                        </div>
+                        <input type="range" id="input-temp" min="-50" max="100" value="20" class="w-full">
+                        <p class="text-[10px] text-slate-500 mt-1">Velocity increases by <span class="text-emerald-400">~0.61 m/s</span> for every 1°C rise.</p>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300 font-semibold">Humidity Level</span>
+                            <span class="text-sky-400 font-bold font-mono" id="label-humidity">Dry Air</span>
+                        </div>
+                        <input type="range" id="input-humidity" min="0" max="100" value="0" class="w-full">
+                        <p class="text-[10px] text-slate-500 mt-1">Moist air is less dense ($\rho_m < \rho_d$), causing wave speed to rise!</p>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300 font-semibold">Air Pressure (P)</span>
+                            <span class="text-sky-400 font-bold font-mono" id="label-pressure">1.0 atm</span>
+                        </div>
+                        <input type="range" id="input-pressure" min="0.5" max="3" step="0.1" value="1.0" class="w-full">
+                        <p class="text-[10px] text-slate-400 bg-slate-950/60 p-2.5 rounded border border-slate-800 mt-1.5 leading-relaxed">
+                            💡 **Notice:** Adjusting Pressure has **no effect** on speed at constant temperature, because density $\rho$ scales proportionally!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Concert Controls -->
+            <div id="controls-concert" class="space-y-5 hidden">
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800/80 space-y-4">
+                    <h2 class="text-sm font-bold tracking-wider text-slate-400 uppercase">Live Race Simulation</h2>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300 font-semibold">Outdoor Distance</span>
+                            <span class="text-sky-400 font-bold font-mono" id="label-sound-dist">150 m</span>
+                        </div>
+                        <input type="range" id="input-sound-dist" min="50" max="500" value="150" class="w-full">
+                        <p class="text-[10px] text-slate-500 mt-1">Your distance from the speaker inside the venue.</p>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300 font-semibold">Broadcast Distance</span>
+                            <span class="text-sky-400 font-bold font-mono" id="label-em-dist">3000 km</span>
+                        </div>
+                        <input type="range" id="input-em-dist" min="500" max="10000" step="100" value="3000" class="w-full">
+                        <p class="text-[10px] text-slate-500 mt-1">Distance the radio signal travels around the world.</p>
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="runConcertRace()" class="w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all flex items-center justify-center gap-2">
+                            🏁 Start the Race!
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Race Leaderboard -->
+                <div class="bg-slate-900/40 p-5 rounded-2xl border border-slate-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Live Race Stats</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs p-2 bg-slate-950/50 rounded border border-slate-800/80">
+                            <span class="text-slate-400">Local Venue Listener:</span>
+                            <span id="venueTime" class="font-bold text-slate-300">0.00s</span>
+                        </div>
+                        <div class="flex justify-between text-xs p-2 bg-slate-950/50 rounded border border-slate-800/80">
+                            <span class="text-slate-400">Global Radio Friend:</span>
+                            <span id="radioTime" class="font-bold text-slate-300">0.00s</span>
+                        </div>
+                        <div class="text-center text-xs p-2 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20 font-bold" id="raceWinnerBox">
+                            Ready to run the simulation
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conceptual Quiz Card -->
+            <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800/80 space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1">
+                    🎯 Physics Checkpoint
+                </h3>
+                <p id="quiz-question" class="text-xs text-slate-300">Why does a higher temperature increase the speed of sound?</p>
+                
+                <div class="space-y-2" id="quiz-options">
+                    <button onclick="checkAnswer(true)" class="w-full text-left p-2.5 bg-slate-950/50 hover:bg-slate-800/60 text-xs rounded border border-slate-800 text-slate-300 transition-all">
+                        Density decreases, allowing waves to move quicker.
+                    </button>
+                    <button onclick="checkAnswer(false)" class="w-full text-left p-2.5 bg-slate-950/50 hover:bg-slate-800/60 text-xs rounded border border-slate-800 text-slate-300 transition-all">
+                        Pressure rises significantly relative to volume.
+                    </button>
+                </div>
+                <div id="quiz-feedback" class="text-xs font-semibold hidden transition-all p-2 rounded"></div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Interactive Code Engine -->
+    <script>
+        const canvas = document.getElementById('physicsCanvas');
+        const ctx = canvas.getContext('2d');
+        let currentTab = 'string';
+        let animFrameId;
+
+        // Physics variables
+        let time = 0;
+        let pulseTimer = 0;
+        let showPulse = false;
+
+        // Tab state configs
+        const config = {
+            string: {
+                tension: 50,
+                density: 0.05,
+            },
+            sound: {
+                temp: 20,
+                humidity: 0,
+                pressure: 1.0,
+                model: 'laplace' // 'newton' or 'laplace'
+            },
+            concert: {
+                soundDist: 150,
+                emDist: 3000,
+                raceTime: 0,
+                raceRunning: false
+            }
+        };
+
+        // Inputs & Labels References
+        const labels = {
+            tension: document.getElementById('label-tension'),
+            density: document.getElementById('label-density'),
+            temp: document.getElementById('label-temp'),
+            humidity: document.getElementById('label-humidity'),
+            pressure: document.getElementById('label-pressure'),
+            soundDist: document.getElementById('label-sound-dist'),
+            emDist: document.getElementById('label-em-dist')
+        };
+
+        const inputs = {
+            tension: document.getElementById('input-tension'),
+            density: document.getElementById('input-density'),
+            temp: document.getElementById('input-temp'),
+            humidity: document.getElementById('input-humidity'),
+            pressure: document.getElementById('input-pressure'),
+            soundDist: document.getElementById('input-sound-dist'),
+            emDist: document.getElementById('input-em-dist')
+        };
+
+        // Initialize Slider Interactions
+        inputs.tension.oninput = (e) => { config.string.tension = parseFloat(e.target.value); labels.tension.innerText = e.target.value + ' N'; };
+        inputs.density.oninput = (e) => { config.string.density = parseFloat(e.target.value); labels.density.innerText = e.target.value + ' kg/m'; };
+        inputs.temp.oninput = (e) => { config.sound.temp = parseFloat(e.target.value); labels.temp.innerText = e.target.value + ' °C'; };
+        inputs.humidity.oninput = (e) => { 
+            config.sound.humidity = parseFloat(e.target.value); 
+            labels.humidity.innerText = e.target.value === '0' ? 'Dry Air' : e.target.value === '100' ? '100% Moist' : e.target.value + '% Humid'; 
+        };
+        inputs.pressure.oninput = (e) => { config.sound.pressure = parseFloat(e.target.value); labels.pressure.innerText = e.target.value + ' atm'; };
+        inputs.soundDist.oninput = (e) => { config.concert.soundDist = parseFloat(e.target.value); labels.soundDist.innerText = e.target.value + ' m'; updateLiveCalculations(); };
+        inputs.emDist.oninput = (e) => { config.concert.emDist = parseFloat(e.target.value); labels.emDist.innerText = e.target.value + ' km'; updateLiveCalculations(); };
+
+        function setChallenge(t, d) {
+            config.string.tension = t;
+            config.string.density = d;
+            inputs.tension.value = t;
+            inputs.density.value = d;
+            labels.tension.innerText = t + ' N';
+            labels.density.innerText = d + ' kg/m';
+        }
+
+        function setThermodynamics(model) {
+            config.sound.model = model;
+            const bNewton = document.getElementById('btn-newton');
+            const bLaplace = document.getElementById('btn-laplace');
+            if(model === 'newton') {
+                bNewton.className = "px-2 py-1 rounded font-bold transition-all bg-rose-500 text-slate-950";
+                bLaplace.className = "px-2 py-1 rounded font-bold transition-all bg-slate-800 text-slate-400 ml-1";
+            } else {
+                bNewton.className = "px-2 py-1 rounded font-bold transition-all bg-slate-800 text-slate-400";
+                bLaplace.className = "px-2 py-1 rounded font-bold transition-all bg-sky-500 text-slate-950 ml-1";
+            }
+        }
+
+        // Tab Switching logic
+        function switchTab(tabId) {
+            currentTab = tabId;
+            const badge = document.getElementById('badge-mode');
+            
+            // Toggle Controls & Insights
+            ['string', 'sound', 'concert'].forEach(id => {
+                document.getElementById(`controls-${id}`).classList.add('hidden');
+                document.getElementById(`insight-${id}`).classList.add('hidden');
+                document.getElementById(`tab-${id}-btn`).className = "px-4 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white";
+            });
+
+            document.getElementById(`controls-${tabId}`).classList.remove('hidden');
+            document.getElementById(`insight-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}-btn`).className = "px-4 py-2 text-xs font-semibold rounded-lg transition-all bg-sky-500 text-slate-950 shadow-md shadow-sky-500/15";
+
+            if (tabId === 'string') {
+                badge.innerText = 'String Transverse Mode';
+                badge.className = "px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-sky-500/10 text-sky-400 rounded-full border border-sky-500/20";
+                document.getElementById('pulseBtn').classList.remove('hidden');
+            } else if (tabId === 'sound') {
+                badge.innerText = 'Atmospheric Sound Waves';
+                badge.className = "px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20";
+                document.getElementById('pulseBtn').classList.add('hidden');
+            } else {
+                badge.innerText = 'Live Concert Simulator';
+                badge.className = "px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-indigo-500/10 text-indigo-400 rounded-full border border-indigo-500/20";
+                document.getElementById('pulseBtn').classList.add('hidden');
+                updateLiveCalculations();
+            }
+        }
+
+        // Trigger a visual wave pulse
+        function triggerPulse() {
+            showPulse = true;
+            pulseTimer = 0;
+        }
+
+        // Live calculation logic for tab 3
+        function updateLiveCalculations() {
+            const vSound = 330; // standard mock sound velocity for example
+            const cLight = 300000; // km/s
+            const sTime = config.concert.soundDist / vSound;
+            const eTime = config.concert.emDist / cLight;
+
+            document.getElementById('venueTime').innerText = sTime.toFixed(4) + ' s';
+            document.getElementById('radioTime').innerText = eTime.toFixed(4) + ' s';
+
+            if (sTime < eTime) {
+                document.getElementById('raceWinnerBox').innerText = 'Winner: Local Venue Listener!';
+                document.getElementById('raceWinnerBox').className = "text-center text-xs p-2 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20 font-bold";
+            } else {
+                document.getElementById('raceWinnerBox').innerText = 'Winner: Global Radio Friend!';
+                document.getElementById('raceWinnerBox').className = "text-center text-xs p-2 bg-indigo-500/10 text-indigo-400 rounded border border-indigo-500/20 font-bold";
+            }
+        }
+
+        function runConcertRace() {
+            config.concert.raceRunning = true;
+            config.concert.raceTime = 0;
+        }
+
+        // Simple interactive quiz questions
+        function checkAnswer(isCorrect) {
+            const f = document.getElementById('quiz-feedback');
+            f.classList.remove('hidden');
+            if (isCorrect) {
+                f.innerText = "Correct! Increasing temperature decreases gas density, allowing the wave to propagate faster because speed is inversely proportional to density's square root.";
+                f.className = "text-xs font-semibold p-2.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            } else {
+                f.innerText = "Try again! Think about how density behaves as the air molecules heat up and expand.";
+                f.className = "text-xs font-semibold p-2.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            }
+        }
+
+        // Master Animation Loop
+        function draw() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            time += 0.5;
+            const centerY = canvas.height / 2;
+            const vDisplay = document.getElementById('velocityDisplay');
+
+            if (currentTab === 'string') {
+                // String physics calculation: v = sqrt(T / m)
+                const velocity = Math.sqrt(config.string.tension / config.string.density);
+                vDisplay.innerText = `${velocity.toFixed(2)} m/s`;
+
+                // Calculate a dynamic horizontal spatial speed scale based on the physical velocity
+                const spatialSpeed = velocity * 0.05;
+
+                ctx.beginPath();
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1;
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(canvas.width, centerY);
+                ctx.stroke();
+
+                // Draw continuous transverse particles
+                const particleCount = 50;
+                for (let i = 0; i < particleCount; i++) {
+                    const x = (canvas.width / (particleCount - 1)) * i;
+                    
+                    // Continuous wave
+                    let yDisplacement = 30 * Math.sin((i * 0.3) - (time * (spatialSpeed * 0.03)));
+
+                    // Adding pulse simulation superposition if active
+                    if (showPulse) {
+                        const pulseCenter = (time * spatialSpeed) % canvas.width;
+                        const distToPulse = Math.abs(x - pulseCenter);
+                        if (distToPulse < 80) {
+                            yDisplacement += 60 * Math.cos((distToPulse / 80) * Math.PI / 2);
+                        }
+                    }
+
+                    // Drawing particle
+                    ctx.beginPath();
+                    ctx.arc(x, centerY + yDisplacement, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = i % 5 === 0 ? '#38bdf8' : '#6366f1';
+                    ctx.fill();
+                }
+
+            } else if (currentTab === 'sound') {
+                // Sound physics calculations: Newton vs Laplace (with temp/humidity modifiers)
+                // Reference constants
+                const p0 = 101300 * config.sound.pressure; // atmospheric base Pa
+                const d0_dry = 1.293; // kg/m^3
+                const d0_wet = 0.81; // moist air density
+                
+                // Linear mix for air density based on humidity slider
+                let density = d0_dry - (config.sound.humidity / 100) * (d0_dry - d0_wet);
+                
+                // Adjust density for pressure (isentropic relation simplifies here, but at constant T, density scales directly with pressure)
+                density *= config.sound.pressure;
+
+                const gamma = config.sound.model === 'laplace' ? 1.41 : 1.0;
+                
+                // Newton or Laplace base speed
+                let speed = Math.sqrt((gamma * p0) / density);
+
+                // Apply temperature effect on top: v_t ≈ v_0 + 0.61 * t
+                const speedWithTemp = speed + (0.61 * config.sound.temp);
+                vDisplay.innerText = `${speedWithTemp.toFixed(2)} m/s`;
+
+                // Sound Wave Render: longitudinal particle grid movement
+                const colCount = 35;
+                const rowCount = 6;
+                const spacingX = canvas.width / colCount;
+                const spacingY = canvas.height / (rowCount + 1);
+
+                for (let r = 0; r < rowCount; r++) {
+                    const y = spacingY * (r + 1);
+                    for (let c = 0; c < colCount; c++) {
+                        const originalX = spacingX * c;
+
+                        // Calculate Phase shift relative to propagation speed
+                        const waveNumber = 0.04;
+                        const phase = waveNumber * originalX - (speedWithTemp * 0.0003 * time);
+                        const displacement = 20 * Math.sin(phase);
+
+                        // Compression color overlay visualization
+                        const isCompressed = Math.cos(phase) > 0.6;
+
+                        ctx.beginPath();
+                        ctx.arc(originalX + displacement, y, 4, 0, Math.PI * 2);
+                        ctx.fillStyle = isCompressed ? '#10b981' : '#475569';
+                        ctx.fill();
+                    }
+                }
+
+                // Visual Labels showing compression / rarefaction
+                ctx.fillStyle = '#64748b';
+                ctx.font = 'bold 10px monospace';
+                ctx.fillText('COMPRESSION', 50, centerY - 80);
+                ctx.fillText('RAREFACTION', 180, centerY - 80);
+
+            } else if (currentTab === 'concert') {
+                // Animated Race simulator representation (Example 8.2)
+                vDisplay.innerText = "3.00 × 10⁸ m/s vs 330 m/s";
+
+                // Set up visual race lanes on the canvas
+                const laneY1 = centerY - 50;
+                const laneY2 = centerY + 50;
+
+                // Draw Track Lines
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(100, laneY1); ctx.lineTo(canvas.width - 100, laneY1);
+                ctx.moveTo(100, laneY2); ctx.lineTo(canvas.width - 100, laneY2);
+                ctx.stroke();
+
+                // Start/End vertical markers
+                ctx.strokeStyle = '#475569';
+                ctx.strokeRect(100, centerY - 70, 2, 140);
+                ctx.strokeRect(canvas.width - 100, centerY - 70, 2, 140);
+
+                // Run simulation timers
+                const soundSpeed = 330;
+                const lightSpeed = 300000;
+                const sTargetTime = config.concert.soundDist / soundSpeed;
+                const eTargetTime = config.concert.emDist / lightSpeed;
+
+                if (config.concert.raceRunning) {
+                    config.concert.raceTime += 0.005; // speed multiplier for viewing
+                }
+
+                // Normalize progress mapping to track width
+                const trackWidth = canvas.width - 200;
+                const soundProgress = Math.min(1, config.concert.raceTime / sTargetTime);
+                const emProgress = Math.min(1, config.concert.raceTime / eTargetTime);
+
+                // Draw Runner 1: Venue sound wave
+                const sX = 100 + soundProgress * trackWidth;
+                ctx.beginPath();
+                ctx.arc(sX, laneY1, 10, 0, Math.PI * 2);
+                ctx.fillStyle = '#f59e0b';
+                ctx.fill();
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = '10px sans-serif';
+                ctx.fillText('Venue Sound', sX - 30, laneY1 - 18);
+
+                // Draw Runner 2: EM Broadcast signal
+                const eX = 100 + emProgress * trackWidth;
+                ctx.beginPath();
+                ctx.arc(eX, laneY2, 10, 0, Math.PI * 2);
+                ctx.fillStyle = '#6366f1';
+                ctx.fill();
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillText('Radio Signal', eX - 30, laneY2 - 18);
+
+                // Render finish ribbon or flags
+                if (soundProgress >= 1 && emProgress >= 1) {
+                    config.concert.raceRunning = false;
+                }
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        window.onload = () => {
+            draw();
+            // Start with string tab active
+            switchTab('string');
+        };
+    </script>
+</body>
+</html>
