@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optica - Interactive Light Dispersion Lab</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for clean, modern interface icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom scrollbar for control panels */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
+        }
+
+        /* Glow effects for light simulation */
+        .glow-red { text-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
+        .glow-violet { text-shadow: 0 0 10px rgba(139, 92, 246, 0.6); }
+        
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200 overflow-x-hidden">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">OPTICA</h1>
+                <p class="text-xs text-indigo-400 font-semibold tracking-wider uppercase">Interactive Dispersion Laboratory</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full text-slate-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Virtual Physics Lab v2.5
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT: Interactive Playground Controls (lg:col-span-4) -->
+        <section class="lg:col-span-4 flex flex-col space-y-6">
+            
+            <!-- Learning Methodology Map -->
+            <div class="glass-panel rounded-2xl p-4 flex flex-col space-y-3">
+                <h2 class="text-xs font-bold text-slate-400 tracking-wider uppercase flex items-center gap-2">
+                    <i data-lucide="compass" class="w-4 h-4 text-indigo-400"></i> Methodology Roadmap
+                </h2>
+                <div class="grid grid-cols-4 gap-1 text-center text-[10px] font-medium text-slate-500">
+                    <button onclick="switchTab('hook')" id="tab-hook" class="py-1 px-2 rounded-md bg-slate-900 border border-slate-800 text-indigo-400 font-bold transition-all">1. Hook</button>
+                    <button onclick="switchTab('lab')" id="tab-lab" class="py-1 px-2 rounded-md border border-transparent hover:bg-slate-900/50 transition-all">2. Sandbox</button>
+                    <button onclick="switchTab('recombine')" id="tab-recombine" class="py-1 px-2 rounded-md border border-transparent hover:bg-slate-900/50 transition-all">3. Challenge</button>
+                    <button onclick="switchTab('sources')" id="tab-sources" class="py-1 px-2 rounded-md border border-transparent hover:bg-slate-900/50 transition-all">4. Spectrum</button>
+                </div>
+            </div>
+
+            <!-- TAB 1: THE HOOK (The Plastic Scale Discovery) -->
+            <div id="panel-hook" class="glass-panel rounded-2xl p-5 space-y-4 transition-all duration-300">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-[10px] bg-indigo-500/10 text-indigo-300 font-bold px-2 py-0.5 rounded border border-indigo-500/20 uppercase">Stage 1: Everyday Intuition</span>
+                        <h3 class="text-lg font-bold text-white mt-1.5">The Ruler Effect</h3>
+                    </div>
+                    <span class="p-1.5 bg-indigo-950 text-indigo-400 rounded-lg"><i data-lucide="eye" class="w-5 h-5"></i></span>
+                </div>
+                <p class="text-sm text-slate-300 leading-relaxed">
+                    Have you ever looked through a clear plastic ruler and noticed rainbow edges? That is <strong>light dispersion</strong> in action! Let's simulate turning a scale in front of your eyes.
+                </p>
+
+                <!-- Interactive Virtual Scale Simulation -->
+                <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 flex flex-col items-center justify-center space-y-4">
+                    <div class="relative w-full h-32 bg-slate-900 rounded-lg border border-slate-800/80 overflow-hidden flex items-center justify-center">
+                        <!-- Simulated White Ray -->
+                        <div class="absolute inset-y-0 left-4 w-1 bg-gradient-to-r from-white to-transparent opacity-40"></div>
+                        
+                        <!-- Simulated Scale Rotation visualizer -->
+                        <div id="virtual-scale" class="w-48 h-8 bg-slate-200/20 backdrop-blur-sm border border-white/20 rounded-md flex items-center justify-around px-2 shadow-inner transition-transform duration-300" style="transform: rotate(15deg);">
+                            <span class="text-[8px] text-white/50 select-none">| | | | | | | | | | | | |</span>
+                            <span class="text-[10px] font-mono text-white/80 select-none">cm</span>
+                        </div>
+
+                        <!-- Dispersion Fringe Effects behind scale -->
+                        <div id="dispersion-fringes" class="absolute inset-x-0 bottom-4 h-3 bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 opacity-60 blur-[3px] rounded transition-all duration-300" style="width: 80%; transform: rotate(15deg); scale: 1.1;"></div>
+                    </div>
+
+                    <div class="w-full space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Scale Angle:</span>
+                            <span id="scale-angle-val" class="text-indigo-400 code-font">15°</span>
+                        </div>
+                        <input type="range" id="input-scale-angle" min="0" max="65" value="15" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+                </div>
+
+                <div class="bg-indigo-950/40 border border-indigo-900/60 rounded-xl p-3 text-xs text-indigo-200 leading-relaxed">
+                    💡 <strong>What's happening?</strong> As you tilt the scale, the path length of light through the plastic increases, refracting the light at different angles based on its wavelength, dividing it into distinct colors.
+                </div>
+                
+                <button onclick="switchTab('lab')" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 group shadow-lg shadow-indigo-600/20">
+                    Proceed to Interactive Lab <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+
+            <!-- TAB 2: PRISM LAB CONTROLS (Main Simulation) -->
+            <div id="panel-lab" class="glass-panel rounded-2xl p-5 space-y-5 hidden transition-all duration-300">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-[10px] bg-emerald-500/10 text-emerald-300 font-bold px-2 py-0.5 rounded border border-emerald-500/20 uppercase">Stage 2: Main Sandbox</span>
+                        <h3 class="text-lg font-bold text-white mt-1.5">Interactive Prism</h3>
+                    </div>
+                    <span class="p-1.5 bg-slate-900 text-emerald-400 rounded-lg"><i data-lucide="sliders" class="w-5 h-5"></i></span>
+                </div>
+
+                <!-- Simulation Settings -->
+                <div class="space-y-4">
+                    <!-- Material Picker -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                            <span>Prism Material</span>
+                            <span id="material-info" class="text-[10px] text-emerald-400 code-font">Crown Glass (n = 1.517)</span>
+                        </label>
+                        <select id="prism-material" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+                            <option value="crown-glass" selected>👑 Crown Glass (Standard)</option>
+                            <option value="flint-glass">💎 Flint Glass (Highly Dispersive)</option>
+                            <option value="diamond">✨ Pure Diamond (Ultra Intense)</option>
+                            <option value="water">💧 Liquid Water (Low Dispersion)</option>
+                            <option value="custom">⚙️ Custom Experimental Material</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom slider if Custom selected -->
+                    <div id="custom-refractive-container" class="space-y-2 hidden animate-fade-in">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Base Refractive Index ($n$):</span>
+                            <span id="custom-index-val" class="text-emerald-400 code-font">1.600</span>
+                        </div>
+                        <input type="range" id="custom-index-slider" min="1.100" max="2.600" step="0.005" value="1.600" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    </div>
+
+                    <!-- Light Angle Controller -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Incident Ray Angle</span>
+                            <span id="beam-angle-val" class="text-emerald-400 code-font">30°</span>
+                        </div>
+                        <input type="range" id="beam-angle" min="-50" max="50" value="-10" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    </div>
+
+                    <!-- Apex Angle of Prism -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Prism Apex Angle</span>
+                            <span id="apex-angle-val" class="text-emerald-400 code-font">60°</span>
+                        </div>
+                        <input type="range" id="apex-angle" min="30" max="80" value="60" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    </div>
+
+                    <!-- Monochromatic vs. Spectrum Toggle -->
+                    <div class="space-y-2 bg-slate-900/50 p-3 rounded-xl border border-slate-800/80">
+                        <span class="text-xs font-semibold text-slate-300 block mb-2">Beam Spectrum Setting</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btn-beam-white" onclick="setBeamType('white')" class="py-1.5 px-3 rounded-lg text-xs font-bold bg-slate-800 text-white border border-emerald-500/50 shadow transition-all">
+                                White Sun Light
+                            </button>
+                            <button id="btn-beam-mono" onclick="setBeamType('mono')" class="py-1.5 px-3 rounded-lg text-xs font-medium bg-slate-900 text-slate-400 border border-transparent hover:bg-slate-800 transition-all">
+                                Laser Pointer
+                            </button>
+                        </div>
+
+                        <!-- Monochromatic Wavelength slider (conditionally shown) -->
+                        <div id="mono-wavelength-container" class="space-y-2 mt-3 hidden">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-400">Laser Wavelength</span>
+                                <span id="mono-wl-val" class="text-indigo-400 code-font">550 nm</span>
+                            </div>
+                            <input type="range" id="mono-wavelength" min="400" max="700" value="532" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                            <!-- Visual spectrum slider bar underneath -->
+                            <div class="h-1.5 w-full rounded-md bg-gradient-to-r from-violet-600 via-blue-500 via-green-500 via-yellow-400 via-orange-500 to-red-600 opacity-90"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1">
+                    <span class="font-semibold text-white block">💡 Physics Tip</span>
+                    <p class="leading-relaxed">Different wavelengths of light travel at <strong>different speeds</strong> in a medium. This causes the glass to refract violet light more sharply than red light!</p>
+                </div>
+            </div>
+
+            <!-- TAB 3: NEWTON'S RECOMBINATION CHALLENGE -->
+            <div id="panel-recombine" class="glass-panel rounded-2xl p-5 space-y-4 hidden transition-all duration-300">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-[10px] bg-rose-500/10 text-rose-300 font-bold px-2 py-0.5 rounded border border-rose-500/20 uppercase">Stage 3: Newton's Challenge</span>
+                        <h3 class="text-lg font-bold text-white mt-1.5">Recombining Light</h3>
+                    </div>
+                    <span class="p-1.5 bg-slate-900 text-rose-400 rounded-lg"><i data-lucide="sparkles" class="w-5 h-5"></i></span>
+                </div>
+                <p class="text-sm text-slate-300 leading-relaxed">
+                    Sir Isaac Newton took the dispersed spectrum and placed a <strong>second inverted prism</strong> in the beam's path. Can you align the second prism correctly to turn the colors back into pristine white light?
+                </p>
+
+                <!-- Status Banner for alignment -->
+                <div id="recombination-status" class="bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded-xl p-3 text-xs text-center font-semibold">
+                    ⚠️ Prisms misaligned. Rainbow colors are still dispersed.
+                </div>
+
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Inverted Prism Height Offset</span>
+                            <span id="prism2-y-val" class="text-rose-400 code-font">0px</span>
+                        </div>
+                        <input type="range" id="prism2-y" min="-120" max="120" value="45" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Inverted Prism Angle Offset</span>
+                            <span id="prism2-rot-val" class="text-rose-400 code-font">0°</span>
+                        </div>
+                        <input type="range" id="prism2-rot" min="-45" max="45" value="-15" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                    </div>
+                </div>
+
+                <div class="bg-rose-950/20 border border-rose-900/40 rounded-xl p-3 text-xs text-rose-200">
+                    🎯 <strong>Mission:</strong> Tweak the second prism's height and rotation until the light emerging from it recombines into a single unified <strong>white light ray</strong>!
+                </div>
+            </div>
+
+            <!-- TAB 4: BULB vs LED SPECTRUM -->
+            <div id="panel-sources" class="glass-panel rounded-2xl p-5 space-y-4 hidden transition-all duration-300">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-[10px] bg-amber-500/10 text-amber-300 font-bold px-2 py-0.5 rounded border border-amber-500/20 uppercase">Stage 4: Real-World Tech</span>
+                        <h3 class="text-lg font-bold text-white mt-1.5">Bulb vs. LED Emission</h3>
+                    </div>
+                    <span class="p-1.5 bg-slate-900 text-amber-400 rounded-lg"><i data-lucide="lightbulb" class="w-5 h-5"></i></span>
+                </div>
+                <p class="text-sm text-slate-300 leading-relaxed">
+                    Tungsten filaments and LED microchips generate "white light" in completely different ways. Choose a light source to observe how its specific spectral profile behaves when dispersed!
+                </p>
+
+                <!-- Source Selector -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="setLightSource('tungsten')" id="btn-src-tungsten" class="p-3 bg-slate-900 border border-slate-800 rounded-xl flex flex-col items-center justify-center text-center transition-all">
+                        <span class="text-2xl">💡</span>
+                        <span class="text-xs font-bold text-white mt-1">Tungsten Filament</span>
+                        <span class="text-[9px] text-amber-400 mt-0.5">Continuous Thermal</span>
+                    </button>
+                    <button onclick="setLightSource('led')" id="btn-src-led" class="p-3 bg-slate-900 border border-slate-800 rounded-xl flex flex-col items-center justify-center text-center transition-all">
+                        <span class="text-2xl">📱</span>
+                        <span class="text-xs font-bold text-white mt-1">Modern Cool LED</span>
+                        <span class="text-[9px] text-sky-400 mt-0.5">Discrete Phosphor</span>
+                    </button>
+                </div>
+
+                <!-- Live Spectrum Plot -->
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Spectral Intensity Curve</span>
+                    <div class="h-24 w-full flex items-end justify-between px-2 pt-4 relative">
+                        <!-- Spectral Curve Bars -->
+                        <div id="spectrum-bars" class="w-full h-full flex items-end gap-[1px]">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-[9px] font-bold text-slate-500 px-1 mt-1">
+                        <span>400nm (Violet)</span>
+                        <span>550nm (Green)</span>
+                        <span>700nm (Red)</span>
+                    </div>
+                </div>
+
+                <p id="source-explanation" class="text-xs text-slate-400 leading-relaxed bg-slate-900/40 p-2.5 rounded-lg border border-slate-800">
+                    Select a source above to compare emission styles.
+                </p>
+            </div>
+
+        </section>
+
+        <!-- RIGHT: Interactive Physics Engine Canvas (lg:col-span-8) -->
+        <section class="lg:col-span-8 flex flex-col space-y-6">
+            
+            <!-- Canvas Simulation Container -->
+            <div class="glass-panel rounded-3xl p-4 flex flex-col flex-1 min-h-[480px] relative overflow-hidden group">
+                <!-- Status/Indicator Badges at Top of Canvas -->
+                <div class="absolute top-6 left-6 right-6 z-10 flex flex-wrap gap-2 items-center justify-between pointer-events-none">
+                    <span class="text-xs bg-slate-950/90 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-xl text-slate-200 flex items-center gap-1.5">
+                        <i data-lucide="eye" class="w-3.5 h-3.5 text-indigo-400"></i> Interactive Canvas
+                    </span>
+                    
+                    <!-- Quick Preset Badges -->
+                    <div class="flex items-center gap-2 pointer-events-auto">
+                        <button onclick="resetSimulation()" class="bg-slate-950/90 backdrop-blur-md border border-slate-800 p-1.5 rounded-xl text-slate-400 hover:text-white transition-colors" title="Reset Ray Tracer">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <div class="flex-1 w-full relative bg-gradient-to-b from-slate-950 to-slate-900 rounded-2xl overflow-hidden min-h-[360px] border border-slate-900 shadow-2xl">
+                    <canvas id="optics-canvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                    
+                    <!-- Toast Overlay (Instructional Help) -->
+                    <div class="absolute bottom-4 left-4 right-4 bg-slate-950/90 backdrop-blur border border-slate-800 p-3 rounded-xl flex items-center justify-between text-xs pointer-events-auto shadow-xl">
+                        <span class="text-slate-300 flex items-center gap-2">
+                            <i data-lucide="info" class="w-4 h-4 text-emerald-400"></i> Drag around inside the canvas to rotate the ray or change positions!
+                        </span>
+                        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono">Drag Incident Source</span>
+                    </div>
+                </div>
+
+                <!-- Real-time Mathematical Dashboard -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-xs">
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-900 flex flex-col">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase">Medium Index ($n_{violet}$)</span>
+                        <span id="dash-nv" class="text-base font-extrabold text-violet-400 code-font mt-0.5">1.531</span>
+                        <span class="text-[9px] text-slate-500 mt-0.5">Shortest λ (400nm)</span>
+                    </div>
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-900 flex flex-col">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase">Medium Index ($n_{red}$)</span>
+                        <span id="dash-nr" class="text-base font-extrabold text-red-400 code-font mt-0.5">1.509</span>
+                        <span class="text-[9px] text-slate-500 mt-0.5">Longest λ (700nm)</span>
+                    </div>
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-900 flex flex-col">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase">Velocity of Violet</span>
+                        <span id="dash-vv" class="text-base font-extrabold text-indigo-400 code-font mt-0.5">1.96 × 10⁸ m/s</span>
+                        <span class="text-[9px] text-slate-500 mt-0.5">Slower in medium</span>
+                    </div>
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-900 flex flex-col">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase">Velocity of Red</span>
+                        <span id="dash-vr" class="text-base font-extrabold text-rose-400 code-font mt-0.5">1.99 × 10⁸ m/s</span>
+                        <span class="text-[9px] text-slate-500 mt-0.5">Faster in medium</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conceptual Reinforcement Quiz -->
+            <div class="glass-panel rounded-3xl p-6 space-y-4">
+                <div class="flex items-center gap-2">
+                    <span class="p-1.5 bg-slate-900 text-purple-400 rounded-lg"><i data-lucide="award" class="w-5 h-5"></i></span>
+                    <h3 class="text-base font-bold text-white">Reflect & Quiz: Test Your Understanding</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Question 1 -->
+                    <div class="bg-slate-950/60 border border-slate-900 rounded-2xl p-4 flex flex-col justify-between space-y-3">
+                        <div>
+                            <span class="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">Question 1</span>
+                            <p class="text-xs font-bold text-slate-200 mt-1">If you replace a tungsten white bulb with an LED light, will you see the same dispersion spectrum?</p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <button onclick="answerQuestion(1, 'a')" class="w-full text-left text-xs p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all">
+                                <strong>A.</strong> Yes, because both look white to our eyes so they disperse identically.
+                            </button>
+                            <button onclick="answerQuestion(1, 'b')" class="w-full text-left text-xs p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all">
+                                <strong>B.</strong> No, because white LEDs have missing continuous wavelengths, showing discrete colored bands.
+                            </button>
+                        </div>
+                        <div id="q1-feedback" class="text-xs font-medium hidden"></div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="bg-slate-950/60 border border-slate-900 rounded-2xl p-4 flex flex-col justify-between space-y-3">
+                        <div>
+                            <span class="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">Question 2</span>
+                            <p class="text-xs font-bold text-slate-200 mt-1">Which wavelength travels the fastest inside glass, and which bends the most?</p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <button onclick="answerQuestion(2, 'a')" class="w-full text-left text-xs p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all">
+                                <strong>A.</strong> Red travels the fastest; Violet bends the most.
+                            </button>
+                            <button onclick="answerQuestion(2, 'b')" class="w-full text-left text-xs p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all">
+                                <strong>B.</strong> Violet travels the fastest; Red bends the most.
+                            </button>
+                        </div>
+                        <div id="q1-feedback-2" class="text-xs font-medium hidden"></div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Interactive Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 Optica Lab. Designed to foster deep conceptual understanding of Light Physics.</p>
+            <div class="flex space-x-4">
+                <span class="hover:text-slate-300 transition-colors cursor-pointer">Terms of Physics</span>
+                <span class="hover:text-slate-300 transition-colors cursor-pointer">Curriculum Integration</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mathematical Calculations and UI Control Scripts -->
+    <script>
+        // State Machine / Configuration variables
+        let activeTab = 'lab';
+        let beamType = 'white'; // 'white' or 'mono'
+        let currentSource = 'tungsten'; // 'tungsten' or 'led'
+        
+        // Physics variables
+        let material = 'crown-glass';
+        let customBaseIndex = 1.600;
+        let scaleAngle = 15;
+        let incidentAngle = -10; // offset in degrees
+        let apexAngle = 60; // prism top angle
+        let monoWavelength = 532; // green default
+        
+        // Newton Challenge state variables
+        let prism2Y = 45;
+        let prism2Rot = -15;
+        let recombinationAchieved = false;
+
+        // Custom canvas pointer tracking
+        let isDraggingSource = false;
+        let dragSourcePos = { x: 80, y: 220 };
+
+        // Cauchy parameters setup: A and B
+        // Cauchy Formula: n(lambda) = A + B / lambda^2 (lambda in micrometers)
+        const materialsData = {
+            'crown-glass': { A: 1.504, B: 0.0042 },
+            'flint-glass': { A: 1.581, B: 0.0115 },
+            'diamond': { A: 2.384, B: 0.0131 },
+            'water': { A: 1.321, B: 0.0031 },
+            'custom': { A: 1.580, B: 0.0080 }
+        };
+
+        // Light speeds
+        const c = 2.99792458e8; // speed of light in vacuum (m/s)
+
+        // UI tabs mapping
+        const tabsList = ['hook', 'lab', 'recombine', 'sources'];
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            tabsList.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const panel = document.getElementById(`panel-${t}`);
+                if (t === tabId) {
+                    btn.className = "py-1 px-2 rounded-md bg-slate-900 border border-slate-800 text-indigo-400 font-bold transition-all";
+                    panel.classList.remove('hidden');
+                } else {
+                    btn.className = "py-1 px-2 rounded-md border border-transparent hover:bg-slate-900/50 text-slate-500 transition-all";
+                    panel.classList.add('hidden');
+                }
+            });
+            draw();
+        }
+
+        function setBeamType(type) {
+            beamType = type;
+            const btnWhite = document.getElementById('btn-beam-white');
+            const btnMono = document.getElementById('btn-beam-mono');
+            const sliderCont = document.getElementById('mono-wavelength-container');
+
+            if (type === 'white') {
+                btnWhite.className = "py-1.5 px-3 rounded-lg text-xs font-bold bg-slate-800 text-white border border-emerald-500/50 shadow transition-all";
+                btnMono.className = "py-1.5 px-3 rounded-lg text-xs font-medium bg-slate-900 text-slate-400 border border-transparent hover:bg-slate-800 transition-all";
+                sliderCont.classList.add('hidden');
+            } else {
+                btnWhite.className = "py-1.5 px-3 rounded-lg text-xs font-medium bg-slate-900 text-slate-400 border border-transparent hover:bg-slate-800 transition-all";
+                btnMono.className = "py-1.5 px-3 rounded-lg text-xs font-bold bg-slate-800 text-white border border-emerald-500/50 shadow transition-all";
+                sliderCont.classList.remove('hidden');
+            }
+            draw();
+        }
+
+        function setLightSource(source) {
+            currentSource = source;
+            const btnTungsten = document.getElementById('btn-src-tungsten');
+            const btnLED = document.getElementById('btn-src-led');
+            const exp = document.getElementById('source-explanation');
+
+            if (source === 'tungsten') {
+                btnTungsten.className = "p-3 bg-slate-900 border-2 border-amber-500/80 rounded-xl flex flex-col items-center justify-center text-center transition-all shadow-lg shadow-amber-500/5";
+                btnLED.className = "p-3 bg-slate-900 border border-slate-800 rounded-xl flex flex-col items-center justify-center text-center transition-all opacity-60 hover:opacity-100";
+                exp.innerHTML = "💡 <strong>Tungsten source:</strong> Fires a wide, thermal distribution of continuous wavelengths. Red wavelengths are intense, but the transitions are absolutely smooth, producing a rich, complete rainbow spectrum upon refraction.";
+            } else {
+                btnLED.className = "p-3 bg-slate-900 border-2 border-sky-500/80 rounded-xl flex flex-col items-center justify-center text-center transition-all shadow-lg shadow-sky-500/5";
+                btnTungsten.className = "p-3 bg-slate-900 border border-slate-800 rounded-xl flex flex-col items-center justify-center text-center transition-all opacity-60 hover:opacity-100";
+                exp.innerHTML = "📱 <strong>LED source:</strong> Simulates a modern phosphor-converted cold white LED. It features a sharp, intense blue spike (around 450nm) and a wide phosphorescent yellow-green bump. Dispersion reveals a prominent deep blue band, a thin relative dark gap, followed by a wide green-yellow-red glow.";
+            }
+            generateSpectrumBars();
+            draw();
+        }
+
+        // Spectral Intensities Generators
+        function getIntensityAt(wavelength, source) {
+            if (source === 'tungsten') {
+                // Approximate Planck distribution for ~3000K peaked near infrared
+                const val = Math.exp(-Math.pow(wavelength - 800, 2) / 80000);
+                return Math.max(0.05, Math.min(1.0, val));
+            } else {
+                // Approximate cool white LED curve: sharp blue peak at 455nm + broad yellow phosphors
+                const bluePeak = Math.exp(-Math.pow(wavelength - 455, 2) / 150);
+                const yellowPhosphor = 0.6 * Math.exp(-Math.pow(wavelength - 560, 2) / 4000);
+                return Math.min(1.0, bluePeak + yellowPhosphor);
+            }
+        }
+
+        function generateSpectrumBars() {
+            const container = document.getElementById('spectrum-bars');
+            container.innerHTML = '';
+            for (let wl = 400; wl <= 700; wl += 5) {
+                const intens = getIntensityAt(wl, currentSource);
+                const hPercent = Math.round(intens * 100);
+                const rgb = wavelengthToRGBA(wl, intens);
+
+                const bar = document.createElement('div');
+                bar.style.height = `${hPercent}%`;
+                bar.style.backgroundColor = rgb;
+                bar.className = "flex-1 rounded-t-sm transition-all duration-300";
+                container.appendChild(bar);
+            }
+        }
+
+        // Physics Helpers
+        function getRefractiveIndex(wavelength, mat) {
+            // Convert wavelength from nm to micrometers
+            const wlMicrons = wavelength / 1000;
+            const params = materialsData[mat];
+            if (mat === 'custom') {
+                // Adapt parameters dynamically using the base index from slider
+                const baseDiff = customBaseIndex - 1.5;
+                return (1.5 + baseDiff) + params.B / (wlMicrons * wlMicrons);
+            }
+            return params.A + params.B / (wlMicrons * wlMicrons);
+        }
+
+        // Wavelength color mapping
+        function wavelengthToRGBA(wavelength, alpha = 1.0) {
+            let r, g, b;
+            if (wavelength >= 380 && wavelength < 440) {
+                r = -(wavelength - 440) / (440 - 380);
+                g = 0.0;
+                b = 1.0;
+            } else if (wavelength >= 440 && wavelength < 490) {
+                r = 0.0;
+                g = (wavelength - 440) / (490 - 440);
+                b = 1.0;
+            } else if (wavelength >= 490 && wavelength < 510) {
+                r = 0.0;
+                g = 1.0;
+                b = -(wavelength - 510) / (510 - 490);
+            } else if (wavelength >= 510 && wavelength < 580) {
+                r = (wavelength - 510) / (580 - 510);
+                g = 1.0;
+                b = 0.0;
+            } else if (wavelength >= 580 && wavelength < 645) {
+                r = 1.0;
+                g = -(wavelength - 645) / (645 - 580);
+                b = 0.0;
+            } else if (wavelength >= 645 && wavelength <= 780) {
+                r = 1.0;
+                g = 0.0;
+                b = 0.0;
+            } else {
+                r = 0.0;
+                g = 0.0;
+                b = 0.0;
+            }
+
+            // Let factors decay near ultraviolet/infrared spectrum edges
+            let factor;
+            if (wavelength >= 380 && wavelength < 420) {
+                factor = 0.3 + 0.7 * (wavelength - 380) / (420 - 380);
+            } else if (wavelength >= 420 && wavelength < 701) {
+                factor = 1.0;
+            } else if (wavelength >= 701 && wavelength <= 780) {
+                factor = 0.3 + 0.7 * (780 - wavelength) / (780 - 701);
+            } else {
+                factor = 0.0;
+            }
+
+            const R = Math.round(r * factor * 255);
+            const G = Math.round(g * factor * 255);
+            const B = Math.round(b * factor * 255);
+
+            return `rgba(${R}, ${G}, ${B}, ${alpha})`;
+        }
+
+        // Vector math utilities
+        class Vector2D {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+            add(v) { return new Vector2D(this.x + v.x, this.y + v.y); }
+            sub(v) { return new Vector2D(this.x - v.x, this.y - v.y); }
+            mult(n) { return new Vector2D(this.x * n, this.y * n); }
+            dot(v) { return this.x * v.x + this.y * v.y; }
+            mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
+            normalize() {
+                const m = this.mag();
+                return m > 0 ? new Vector2D(this.x / m, this.y / m) : new Vector2D(0, 0);
+            }
+        }
+
+        // Ray intersection with line segment
+        function raySegmentIntersect(rayOrigin, rayDir, segA, segB) {
+            const v1 = rayOrigin.sub(segA);
+            const v2 = segB.sub(segA);
+            const v3 = new Vector2D(-rayDir.y, rayDir.x);
+
+            const dot = v2.dot(v3);
+            if (Math.abs(dot) < 1e-8) return null; // parallel
+
+            const t1 = (v2.x * v1.y - v2.y * v1.x) / dot;
+            const t2 = v1.dot(v3) / dot;
+
+            if (t1 >= 0 && t2 >= 0 && t2 <= 1) {
+                return {
+                    point: rayOrigin.add(rayDir.mult(t1)),
+                    t: t1,
+                    u: t2
+                };
+            }
+            return null;
+        }
+
+        // Vector Snell's Law
+        function refractVector(incident, normal, n1, n2) {
+            const i = incident.normalize();
+            let n = normal.normalize();
+            let cosI = i.dot(n);
+
+            if (cosI > 0) {
+                n = n.mult(-1);
+                cosI = -cosI;
+            }
+
+            const eta = n1 / n2;
+            const k = 1.0 - eta * eta * (1.0 - cosI * cosI);
+
+            if (k < 0) {
+                return null; // Total internal reflection
+            }
+
+            return i.mult(eta).sub(n.mult(eta * cosI + Math.sqrt(k))).normalize();
+        }
+
+        // Setup the Simulation Engine Canvas
+        const canvas = document.getElementById('optics-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+            resizeCanvas();
+            setLightSource('tungsten'); // default
+        });
+
+        // Track controls and update physics parameters
+        document.getElementById('input-scale-angle').addEventListener('input', (e) => {
+            scaleAngle = parseInt(e.target.value);
+            document.getElementById('scale-angle-val').textContent = `${scaleAngle}°`;
+            document.getElementById('virtual-scale').style.transform = `rotate(${scaleAngle}deg)`;
+            document.getElementById('dispersion-fringes').style.transform = `rotate(${scaleAngle}deg)`;
+            // Adjust blur according to angle
+            document.getElementById('dispersion-fringes').style.filter = `blur(${Math.max(1, scaleAngle/6)}px)`;
+        });
+
+        document.getElementById('prism-material').addEventListener('change', (e) => {
+            material = e.target.value;
+            const customContainer = document.getElementById('custom-refractive-container');
+            if (material === 'custom') {
+                customContainer.classList.remove('hidden');
+            } else {
+                customContainer.classList.add('hidden');
+            }
+            updateMaterialLabel();
+            draw();
+        });
+
+        document.getElementById('custom-index-slider').addEventListener('input', (e) => {
+            customBaseIndex = parseFloat(e.target.value);
+            document.getElementById('custom-index-val').textContent = customBaseIndex.toFixed(3);
+            updateMaterialLabel();
+            draw();
+        });
+
+        document.getElementById('beam-angle').addEventListener('input', (e) => {
+            incidentAngle = parseInt(e.target.value);
+            document.getElementById('beam-angle-val').textContent = `${incidentAngle}°`;
+            draw();
+        });
+
+        document.getElementById('apex-angle').addEventListener('input', (e) => {
+            apexAngle = parseInt(e.target.value);
+            document.getElementById('apex-angle-val').textContent = `${apexAngle}°`;
+            draw();
+        });
+
+        document.getElementById('mono-wavelength').addEventListener('input', (e) => {
+            monoWavelength = parseInt(e.target.value);
+            document.getElementById('mono-wl-val').textContent = `${monoWavelength} nm`;
+            draw();
+        });
+
+        // Newton parameters updates
+        document.getElementById('prism2-y').addEventListener('input', (e) => {
+            prism2Y = parseInt(e.target.value);
+            document.getElementById('prism2-y-val').textContent = `${prism2Y}px`;
+            draw();
+        });
+
+        document.getElementById('prism2-rot').addEventListener('input', (e) => {
+            prism2Rot = parseInt(e.target.value);
+            document.getElementById('prism2-rot-val').textContent = `${prism2Rot}°`;
+            draw();
+        });
+
+        function updateMaterialLabel() {
+            let info = "";
+            if (material === 'custom') {
+                info = `Experimental Material (n ≈ ${customBaseIndex.toFixed(3)})`;
+            } else {
+                const names = {
+                    'crown-glass': 'Crown Glass (n = 1.517)',
+                    'flint-glass': 'Flint Glass (n = 1.620)',
+                    'diamond': 'Diamond (n = 2.417)',
+                    'water': 'Liquid Water (n = 1.333)'
+                };
+                info = names[material];
+            }
+            document.getElementById('material-info').textContent = info;
+        }
+
+        function resetSimulation() {
+            beamType = 'white';
+            material = 'crown-glass';
+            incidentAngle = -10;
+            apexAngle = 60;
+            monoWavelength = 532;
+            prism2Y = 45;
+            prism2Rot = -15;
+
+            // Update DOM
+            document.getElementById('prism-material').value = 'crown-glass';
+            document.getElementById('custom-refractive-container').classList.add('hidden');
+            document.getElementById('beam-angle').value = -10;
+            document.getElementById('beam-angle-val').textContent = `-10°`;
+            document.getElementById('apex-angle').value = 60;
+            document.getElementById('apex-angle-val').textContent = `60°`;
+            document.getElementById('mono-wavelength').value = 532;
+            document.getElementById('mono-wl-val').textContent = `532 nm`;
+            document.getElementById('prism2-y').value = 45;
+            document.getElementById('prism2-y-val').textContent = `45px`;
+            document.getElementById('prism2-rot').value = -15;
+            document.getElementById('prism2-rot-val').textContent = `-15°`;
+            setBeamType('white');
+            updateMaterialLabel();
+            
+            // reset drag position
+            dragSourcePos = { x: 80, y: 220 };
+            draw();
+        }
+
+        // Raytracing Core Drawing loop
+        function draw() {
+            if (!canvas.width || !canvas.height) return;
+
+            // Clear Background
+            ctx.fillStyle = '#020617'; // slate-950
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+            ctx.lineWidth = 1;
+            const gridSz = 40;
+            for (let x = 0; x < canvas.width; x += gridSz) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSz) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Geometry calculations for Prism 1 (Centered relative to grid)
+            const cX = canvas.width / 2 - 40;
+            const cY = canvas.height / 2;
+            const size = 120; // Side length
+
+            // Calculate equilateral triangle based on dynamic apexAngle
+            const halfApex = (apexAngle * Math.PI) / 180 / 2;
+            const topPt = new Vector2D(cX, cY - size * 0.5);
+            const botLeft = new Vector2D(cX - size * Math.sin(halfApex) * 1.5, cY + size * Math.cos(halfApex) * 0.7);
+            const botRight = new Vector2D(cX + size * Math.sin(halfApex) * 1.5, cY + size * Math.cos(halfApex) * 0.7);
+
+            const prism1Sides = [
+                { a: topPt, b: botLeft }, // Left facet
+                { a: botLeft, b: botRight }, // Base facet
+                { a: botRight, b: topPt }  // Right facet
+            ];
+
+            // Define light source position and initial direction
+            const sourcePos = new Vector2D(dragSourcePos.x, dragSourcePos.y);
+            const angleRad = (incidentAngle * Math.PI) / 180;
+            const sourceDir = new Vector2D(Math.cos(angleRad), Math.sin(angleRad));
+
+            // Helper to determine the normal vector of a triangle facet
+            function getFacetNormal(segA, segB, incidentDir) {
+                const dy = segB.y - segA.y;
+                const dx = segB.x - segA.x;
+                // Normal is perpendicular
+                let n = new Vector2D(-dy, dx).normalize();
+                // Ensure normal points outward (opposite direction to incoming ray)
+                if (n.dot(incidentDir) > 0) {
+                    n = n.mult(-1);
+                }
+                return n;
+            }
+
+            // Ray tracing for multiple wavelengths
+            let wavelengths = [];
+            if (beamType === 'white') {
+                if (activeTab === 'sources') {
+                    // Populate based on active real-world source profile
+                    for (let wl = 400; wl <= 700; wl += 15) {
+                        wavelengths.push({ wl: wl, intensity: getIntensityAt(wl, currentSource) });
+                    }
+                } else {
+                    // Default high density spectrum
+                    for (let wl = 400; wl <= 700; wl += 10) {
+                        wavelengths.push({ wl: wl, intensity: 1.0 });
+                    }
+                }
+            } else {
+                wavelengths.push({ wl: monoWavelength, intensity: 1.0 });
+            }
+
+            // Monitor state for Recombination success
+            let combinedEmergentRayAngleVariance = 0;
+            let totalTracedEmergentRays = 0;
+            let lastRayExitAngle = null;
+
+            // Geometry calculation for Prism 2 (The Inverted One used in Stage 3 Recombination Challenge)
+            const p2Size = 120;
+            const p2AngleRad = (prism2Rot * Math.PI) / 180;
+            
+            // Set base location of the inverted second prism
+            const p2CX = cX + 160;
+            const p2CY = cY + prism2Y;
+
+            // Inverted triangle coordinates (rotatable)
+            const rotateVec = (vec, angle) => {
+                const cosA = Math.cos(angle);
+                const sinA = Math.sin(angle);
+                return new Vector2D(
+                    vec.x * cosA - vec.y * sinA,
+                    vec.x * sinA + vec.y * cosA
+                );
+            };
+
+            const localTop = new Vector2D(0, p2Size * 0.5); // pointing down
+            const localLeft = new Vector2D(-p2Size * Math.sin(halfApex) * 1.5, -p2Size * Math.cos(halfApex) * 0.7);
+            const localRight = new Vector2D(p2Size * Math.sin(halfApex) * 1.5, -p2Size * Math.cos(halfApex) * 0.7);
+
+            // Apply rotation and offset to construct second prism vertices
+            const p2V1 = rotateVec(localTop, p2AngleRad + Math.PI).add(new Vector2D(p2CX, p2CY));
+            const p2V2 = rotateVec(localLeft, p2AngleRad + Math.PI).add(new Vector2D(p2CX, p2CY));
+            const p2V3 = rotateVec(localRight, p2AngleRad + Math.PI).add(new Vector2D(p2CX, p2CY));
+
+            const prism2Sides = [
+                { a: p2V1, b: p2V2 },
+                { a: p2V2, b: p2V3 },
+                { a: p2V3, b: p2V1 }
+            ];
+
+            // Render Prism 2 if recombination stage is active
+            if (activeTab === 'recombine') {
+                ctx.fillStyle = 'rgba(30, 41, 59, 0.2)';
+                ctx.strokeStyle = 'rgba(244, 63, 94, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(p2V1.x, p2V1.y);
+                ctx.lineTo(p2V2.x, p2V2.y);
+                ctx.lineTo(p2V3.x, p2V3.y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Small pivot dot
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(p2CX, p2CY, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw primary Prism 1
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(topPt.x, topPt.y);
+            ctx.lineTo(botLeft.x, botLeft.y);
+            ctx.lineTo(botRight.x, botRight.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Trace each wavelength beam
+            wavelengths.forEach(item => {
+                const wl = item.wl;
+                const intensity = item.intensity;
+                const nMed = getRefractiveIndex(wl, material);
+                const rayColor = wavelengthToRGBA(wl, intensity);
+
+                let currentOrigin = sourcePos;
+                let currentDir = sourceDir;
+
+                // Segment 1: Source to Prism 1 Entrance Facet
+                let firstIntersection = null;
+                let hitSide = null;
+
+                for (let i = 0; i < prism1Sides.length; i++) {
+                    const hit = raySegmentIntersect(currentOrigin, currentDir, prism1Sides[i].a, prism1Sides[i].b);
+                    if (hit) {
+                        if (!firstIntersection || hit.t < firstIntersection.t) {
+                            firstIntersection = hit;
+                            hitSide = prism1Sides[i];
+                        }
+                    }
+                }
+
+                if (firstIntersection) {
+                    // Draw incoming incident path
+                    ctx.strokeStyle = beamType === 'white' ? 'rgba(255,255,255,0.15)' : rayColor;
+                    ctx.lineWidth = beamType === 'white' ? 1 : 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(currentOrigin.x, currentOrigin.y);
+                    ctx.lineTo(firstIntersection.point.x, firstIntersection.point.y);
+                    ctx.stroke();
+
+                    // Calculate index math for refraction 1
+                    const normal1 = getFacetNormal(hitSide.a, hitSide.b, currentDir);
+                    const refractedDir1 = refractVector(currentDir, normal1, 1.0, nMed);
+
+                    if (refractedDir1) {
+                        // Segment 2: Travel inside Prism 1
+                        let exitIntersection = null;
+                        let exitSide = null;
+
+                        // Start tracing from slightly inside to avoid self-collision errors
+                        const insideOrigin = firstIntersection.point.add(refractedDir1.mult(0.1));
+
+                        for (let i = 0; i < prism1Sides.length; i++) {
+                            const hit = raySegmentIntersect(insideOrigin, refractedDir1, prism1Sides[i].a, prism1Sides[i].b);
+                            if (hit) {
+                                if (!exitIntersection || hit.t < exitIntersection.t) {
+                                    exitIntersection = hit;
+                                    exitSide = prism1Sides[i];
+                                }
+                            }
+                        }
+
+                        if (exitIntersection) {
+                            // Draw internal beam path
+                            ctx.strokeStyle = rayColor;
+                            ctx.lineWidth = 1.8;
+                            ctx.beginPath();
+                            ctx.moveTo(firstIntersection.point.x, firstIntersection.point.y);
+                            ctx.lineTo(exitIntersection.point.x, exitIntersection.point.y);
+                            ctx.stroke();
+
+                            // Refraction 2: Glass back to Air
+                            const normal2 = getFacetNormal(exitSide.a, exitSide.b, refractedDir1);
+                            const emergentDir = refractVector(refractedDir1, normal2, nMed, 1.0);
+
+                            if (emergentDir) {
+                                const afterPrism1Origin = exitIntersection.point.add(emergentDir.mult(0.1));
+                                
+                                // NEWTON CHALLENGE: Check interaction with Prism 2
+                                if (activeTab === 'recombine') {
+                                    let p2Intersection = null;
+                                    let p2HitSide = null;
+
+                                    for (let i = 0; i < prism2Sides.length; i++) {
+                                        const hit = raySegmentIntersect(afterPrism1Origin, emergentDir, prism2Sides[i].a, prism2Sides[i].b);
+                                        if (hit) {
+                                            if (!p2Intersection || hit.t < p2Intersection.t) {
+                                                p2Intersection = hit;
+                                                p2HitSide = prism2Sides[i];
+                                            }
+                                        }
+                                    }
+
+                                    if (p2Intersection) {
+                                        // Draw beam segment between Prism 1 and Prism 2
+                                        ctx.strokeStyle = rayColor;
+                                        ctx.lineWidth = 1.8;
+                                        ctx.beginPath();
+                                        ctx.moveTo(exitIntersection.point.x, exitIntersection.point.y);
+                                        ctx.lineTo(p2Intersection.point.x, p2Intersection.point.y);
+                                        ctx.stroke();
+
+                                        // Refract into Prism 2 (Air -> Glass)
+                                        const p2Normal1 = getFacetNormal(p2HitSide.a, p2HitSide.b, emergentDir);
+                                        const p2RefractedDir1 = refractVector(emergentDir, p2Normal1, 1.0, nMed);
+
+                                        if (p2RefractedDir1) {
+                                            const p2InsideOrigin = p2Intersection.point.add(p2RefractedDir1.mult(0.1));
+                                            let p2ExitIntersection = null;
+                                            let p2ExitSide = null;
+
+                                            for (let i = 0; i < prism2Sides.length; i++) {
+                                                const hit = raySegmentIntersect(p2InsideOrigin, p2RefractedDir1, prism2Sides[i].a, prism2Sides[i].b);
+                                                if (hit) {
+                                                    if (!p2ExitIntersection || hit.t < p2ExitIntersection.t) {
+                                                        p2ExitIntersection = hit;
+                                                        p2ExitSide = prism2Sides[i];
+                                                    }
+                                                }
+                                            }
+
+                                            if (p2ExitIntersection) {
+                                                // Draw internal path in Prism 2
+                                                ctx.strokeStyle = rayColor;
+                                                ctx.lineWidth = 1.8;
+                                                ctx.beginPath();
+                                                ctx.moveTo(p2Intersection.point.x, p2Intersection.point.y);
+                                                ctx.lineTo(p2ExitIntersection.point.x, p2ExitIntersection.point.y);
+                                                ctx.stroke();
+
+                                                // Refract out of Prism 2 (Glass -> Air)
+                                                const p2Normal2 = getFacetNormal(p2ExitSide.a, p2ExitSide.b, p2RefractedDir1);
+                                                const finalEmergentDir = refractVector(p2RefractedDir1, p2Normal2, nMed, 1.0);
+
+                                                if (finalEmergentDir) {
+                                                    // Draw final exit path to edge of workspace
+                                                    const finalEnd = p2ExitIntersection.point.add(finalEmergentDir.mult(600));
+                                                    ctx.strokeStyle = rayColor;
+                                                    ctx.lineWidth = 2.0;
+                                                    ctx.beginPath();
+                                                    ctx.moveTo(p2ExitIntersection.point.x, p2ExitIntersection.point.y);
+                                                    ctx.lineTo(finalEnd.x, finalEnd.y);
+                                                    ctx.stroke();
+
+                                                    // Calculate exit angle for recombination tracking
+                                                    const currentAngle = Math.atan2(finalEmergentDir.y, finalEmergentDir.x);
+                                                    if (lastRayExitAngle !== null) {
+                                                        combinedEmergentRayAngleVariance += Math.abs(currentAngle - lastRayExitAngle);
+                                                    }
+                                                    lastRayExitAngle = currentAngle;
+                                                    totalTracedEmergentRays++;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // Ray missed Prism 2, draw straight emergent beam
+                                        const endPt = exitIntersection.point.add(emergentDir.mult(600));
+                                        ctx.strokeStyle = rayColor;
+                                        ctx.lineWidth = 1.8;
+                                        ctx.beginPath();
+                                        ctx.moveTo(exitIntersection.point.x, exitIntersection.point.y);
+                                        ctx.lineTo(endPt.x, endPt.y);
+                                        ctx.stroke();
+                                    }
+                                } else {
+                                    // Default single prism mode: trace emergent ray out to infinite canvas edge
+                                    const endPt = exitIntersection.point.add(emergentDir.mult(600));
+                                    ctx.strokeStyle = rayColor;
+                                    ctx.lineWidth = 1.8;
+                                    ctx.beginPath();
+                                    ctx.moveTo(exitIntersection.point.x, exitIntersection.point.y);
+                                    ctx.lineTo(endPt.x, endPt.y);
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // No intersection with Prism: trace straight incoming light line
+                    const endPt = currentOrigin.add(currentDir.mult(600));
+                    ctx.strokeStyle = beamType === 'white' ? 'rgba(255,255,255,0.25)' : rayColor;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(currentOrigin.x, currentOrigin.y);
+                    ctx.lineTo(endPt.x, endPt.y);
+                    ctx.stroke();
+                }
+            });
+
+            // Handle Newton alignment state analysis
+            if (activeTab === 'recombine' && totalTracedEmergentRays > 1) {
+                // Ideal alignment: emergent rays are highly parallel (variance near zero)
+                const varianceAverage = combinedEmergentRayAngleVariance / totalTracedEmergentRays;
+                const statusBanner = document.getElementById('recombination-status');
+                
+                // Fine-tuned target offsets for alignment
+                if (varianceAverage < 0.005) {
+                    statusBanner.className = "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl p-3 text-xs text-center font-bold animate-pulse";
+                    statusBanner.innerHTML = "🎉 Recombination Achieved! Parallel emergent rays are recombining to restore white light.";
+                    recombinationAchieved = true;
+                } else {
+                    statusBanner.className = "bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded-xl p-3 text-xs text-center font-semibold";
+                    statusBanner.innerHTML = "⚠️ Misaligned: The colors are still diverging. Try adjusting heights or tilting the prism to counteract dispersion!";
+                    recombinationAchieved = false;
+                }
+            }
+
+            // Draw interactive light emitter handle
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(sourcePos.x, sourcePos.y, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Glow core of flashlight handle
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(sourcePos.x, sourcePos.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Write active calculated values into Math Dashboard
+            const nV = getRefractiveIndex(400, material);
+            const nR = getRefractiveIndex(700, material);
+            document.getElementById('dash-nv').textContent = nV.toFixed(3);
+            document.getElementById('dash-nr').textContent = nR.toFixed(3);
+
+            // Velocity estimates: speed = c / n
+            const vViolet = (c / nV) / 1e8;
+            const vRed = (c / nR) / 1e8;
+            document.getElementById('dash-vv').textContent = `${vViolet.toFixed(2)} × 10⁸ m/s`;
+            document.getElementById('dash-vr').textContent = `${vRed.toFixed(2)} × 10⁸ m/s`;
+        }
+
+        // Pointer/Drag logic inside canvas to position Light Emitter
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            const dist = Math.hypot(clickX - dragSourcePos.x, clickY - dragSourcePos.y);
+            if (dist < 20) {
+                isDraggingSource = true;
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            if (isDraggingSource) {
+                // Keep within viewport boundaries
+                dragSourcePos.x = Math.max(20, Math.min(canvas.width / 2.5, mouseX));
+                dragSourcePos.y = Math.max(20, Math.min(canvas.height - 20, mouseY));
+                
+                // Auto calculate incident angle to track towards the center of Prism 1
+                const prismCenter = { x: canvas.width / 2 - 40, y: canvas.height / 2 };
+                const dy = prismCenter.y - dragSourcePos.y;
+                const dx = prismCenter.x - dragSourcePos.x;
+                const computedAngleDeg = Math.round((Math.atan2(dy, dx) * 180) / Math.PI);
+                
+                incidentAngle = computedAngleDeg;
+                document.getElementById('beam-angle').value = incidentAngle;
+                document.getElementById('beam-angle-val').textContent = `${incidentAngle}°`;
+
+                draw();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDraggingSource = false;
+        });
+
+        // Add Touch Support for mobile compatibility
+        canvas.addEventListener('touchstart', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const clickX = touch.clientX - rect.left;
+            const clickY = touch.clientY - rect.top;
+
+            const dist = Math.hypot(clickX - dragSourcePos.x, clickY - dragSourcePos.y);
+            if (dist < 30) {
+                isDraggingSource = true;
+                e.preventDefault();
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDraggingSource) return;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const mouseX = touch.clientX - rect.left;
+            const mouseY = touch.clientY - rect.top;
+
+            dragSourcePos.x = Math.max(20, Math.min(canvas.width / 2.5, mouseX));
+            dragSourcePos.y = Math.max(20, Math.min(canvas.height - 20, mouseY));
+
+            const prismCenter = { x: canvas.width / 2 - 40, y: canvas.height / 2 };
+            const dy = prismCenter.y - dragSourcePos.y;
+            const dx = prismCenter.x - dragSourcePos.x;
+            const computedAngleDeg = Math.round((Math.atan2(dy, dx) * 180) / Math.PI);
+            
+            incidentAngle = computedAngleDeg;
+            document.getElementById('beam-angle').value = incidentAngle;
+            document.getElementById('beam-angle-val').textContent = `${incidentAngle}°`;
+
+            draw();
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchend', () => {
+            isDraggingSource = false;
+        });
+
+        // Interactive Assessment / Quizzes Code
+        function answerQuestion(qId, option) {
+            const feedback1 = document.getElementById('q1-feedback');
+            const feedback2 = document.getElementById('q1-feedback-2');
+
+            if (qId === 1) {
+                feedback1.classList.remove('hidden');
+                if (option === 'b') {
+                    feedback1.className = "text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg mt-3";
+                    feedback1.innerHTML = "✔️ Correct! LEDs generate white light using a discrete Blue LED excitation source with secondary Phosphors. Because they are not continuous thermal sources like tungsten filaments, the spectrum has characteristic intensity gaps.";
+                } else {
+                    feedback1.className = "text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg mt-3";
+                    feedback1.innerHTML = "❌ Try again! LEDs lack continuous thermal emission. Switch over to the 'Stage 4: Spectrum' tab to visually inspect the intense blue peak and phosphor distribution of an LED!";
+                }
+            } else if (qId === 2) {
+                feedback2.classList.remove('hidden');
+                if (option === 'a') {
+                    feedback2.className = "text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg mt-3";
+                    feedback2.innerHTML = "✔️ Correct! Since red has the longest wavelength, its refractive index in medium is minimal, letting it travel fastest and bend/deviate the least. Violet is slowest and deviates/bends the most.";
+                } else {
+                    feedback2.className = "text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg mt-3";
+                    feedback2.innerHTML = "❌ Try again! Remember, higher frequency/shorter wavelength (Violet) encounters a larger refractive index ($n$). According to Snell's law, a higher index means slower travel speed and sharper bending.";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
